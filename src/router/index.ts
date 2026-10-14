@@ -3,48 +3,37 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { getToken } from '@/services/authService'
 import { useAuth } from '@/composables/useAuth'
 
-// PUBLIC PAGES
-import HomeView from '@/views/public/HomeView.vue'
-import PropertiesView from '@/views/public/PropertiesView.vue'
-import PropertyDetailsView from '@/views/public/PropertyDetailsView.vue'
-import ReportIssueView from '@/views/public/ReportIssueView.vue'
-
-// AUTHENTICATION PAGES
-import LoginView from '@/views/auth/LoginView.vue'
-import RegisterView from '@/views/auth/RegisterView.vue'
-import ForgotPasswordView from '@/views/auth/ForgotPasswordView.vue'
-import ResetPasswordView from '@/views/auth/ResetPasswordView.vue'
-
-// BUYER ACCOUNT PAGES
-import BuyerSavedPropertiesView from '@/views/buyer/BuyerSavedPropertiesView.vue'
-import BuyerInquiriesView from '@/views/buyer/BuyerInquiriesView.vue'
-import PublisherApplicationView from '@/views/buyer/PublisherApplicationView.vue'
-
-// PROPERTY OWNER WORKSPACE
-import OwnerDashboardView from '@/views/owner/OwnerDashboardView.vue'
-import MyPropertiesView from '@/views/owner/MyPropertiesView.vue'
-import CreatePropertyView from '@/views/owner/CreatePropertyView.vue'
-import EditPropertyView from '@/views/owner/EditPropertyView.vue'
-import OwnerPropertyDetailsView from '@/views/owner/OwnerPropertyDetailsView.vue'
-import OwnerInquiriesView from '@/views/owner/OwnerInquiriesView.vue'
-
-// BROKER WORKSPACE
-import BrokerDashboardView from '@/views/broker/BrokerDashboardView.vue'
-import BrokerListingsView from '@/views/broker/BrokerListingsView.vue'
-import CreateBrokerListingView from '@/views/broker/CreateBrokerListingView.vue'
-import EditBrokerListingView from '@/views/broker/EditBrokerListingView.vue'
-import BrokerListingDetailsView from '@/views/broker/BrokerListingDetailsView.vue'
-import BrokerInquiriesView from '@/views/broker/BrokerInquiriesView.vue'
-import BrokerProfileView from '@/views/broker/BrokerProfileView.vue'
-
-// ADMIN WORKSPACE
-import AdminDashboardView from '@/views/admin/AdminDashboardView.vue'
-import AdminPropertiesView from '@/views/admin/AdminPropertiesView.vue'
-import AdminUsersView from '@/views/admin/AdminUsersView.vue'
-import AdminVerificationsView from '@/views/admin/AdminVerificationsView.vue'
-import AdminInquiriesView from '@/views/admin/AdminInquiriesView.vue'
-import AdminReportsView from '@/views/admin/AdminReportsView.vue'
-import AdminPublisherApplicationsView from '@/views/admin/AdminPublisherApplicationsView.vue'
+const HomeView = () => import('@/views/public/HomeView.vue')
+const PropertiesView = () => import('@/views/public/PropertiesView.vue')
+const PropertyDetailsView = () => import('@/views/public/PropertyDetailsView.vue')
+const ReportIssueView = () => import('@/views/public/ReportIssueView.vue')
+const LoginView = () => import('@/views/auth/LoginView.vue')
+const RegisterView = () => import('@/views/auth/RegisterView.vue')
+const ForgotPasswordView = () => import('@/views/auth/ForgotPasswordView.vue')
+const ResetPasswordView = () => import('@/views/auth/ResetPasswordView.vue')
+const BuyerSavedPropertiesView = () => import('@/views/buyer/BuyerSavedPropertiesView.vue')
+const BuyerInquiriesView = () => import('@/views/buyer/BuyerInquiriesView.vue')
+const PublisherApplicationView = () => import('@/views/buyer/PublisherApplicationView.vue')
+const OwnerDashboardView = () => import('@/views/owner/OwnerDashboardView.vue')
+const MyPropertiesView = () => import('@/views/owner/MyPropertiesView.vue')
+const CreatePropertyView = () => import('@/views/owner/CreatePropertyView.vue')
+const EditPropertyView = () => import('@/views/owner/EditPropertyView.vue')
+const OwnerPropertyDetailsView = () => import('@/views/owner/OwnerPropertyDetailsView.vue')
+const OwnerInquiriesView = () => import('@/views/owner/OwnerInquiriesView.vue')
+const BrokerDashboardView = () => import('@/views/broker/BrokerDashboardView.vue')
+const BrokerListingsView = () => import('@/views/broker/BrokerListingsView.vue')
+const CreateBrokerListingView = () => import('@/views/broker/CreateBrokerListingView.vue')
+const EditBrokerListingView = () => import('@/views/broker/EditBrokerListingView.vue')
+const BrokerListingDetailsView = () => import('@/views/broker/BrokerListingDetailsView.vue')
+const BrokerInquiriesView = () => import('@/views/broker/BrokerInquiriesView.vue')
+const BrokerProfileView = () => import('@/views/broker/BrokerProfileView.vue')
+const AdminDashboardView = () => import('@/views/admin/AdminDashboardView.vue')
+const AdminPropertiesView = () => import('@/views/admin/AdminPropertiesView.vue')
+const AdminUsersView = () => import('@/views/admin/AdminUsersView.vue')
+const AdminVerificationsView = () => import('@/views/admin/AdminVerificationsView.vue')
+const AdminInquiriesView = () => import('@/views/admin/AdminInquiriesView.vue')
+const AdminReportsView = () => import('@/views/admin/AdminReportsView.vue')
+const AdminPublisherApplicationsView = () => import('@/views/admin/AdminPublisherApplicationsView.vue')
 
 let hasCompletedInitialNavigation = false
 const scrollStoragePrefix = 'butuanspaces_scroll:'

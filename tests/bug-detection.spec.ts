@@ -1,7 +1,8 @@
 
 import { test, expect } from '@playwright/test'
+import { mockPublicPropertyApi } from './api-mocks'
 
-const baseURL = 'http://localhost:5173'
+const baseURL = 'http://127.0.0.1:4174'
 
 const routes = [
   '/',
@@ -14,6 +15,7 @@ const routes = [
 
 for (const route of routes) {
   test(`detect errors on ${route}`, async ({ page }) => {
+    await mockPublicPropertyApi(page)
     const errors: string[] = []
 
     // Detect JavaScript runtime errors

@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ButuanSpaces API Diagnostics</title>
+  <style>
+    body {
+      font: 15px system-ui, sans-serif;
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 0 18px;
+      background: #f5f7fb;
+      color: #172033;
+    }
+    .panel, .result {
+      background: white;
+      border: 1px solid #dce2ec;
+      border-radius: 10px;
+      padding: 16px;
+      margin: 12px 0;
+    }
+    input { width: min(100%, 520px); padding: 10px; }
+    button {
+      padding: 10px 14px;
+      margin: 8px 6px 8px 0;
+      border: 0;
+      border-radius: 6px;
+      background: #2457d6;
+      color: white;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .5; cursor: wait; }
+    .PASS { color: #087443; }
+    .FAIL { color: #b42318; }
+    .WARN { color: #9a6700; }
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: #f2f4f8;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    small { color: #596579; }
+  </style>
+</head>
+<body>
+  <h1>ButuanSpaces API Diagnostics</h1>
+  <p>Test the live API and inspect HTTP responses and browser errors.</p>
+
+  <section class="panel">
+    <label for="base"><strong>API base URL</strong></label><br />
+    <input id="base" value="https://backend1-3fwi.onrender.com/api" />
+    <br />
+    <button id="run">Run all tests</button>
+    <button id="clear">Clear results</button>
+    <p id="summary">Ready to test.</p>
+    <small>
+      Only safe GET requests and validation-only login requests are used.
+      No account or property data is modified.
+    </small>
+  </section>
+
+  <div id="results"></div>
+
+  <script>
+    const baseInput = document.querySelector("#base");
+    const runButton = document.querySelector("#run");
+    const results = document.querySelector("#results");
+    const summary = document.querySelector("#summary");
+
+    const tests = [
+      {
+        name: "API connectivity",
+        method: "GET",
+        path: "/properties",
+        expected: [200]
+      },
+      {
+        name: "Unauthenticated user",
+        method: "GET",
+        path: "/user",
+        expected: [401]
+      },
+      {
+        name: "Invalid login validation",
+        method: "POST",
+        path: "/login",
+        body: {},
+        expected: [422]
+      },
+      {
+        name: "Nonexistent property",
+        method: "GET",
+        path: "/properties/999999999",
+        expected: [404, 422]
+      }
+    ];
+
+    async function runTest(test, base) {
+      const card = document.createElement("section");
+      card.className = "result";
+      card.innerHTML = `<h3></h3><p>Running...</p>`;
+      card.querySelector("h3").textContent = test.name;
+      results.appendChild(card);
+
+      const detail = document.createElement("div");
+      card.appendChild(detail);
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      const started = performance.now();
+
+      try {
+        const response = await fetch(base + test.path, {
+          method: test.method,
+          headers: {
+            Accept: "application/json",
+            ...(test.body ? { "Content-Type": "application/json" } : {})
+          },
+          ...(test.body ? { body: JSON.stringify(test.body) } : {}),
+          signal: controller.signal,
+          cache: "no-store"
+        });
+
+        const elapsed = Math.round(performance.now() - started);
+        const contentType = response.headers.get("content-type") || "(missing)";
+        const rawBody = await response.text();
+
+        let parsedBody;
+        let parseError = null;
+
+        try {
+          parsedBody = rawBody ? JSON.parse(rawBody) : null;
+        } catch (error) {
+          parseError = error.message;
+        }
+
+        const statusPass = test.expected.includes(response.status);
+        const jsonPass =
+          contentType.toLowerCase().includes("application/json");
+
+        // A successful fetch does not guarantee a correct HTTP status.
+        const passed = statusPass && jsonPass;
+
+        card.querySelector("p").className = passed ? "PASS" : "FAIL";
+        card.querySelector("p").textContent =
+          `${passed ? "PASS" : "FAIL"} — HTTP ${response.status} ` +
+          `${response.statusText} — ${elapsed} ms`;
+
+        detail.innerHTML = `
+          <p><strong>Expected status:</strong> ${test.expected.join(" or ")}</p>
+          <p><strong>Content-Type:</strong> </p>
+          <p><strong>Response URL:</strong> </p>
+          <p><strong>JSON parse:</strong> </p>
+          <p><strong>Response body:</strong></p>
+          <pre></pre>
+        `;
+
+        const paragraphs = detail.querySelectorAll("p");
+        paragraphs[1].append(document.createTextNode(contentType));
+        paragraphs[2].append(document.createTextNode(response.url));
+        paragraphs[3].append(document.createTextNode(
+          parseError ? `FAILED: ${parseError}` : "Valid JSON"
+        ));
+        detail.querySelector("pre").textContent =
+          rawBody.slice(0, 5000) || "(empty body)";
+
+        if (!jsonPass) {
+          const warning = document.createElement("p");
+          warning.className = "WARN";
+          warning.textContent =
+            "Unexpected response format: expected JSON.";
+          detail.prepend(warning);
+        }
+
+        if (!statusPass) {
+          const warning = document.createElement("p");
+          warning.className = "FAIL";
+          warning.textContent =
+            `Unexpected status. Expected ${test.expected.join(" or ")}, ` +
+            `received ${response.status()}.`;
+          detail.prepend(warning);
+        }
+
+        return passed;
+      } catch (error) {
+        const elapsed = Math.round(performance.now() - started);
+        const isTimeout = error.name === "AbortError";
+
+        card.querySelector("p").className = "FAIL";
+        card.querySelector("p").textContent =
+          `${isTimeout ? "TIMEOUT" : "NETWORK / CORS ERROR"} — ${elapsed} ms`;
+
+        const pre = document.createElement("pre");
+        pre.textContent =
+          `${error.name}: ${error.message}\n\n` +
+          (isTimeout
+            ? "The request exceeded 15 seconds."
+            : "The browser could not expose the response. Check DevTools → " +
+              "Console and Network. CORS, TLS, DNS, or connectivity may be involved.");
+        detail.appendChild(pre);
+
+        return false;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    runButton.addEventListener("click", async () => {
+      const base = baseInput.value.trim().replace(/\/+$/, "");
+
+      if (!/^https?:\/\//i.test(base)) {
+        summary.textContent = "Enter a valid HTTP or HTTPS API URL.";
+        return;
+      }
+
+      runButton.disabled = true;
+      results.replaceChildren();
+      summary.textContent = "Tests running...";
+
+      let passed = 0;
+      try {
+        for (const test of tests) {
+          if (await runTest(test, base)) passed++;
+        }
+        summary.textContent =
+          `${passed}/${tests.length} tests passed. ` +
+          `${tests.length - passed} failed or returned unexpected responses.`;
+      } finally {
+        runButton.disabled = false;
+      }
+    });
+
+    document.querySelector("#clear").addEventListener("click", () => {
+      results.replaceChildren();
+      summary.textContent = "Results cleared.";
+    });
+  </script>
+</body>
+</html>

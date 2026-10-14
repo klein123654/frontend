@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { mockInvalidLogin } from './api-mocks'
 
 test('login page opens in a clean browser session', async ({ page }) => {
   await page.goto('/login')
@@ -10,12 +11,13 @@ test('login page opens in a clean browser session', async ({ page }) => {
 })
 
 test('invalid credentials show an error without redirecting', async ({ page }) => {
+  await mockInvalidLogin(page)
   await page.goto('/login')
 
   await page.getByLabel('Email Address').fill('nobody-test@example.invalid')
   await page.locator('#login-password').fill('IncorrectPassword123!')
   await page.getByRole('button', { name: 'Sign In' }).click()
 
-  await expect(page.locator('.demo-alert')).toBeVisible({ timeout: 10000 })
+  await expect(page.getByRole('alert')).toContainText('provided credentials are incorrect', { timeout: 10000 })
   await expect(page).toHaveURL(/\/login$/)
 })
