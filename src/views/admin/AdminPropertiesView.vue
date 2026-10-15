@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import AdminShell from '@/components/admin/AdminShell.vue'
-import { adminListings, pendingAdminListings, reviewAdminListing, loadAdminWorkspace, adminError } from '@/stores/adminWorkspace'
+import { adminListings, pendingAdminListings, reviewAdminListing, unpublishAdminListing, loadAdminWorkspace, adminError } from '@/stores/adminWorkspace'
 import type { AdminDecision } from '@/data/admin/adminTypes'
 
 const query = ref('')
@@ -23,6 +23,13 @@ async function decide(decision: AdminDecision) {
   feedback.value = await reviewAdminListing(selected.value.key, decision, note.value)
     ? `Listing ${decision.toLowerCase()}.` : 'Review could not be saved.'
 }
+async function unpublish() {
+  if (!selected.value) return
+  if (!note.value.trim()) { feedback.value = 'A reason is required to unpublish.'; return }
+  if (!window.confirm(`Unpublish "${selected.value.title}" and return it to draft?`)) return
+  feedback.value = await unpublishAdminListing(selected.value.key, note.value)
+    ? 'Listing unpublished and returned to draft.' : 'Unpublish could not be saved.'
+}
 function currency(price: number) { return price > 0 ? new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(price) : 'Not specified' }
 </script>
 <template><AdminShell>
@@ -39,6 +46,8 @@ function currency(price: number) { return price > 0 ? new Intl.NumberFormat('en-
     <div class="admin-detail"><h3>{{ selected.title }}</h3><p><strong>Source:</strong> {{ selected.source }} · <strong>Property ID:</strong> {{ selected.id }}</p><p><strong>Location:</strong> {{ selected.location || 'Not specified' }} · {{ selected.barangay || 'Barangay not specified' }}</p><p><strong>Submitted:</strong> {{ selected.dateCreated }}</p><p><strong>Status:</strong> {{ selected.status }}</p><p v-if="selected.reviewNote"><strong>Decision note:</strong> {{ selected.reviewNote }}</p></div>
     <template v-if="selected.status==='Pending'"><div class="admin-fields"><div class="admin-field full"><label for="admin-review-note">Review Note (required for rejection)</label><textarea id="admin-review-note" v-model="note" placeholder="Reason or decision note"></textarea></div></div>
       <div class="admin-button-row"><button type="button" class="admin-button-success" @click="decide('Approved')">Approve Listing</button><button type="button" class="admin-button-danger" @click="decide('Rejected')">Reject Listing</button></div></template>
+    <template v-else-if="selected.status==='Approved'"><div class="admin-fields"><div class="admin-field full"><label for="admin-unpublish-note">Reason for unpublishing (required)</label><textarea id="admin-unpublish-note" v-model="note" placeholder="Explain why this listing should be removed from public results"></textarea></div></div>
+      <div class="admin-button-row"><button type="button" class="admin-button-danger" @click="unpublish">Unpublish Listing</button></div></template>
     <p v-else>This listing is not awaiting review.</p>
     <p v-if="feedback" role="status" class="admin-feedback" :class="{error: feedback.includes('required') || feedback.includes('could not')}">{{ feedback }}</p>
   </section>

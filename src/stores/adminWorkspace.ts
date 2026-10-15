@@ -4,7 +4,7 @@ import { updateInquiryStatus } from '@/services/inquiryService'
 import {
   fetchAdminInquiries, fetchAdminProperties, fetchAdminReports, fetchAdminSummary,
   fetchAdminUsers, fetchAdminVerifications, reviewBroker, reviewProperty,
-  setReportStatus, setUserAccountStatus,
+  setReportStatus, setUserAccountStatus, unpublishAdminProperty,
 } from '@/services/adminService'
 
 const properties = ref<AdminListing[]>([])
@@ -84,6 +84,21 @@ export async function reviewAdminListing(key: string, decision: 'Approved' | 'Re
     item.reviewNote = note
     return true
   } catch (error) { adminError.value = error instanceof Error ? error.message : 'Unable to review listing.'; return false }
+}
+
+export async function unpublishAdminListing(key: string, note: string): Promise<boolean> {
+  const item = properties.value.find((row) => row.key === key && row.status === 'Approved')
+  if (!item || !note.trim()) return false
+  try {
+    await unpublishAdminProperty(item.id, note.trim())
+    item.status = 'Draft'
+    item.sourceStatus = 'Draft'
+    item.reviewNote = note.trim()
+    return true
+  } catch (error) {
+    adminError.value = error instanceof Error ? error.message : 'Unable to unpublish listing.'
+    return false
+  }
 }
 
 export async function decideVerification(id: number, status: 'Verified' | 'Rejected', note: string): Promise<boolean> {

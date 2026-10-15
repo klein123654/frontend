@@ -55,6 +55,12 @@ export const fetchAdminSummary = () => apiRequest<{ data: Record<string, number>
 export function reviewProperty(id: number, status: 'published' | 'rejected', review_notes = '') {
   return apiRequest(`admin/properties/${id}`, { method: 'PATCH', body: JSON.stringify({ status, review_notes }) })
 }
+export function unpublishAdminProperty(id: number, review_notes: string) {
+  return apiRequest(`admin/properties/${id}/unpublish`, {
+    method: 'PATCH',
+    body: JSON.stringify({ review_notes }),
+  })
+}
 export function setUserAccountStatus(id: number, account_status: 'active' | 'suspended') {
   return apiRequest(`admin/users/${id}`, { method: 'PATCH', body: JSON.stringify({ account_status }) })
 }
