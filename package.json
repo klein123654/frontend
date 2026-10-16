@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "test:e2e": "playwright test",
+    "test:e2e:quality": "playwright test tests/quality-audit.spec.ts",
     "test:e2e:smoke": "playwright test tests/auth.spec.ts tests/buyer-navigation.spec.ts tests/bug-detection.spec.ts tests/example.spec.ts",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",

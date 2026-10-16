@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import AdminShell from '@/components/admin/AdminShell.vue'
 import { adminListings, pendingAdminListings, reviewAdminListing, unpublishAdminListing, loadAdminWorkspace, adminError } from '@/stores/adminWorkspace'
 import type { AdminDecision } from '@/data/admin/adminTypes'
@@ -12,7 +12,17 @@ const detailsTrigger = ref<HTMLElement | null>(null)
 const note = ref('')
 const feedback = ref('')
 const selected = computed(() => adminListings.value.find((item) => item.key === selectedKey.value))
-onMounted(() => loadAdminWorkspace())
+function handleDialogKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape' && selectedKey.value) {
+    event.preventDefault()
+    void closeDetails()
+  }
+}
+onMounted(() => {
+  void loadAdminWorkspace()
+  window.addEventListener('keydown', handleDialogKeydown)
+})
+onBeforeUnmount(() => window.removeEventListener('keydown', handleDialogKeydown))
 const filtered = computed(() => adminListings.value.filter((item) => {
   const matches = !query.value.trim() || [item.title, item.location, item.barangay, item.source]
     .some((part) => part.toLowerCase().includes(query.value.trim().toLowerCase()))
@@ -57,7 +67,7 @@ function currency(price: number) { return price > 0 ? new Intl.NumberFormat('en-
     <div v-if="filtered.length===0" class="admin-empty">No listings match your filters.</div>
   </section>
   <Teleport to="body">
-    <div v-if="selected" class="details-backdrop" @click.self="closeDetails" @keydown.esc="closeDetails">
+    <div v-if="selected" class="details-backdrop" @click.self="closeDetails">
       <section ref="detailsPanel" class="details-dialog" role="dialog" aria-modal="true" aria-labelledby="listing-details-title" tabindex="-1">
         <div class="details-header"><div><span class="details-eyebrow">{{ selected.source }} LISTING</span><h2 id="listing-details-title">Listing Details</h2></div><button type="button" class="details-close" aria-label="Close listing details" @click="closeDetails">&times;</button></div>
         <div class="details-summary"><h3>{{ selected.title }}</h3><div class="details-meta"><div><span>Property ID</span><strong>{{ selected.id }}</strong></div><div><span>Submitted</span><strong>{{ selected.dateCreated }}</strong></div><div><span>Location</span><strong>{{ selected.location || 'Not specified' }}<template v-if="selected.barangay">, {{ selected.barangay }}</template></strong></div><div><span>Status</span><span class="admin-status" :class="selected.status.toLowerCase()">{{ selected.status }}</span></div></div><p v-if="selected.reviewNote" class="details-review-note"><strong>Previous decision note</strong>{{ selected.reviewNote }}</p></div>

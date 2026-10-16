@@ -44,7 +44,7 @@ function showMarker(latitude: number, longitude: number, pan = false) {
     }).addTo(map)
   }
 
-  if (pan) map.setView(point, Math.max(map.getZoom(), 16))
+  if (pan) map.setView(point, Math.max(map.getZoom(), 16), { animate: false })
 }
 
 onMounted(() => {
