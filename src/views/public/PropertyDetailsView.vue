@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useRoute } from 'vue-router'
 import type { Property } from '@/types/property'
 import { fetchPublicProperty } from '@/services/propertyService'
 import PropertyGallery from '@/components/property/PropertyGallery.vue'
+import LocationMap from '@/components/property/LocationMap.vue'
 import InquiryForm from '@/components/forms/InquiryForm.vue'
 import { saveProperty } from '@/services/savedPropertyService'
 
@@ -16,6 +17,10 @@ const error = ref('')
 const savedMessage = ref('')
 const { user, isAuthenticated } = useAuth()
 const saving = ref(false)
+const openStreetMapSearchUrl = computed(() => {
+  const query = property.value?.location || 'Butuan City'
+  return `https://www.openstreetmap.org/search?query=${encodeURIComponent(query)}`
+})
 
 async function toggleSaved() {
   if (!property.value) return
@@ -139,11 +144,17 @@ watch(() => route.params.id, loadProperty, { immediate: true })
             <h2>Property Location</h2>
             <div class="location-info">
               <strong>{{ property.location }}</strong>
-              <p>Location details are based on the published listing.</p>
+              <p>The map marker is based on the location provided by the publisher.</p>
             </div>
-            <div class="map-placeholder">
-              <span>Location Map</span>
-              <p>Interactive property maps will be available in a future update.</p>
+            <LocationMap
+              v-if="property.latitude != null && property.longitude != null"
+              :latitude="property.latitude"
+              :longitude="property.longitude"
+            />
+            <div v-else class="map-placeholder">
+              <span>Exact map pin not available</span>
+              <p>This listing predates map pins. Search its listed area on OpenStreetMap.</p>
+              <a :href="openStreetMapSearchUrl" target="_blank" rel="noopener noreferrer">Search this area</a>
             </div>
           </section>
 
@@ -344,6 +355,13 @@ watch(() => route.params.id, loadProperty, { immediate: true })
   max-width: 250px;
   margin-bottom: 0;
   font-size: 12px;
+}
+
+.map-placeholder a {
+  margin-top: 14px;
+  color: #9a3412;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 /* INQUIRY SIDEBAR */

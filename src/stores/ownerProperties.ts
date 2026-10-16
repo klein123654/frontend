@@ -11,6 +11,8 @@ export interface NewOwnerPropertyInput {
   location: string
   city: string
   province: string
+  latitude?: number | null
+  longitude?: number | null
   price: number | null
   area: number | null
   description: string

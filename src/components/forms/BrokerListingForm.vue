@@ -4,20 +4,21 @@ import { useRoute } from 'vue-router'
 import { RouterLink } from 'vue-router'
 import type { BrokerListing, BrokerListingInput } from '@/data/broker/brokerListings'
 import type { ListingType, PropertyType } from '@/types/property'
+import LocationMap from '@/components/property/LocationMap.vue'
 import { useFormDraft } from '@/composables/useFormDraft'
 import { BUTUAN_BARANGAYS, BUTUAN_CITY, BUTUAN_PROVINCE, canonicalButuanBarangay, isButuanBarangay } from '@/data/butuanLocation'
 
 const props = defineProps<{ initial?: BrokerListing; edit?: boolean }>()
 const emit = defineEmits<{ save: [payload: BrokerListingInput] }>()
 const propertyTypes: PropertyType[] = ['Office Spaces', 'Retail Spaces', 'Warehouses', 'Commercial Lots']
-const listingTypes: ListingType[] = ['For Rent', 'For Sale']
+const listingTypes: ListingType[] = ['For Rent', 'For Lease', 'For Sale']
 const validationMessage = ref('')
 const images = ref<File[]>([])
 const form = reactive({
-  title: '', location: '', barangay: '', city: BUTUAN_CITY, province: BUTUAN_PROVINCE,
+  title: '', location: '', barangay: '',
   propertyType: 'Office Spaces' as PropertyType,
   listingType: 'For Rent' as ListingType,
-  price: 0, area: 0, description: ''
+  price: 0, area: 0, description: '', latitude: null as number | null, longitude: null as number | null
 })
 const route = useRoute()
 const formDraft = useFormDraft(`broker-listing-${route.fullPath}`, form)
@@ -25,9 +26,10 @@ const formDraft = useFormDraft(`broker-listing-${route.fullPath}`, form)
 watch(() => props.initial, (value) => {
   if (!value || formDraft.hasDraft) return
   Object.assign(form, {
-    title: value.title, location: value.location, barangay: value.barangay, city: BUTUAN_CITY, province: BUTUAN_PROVINCE,
+    title: value.title, location: value.location, barangay: value.barangay,
     propertyType: value.propertyType, listingType: value.listingType,
-    price: value.price, area: value.area, description: value.description
+    price: value.price, area: value.area, description: value.description,
+    latitude: value.latitude ?? null, longitude: value.longitude ?? null
   })
 }, { immediate: true })
 
@@ -41,14 +43,24 @@ function submit(status: 'Draft' | 'Pending') {
     validationMessage.value = 'Enter a street or location, choose a valid Butuan barangay, and complete the description, price, and area.'
     return
   }
+  if (status === 'Pending' && (form.latitude === null || form.longitude === null)) {
+    validationMessage.value = 'Choose the property location on the map before submitting for review.'
+    return
+  }
   validationMessage.value = ''
   emit('save', {
     title: form.title.trim(), location: form.location.trim(), barangay: canonicalButuanBarangay(form.barangay) ?? '', city: BUTUAN_CITY, province: BUTUAN_PROVINCE,
     propertyType: form.propertyType, listingType: form.listingType,
     price: Number(form.price) || 0, area: Number(form.area) || 0,
+    latitude: form.latitude, longitude: form.longitude,
     description: form.description.trim(), status,
     images: images.value
   })
+}
+
+function setCoordinates(coordinates: { latitude: number; longitude: number }) {
+  form.latitude = coordinates.latitude
+  form.longitude = coordinates.longitude
 }
 
 function selectImages(event: Event) {
@@ -68,12 +80,12 @@ function selectImages(event: Event) {
 <template>
   <form class="listing-form" @submit.prevent="submit('Draft')">
     <div class="field full"><label for="broker-title">Property Title *</label><input id="broker-title" v-model="form.title" maxlength="150" placeholder="Enter the property title" /></div>
-    <div class="field"><label for="broker-property-type">Property Type</label><input id="broker-property-type" v-model="form.propertyType" list="broker-property-types" placeholder="Type or choose a property type" /><datalist id="broker-property-types"><option v-for="type in propertyTypes" :key="type" :value="type" /></datalist></div>
-    <div class="field"><label for="broker-listing-type">Listing Type</label><input id="broker-listing-type" v-model="form.listingType" list="broker-listing-types" placeholder="Type or choose rent or sale" /><datalist id="broker-listing-types"><option v-for="type in listingTypes" :key="type" :value="type" /></datalist></div>
+    <div class="field"><label for="broker-property-type">Property Type</label><select id="broker-property-type" v-model="form.propertyType"><option v-for="type in propertyTypes" :key="type" :value="type">{{ type }}</option></select></div>
+    <div class="field"><label for="broker-listing-type">Listing Type</label><select id="broker-listing-type" v-model="form.listingType"><option v-for="type in listingTypes" :key="type" :value="type">{{ type }}</option></select></div>
     <div class="field"><label for="broker-barangay">Barangay</label><input id="broker-barangay" v-model="form.barangay" list="broker-butuan-barangays" placeholder="Start typing a barangay" /><datalist id="broker-butuan-barangays"><option v-for="name in BUTUAN_BARANGAYS" :key="name" :value="name" /></datalist><small>Type a few letters to see Butuan barangay suggestions.</small></div>
     <div class="field"><label for="broker-location">Property Location</label><input id="broker-location" v-model="form.location" placeholder="Street / city / nearby landmark" /></div>
-    <div class="field"><label for="broker-city">City / Municipality</label><input id="broker-city" :value="BUTUAN_CITY" readonly /></div>
-    <div class="field"><label for="broker-province">Province</label><input id="broker-province" :value="BUTUAN_PROVINCE" readonly /></div>
+    <div class="field full"><label>Map Pin *</label><LocationMap :latitude="form.latitude" :longitude="form.longitude" selectable @select="setCoordinates" /></div>
+    <p class="location-scope">Location coverage: <strong>Butuan City, Agusan del Norte</strong></p>
     <div class="field"><label for="broker-price">Price (PHP)</label><input id="broker-price" v-model.number="form.price" type="number" min="0" step="0.01" /></div>
     <div class="field"><label for="broker-area">Area (sq. m.)</label><input id="broker-area" v-model.number="form.area" type="number" min="0" step="0.01" /></div>
     <div class="field full"><label for="broker-images">Property Images</label><input id="broker-images" type="file" accept="image/png,image/jpeg,image/webp" multiple @change="selectImages"/><small>Up to five JPG, PNG, or WebP images. Each file may be up to 5 MB.</small><small v-if="props.initial?.images.length">Existing photos remain when you do not select replacements.</small></div>
@@ -97,5 +109,7 @@ input:focus,select:focus,textarea:focus { outline:2px solid #93c5fd; outline-off
 .cancel { background:white; color:#64748b; border-color:#cbd5e1; }
 .validation { margin:0; color:#b91c1c; font-size:12px; }
 .form-note { margin:0; color:#94a3b8; font-size:11px; }
+.location-scope { grid-column:1/-1; margin:0; color:#64748b; font-size:12px; }
+.location-scope strong { color:#334155; }
 @media(max-width:650px){.listing-form{grid-template-columns:1fr;padding:18px;}}
 </style>

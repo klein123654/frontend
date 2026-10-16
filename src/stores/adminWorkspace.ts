@@ -3,7 +3,7 @@ import type { AdminInquiry, AdminListing, BugReport, ManagedUser, VerificationRe
 import { updateInquiryStatus } from '@/services/inquiryService'
 import {
   fetchAdminInquiries, fetchAdminProperties, fetchAdminReports, fetchAdminSummary,
-  fetchAdminUsers, fetchAdminVerifications, reviewBroker, reviewProperty,
+  fetchAdminUsers, fetchAdminVerifications, resolveAdminImageUrl, reviewBroker, reviewProperty,
   setReportStatus, setUserAccountStatus, unpublishAdminProperty,
 } from '@/services/adminService'
 
@@ -41,6 +41,9 @@ export async function loadAdminWorkspace(): Promise<void> {
         title: item.title, location: [item.address_line, item.city, item.province].filter(Boolean).join(', '),
         barangay: item.barangay ?? '', price: Number(item.price), dateCreated: item.created_at.slice(0, 10),
         sourceStatus: titleCase(item.status), status: titleCase(item.status), reviewNote: item.review_notes ?? '',
+        images: [...(item.images ?? [])]
+          .sort((left, right) => Number(Boolean(right.is_primary)) - Number(Boolean(left.is_primary)) || (left.sort_order ?? 0) - (right.sort_order ?? 0))
+          .map((image) => ({ url: resolveAdminImageUrl(image.path), alt: image.alt_text || item.title })),
       }
     })
     verifications.value = verificationRows.map((item) => ({

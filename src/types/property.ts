@@ -4,7 +4,7 @@ export type PropertyType =
   | 'Warehouses'
   | 'Commercial Lots'
 
-export type ListingType = 'For Rent' | 'For Sale'
+export type ListingType = 'For Rent' | 'For Lease' | 'For Sale'
 
 export interface Property {
   id: number
@@ -20,4 +20,6 @@ export interface Property {
   contactName: string
   contactRole: 'Owner' | 'Broker'
   featured: boolean
+  latitude?: number | null
+  longitude?: number | null
 }

@@ -18,6 +18,8 @@ export interface BrokerListing {
   images: string[]
   inquiries: number
   dateCreated: string
+  latitude?: number | null
+  longitude?: number | null
 }
 
 export type BrokerListingInput = Omit<BrokerListing, 'id' | 'images' | 'inquiries' | 'dateCreated' | 'status'> & {

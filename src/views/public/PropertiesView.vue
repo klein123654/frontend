@@ -97,6 +97,7 @@ onBeforeUnmount(() => {
         <select id="listing-type" v-model="listingType">
           <option>All Listings</option>
           <option>For Rent</option>
+          <option>For Lease</option>
           <option>For Sale</option>
         </select>
       </aside>

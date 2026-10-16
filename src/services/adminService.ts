@@ -1,4 +1,11 @@
-import { apiRequest } from './api'
+import { API_ORIGIN, apiRequest } from './api'
+
+export interface AdminPropertyImage {
+  path: string
+  alt_text?: string | null
+  sort_order?: number
+  is_primary?: boolean
+}
 
 export interface AdminPropertyRecord {
   id: number
@@ -11,6 +18,7 @@ export interface AdminPropertyRecord {
   province: string
   created_at: string
   review_notes?: string | null
+  images?: AdminPropertyImage[]
   owner?: { name: string; email: string }
   broker?: { name: string; email: string } | null
 }
@@ -45,6 +53,11 @@ async function list<T>(path: string): Promise<T[]> {
   return response.data
 }
 export const fetchAdminProperties = () => list<AdminPropertyRecord>('admin/properties')
+
+export function resolveAdminImageUrl(path: string): string {
+  if (/^https?:\/\//i.test(path)) return path
+  return path.startsWith('/') ? `${API_ORIGIN}${path}` : `${API_ORIGIN}/${path}`
+}
 export const fetchAdminUsers = () => list<AdminUserRecord>('admin/users')
 export const fetchAdminVerifications = () => list<AdminVerificationRecord>('admin/verifications')
 export const fetchAdminInquiries = () => list<AdminInquiryRecord>('admin/inquiries')

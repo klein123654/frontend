@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router'
 
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
+import Select from 'primevue/select'
 import Textarea from 'primevue/textarea'
 
 import {
@@ -27,6 +28,7 @@ import type {
 import type {
   OwnerProperty
 } from '@/data/owner/ownerProperties'
+import LocationMap from '@/components/property/LocationMap.vue'
 import { useFormDraft } from '@/composables/useFormDraft'
 import { BUTUAN_BARANGAYS, BUTUAN_CITY, BUTUAN_PROVINCE, canonicalButuanBarangay, isButuanBarangay } from '@/data/butuanLocation'
 
@@ -40,6 +42,8 @@ interface PropertyFormPayload {
   location: string
   city: string
   province: string
+  latitude: number | null
+  longitude: number | null
   area: number | null
   price: number | null
   description: string
@@ -53,8 +57,7 @@ type FieldName =
   | 'listingType'
   | 'barangay'
   | 'location'
-  | 'city'
-  | 'province'
+  | 'coordinates'
   | 'price'
   | 'area'
   | 'description'
@@ -86,14 +89,14 @@ const propertyType = ref<PropertyType | null>(null)
 const listingType = ref<ListingType | null>(null)
 const barangay = ref('')
 const location = ref('')
-const city = ref(BUTUAN_CITY)
-const province = ref(BUTUAN_PROVINCE)
+const latitude = ref<number | null>(null)
+const longitude = ref<number | null>(null)
 const price = ref<number | null>(null)
 const area = ref<number | null>(null)
 const description = ref('')
 const route = useRoute()
 const formDraft = useFormDraft(`property-${route.fullPath}`, {
-  title, propertyType, listingType, barangay, location, price, area, description,
+  title, propertyType, listingType, barangay, location, latitude, longitude, price, area, description,
 })
 const images = ref<File[]>([])
 
@@ -113,6 +116,7 @@ const propertyTypes: PropertyType[] = [
 
 const listingTypes: ListingType[] = [
   'For Rent',
+  'For Lease',
   'For Sale'
 ]
 
@@ -127,9 +131,8 @@ watch(
     listingType.value = property?.listingType ?? null
     barangay.value = property?.barangay ?? ''
     location.value = property?.location ?? ''
-    city.value = BUTUAN_CITY
-    province.value = BUTUAN_PROVINCE
-
+    latitude.value = property?.latitude ?? null
+    longitude.value = property?.longitude ?? null
     // Empty draft values should appear as blank inputs,
     // rather than displaying PHP 0 or area 0.
     price.value =
@@ -161,8 +164,7 @@ const fieldErrors = computed(() => ({
   listingType: !listingType.value || !listingTypes.includes(listingType.value),
   barangay: !isButuanBarangay(barangay.value),
   location: !location.value.trim(),
-  city: !city.value.trim(),
-  province: !province.value.trim(),
+  coordinates: latitude.value === null || longitude.value === null,
   price: price.value === null || price.value <= 0,
   area: area.value === null || area.value <= 0,
   description: !description.value.trim(),
@@ -273,12 +275,19 @@ function buildPayload(
     location: location.value.trim(),
     city: BUTUAN_CITY,
     province: BUTUAN_PROVINCE,
+    latitude: latitude.value,
+    longitude: longitude.value,
     price: price.value,
     area: area.value,
     description: description.value.trim(),
     images: [...images.value],
     status
   }
+}
+
+function setCoordinates(coordinates: { latitude: number; longitude: number }) {
+  latitude.value = coordinates.latitude
+  longitude.value = coordinates.longitude
 }
 
 // SAVE DRAFT OR SAVE CHANGES
@@ -288,7 +297,7 @@ function saveDraft() {
   errorMessage.value = ''
 
   const incomplete = Object.entries(fieldErrors.value)
-    .some(([field, invalid]) => field !== 'images' && invalid)
+    .some(([field, invalid]) => field !== 'images' && field !== 'coordinates' && invalid)
   if (incomplete) {
     errorMessage.value = 'Complete the property details before saving your draft.'
     return
@@ -367,15 +376,14 @@ function submitForReview() {
             Property Type <span>*</span>
           </label>
 
-          <InputText
+          <Select
             id="property-type"
             v-model="propertyType"
-            list="property-type-options"
+            :options="propertyTypes"
             :invalid="isInvalid('propertyType')"
-            placeholder="Type or choose a property type"
+            placeholder="Select property type"
             fluid
           />
-          <datalist id="property-type-options"><option v-for="type in propertyTypes" :key="type" :value="type" /></datalist>
 
           <small
             v-if="isInvalid('propertyType')"
@@ -392,15 +400,14 @@ function submitForReview() {
             Listing Type <span>*</span>
           </label>
 
-          <InputText
+          <Select
             id="listing-type"
             v-model="listingType"
-            list="listing-type-options"
+            :options="listingTypes"
             :invalid="isInvalid('listingType')"
-            placeholder="Type or choose rent or sale"
+            placeholder="Select listing type"
             fluid
           />
-          <datalist id="listing-type-options"><option v-for="type in listingTypes" :key="type" :value="type" /></datalist>
 
           <small
             v-if="isInvalid('listingType')"
@@ -480,16 +487,20 @@ function submitForReview() {
           </small>
         </div>
 
-        <div class="field">
-          <label for="property-city">City / Municipality <span>*</span></label>
-          <InputText id="property-city" :model-value="city" readonly autocomplete="address-level2" fluid />
-          <small v-if="isInvalid('city')" class="field-error"><CircleAlert :size="13" />City is required.</small>
-        </div>
+        <p class="location-scope full-width">Location coverage: <strong>Butuan City, Agusan del Norte</strong></p>
 
-        <div class="field">
-          <label for="property-province">Province <span>*</span></label>
-          <InputText id="property-province" :model-value="province" readonly autocomplete="address-level1" fluid />
-          <small v-if="isInvalid('province')" class="field-error"><CircleAlert :size="13" />Province is required.</small>
+        <div class="field full-width">
+          <label for="property-map">Map Pin <span>*</span></label>
+          <LocationMap
+            id="property-map"
+            :latitude="latitude"
+            :longitude="longitude"
+            selectable
+            @select="setCoordinates"
+          />
+          <small v-if="isInvalid('coordinates')" class="field-error">
+            <CircleAlert :size="13" />Choose the property location on the map before submitting for review.
+          </small>
         </div>
 
       </div>
@@ -518,7 +529,9 @@ function submitForReview() {
             {{
               listingType === 'For Rent'
                 ? 'Monthly Rent'
-                : 'Selling Price'
+                : listingType === 'For Lease'
+                  ? 'Lease Price'
+                  : 'Selling Price'
             }}
             (PHP) <span>*</span>
           </label>
@@ -829,6 +842,16 @@ function submitForReview() {
 
 .full-width {
   grid-column: 1 / -1;
+}
+
+.location-scope {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.location-scope strong {
+  color: #334155;
 }
 
 /* FIELD LABELS */

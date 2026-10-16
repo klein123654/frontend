@@ -24,6 +24,7 @@ export interface AdminListing {
   sourceStatus: string
   status: string
   reviewNote: string
+  images: { url: string; alt: string }[]
 }
 
 export interface VerificationRequest {

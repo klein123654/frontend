@@ -5,7 +5,7 @@ export type OwnerListingStatus =
   | 'Draft'
   | 'Rejected'
 
-export type OwnerListingType = 'For Rent' | 'For Sale'
+export type OwnerListingType = 'For Rent' | 'For Lease' | 'For Sale'
 
 export interface OwnerProperty {
   id: number
@@ -28,6 +28,8 @@ export interface OwnerProperty {
   inquiries: number
   dateCreated: string
   reviewNotes?: string | null
+  latitude?: number | null
+  longitude?: number | null
 }
 
 export const ownerProperties: OwnerProperty[] = []

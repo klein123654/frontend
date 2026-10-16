@@ -22,6 +22,8 @@ export interface BackendProperty {
   barangay?: string | null
   city?: string
   province?: string
+  latitude?: number | string | null
+  longitude?: number | string | null
   floor_area?: number | string | null
   lot_area?: number | string | null
   broker_id?: number | null
@@ -43,6 +45,8 @@ export interface ListingInput {
   city: string
   province: string
   area: number
+  latitude?: number | null
+  longitude?: number | null
   price: number
   description: string
   images: File[]
@@ -68,6 +72,8 @@ export function mapListing(record: BackendProperty): OwnerProperty {
     inquiries: record.inquiries_count ?? 0,
     dateCreated: record.created_at?.slice(0, 10) ?? '',
     reviewNotes: record.review_notes ?? null,
+    latitude: record.latitude == null ? null : Number(record.latitude),
+    longitude: record.longitude == null ? null : Number(record.longitude),
   }
 }
 
@@ -75,13 +81,15 @@ function listingFormData(input: ListingInput): FormData {
   const data = new FormData()
   data.set('title', input.title)
   data.set('property_type', input.propertyType)
-  data.set('listing_type', input.listingType === 'For Rent' ? 'rent' : 'sale')
+  data.set('listing_type', listingTypeToApiValue(input.listingType))
   data.set('description', input.description)
   data.set('price', String(input.price))
   data.set('address_line', input.location)
   data.set('barangay', canonicalButuanBarangay(input.barangay) ?? input.barangay.trim())
   data.set('city', BUTUAN_CITY)
   data.set('province', BUTUAN_PROVINCE)
+  if (input.latitude != null) data.set('latitude', String(input.latitude))
+  if (input.longitude != null) data.set('longitude', String(input.longitude))
   data.set('floor_area', String(input.area))
   data.set('submit_for_review', input.status === 'Pending' ? '1' : '0')
   input.images.forEach((file) => data.append('images[]', file))
@@ -144,15 +152,17 @@ function normalizePropertyType(value: string): PropertyType {
 function normalizeListingType(value: string): ListingType {
   const normalized = value.toLowerCase()
 
-  if (normalized.includes('rent') || normalized.includes('lease')) {
-    return 'For Rent'
-  }
-
-  if (normalized.includes('sale')) {
-    return 'For Sale'
-  }
+  if (normalized.includes('lease')) return 'For Lease'
+  if (normalized.includes('rent')) return 'For Rent'
+  if (normalized.includes('sale')) return 'For Sale'
 
   return value as ListingType
+}
+
+function listingTypeToApiValue(value: ListingType): string {
+  if (value === 'For Rent') return 'rent'
+  if (value === 'For Lease') return 'lease'
+  return 'sale'
 }
 
 function resolveImageUrl(path: string): string {
@@ -172,6 +182,7 @@ function mapProperty(record: BackendProperty): Property {
     .map((image) => resolveImageUrl(image.path))
 
   const location = [
+    record.address_line,
     record.barangay,
     record.city,
     record.province,
@@ -193,6 +204,8 @@ function mapProperty(record: BackendProperty): Property {
     contactName: record.broker?.name || record.owner?.name || 'Listing contact',
     contactRole: record.broker_id ? 'Broker' : 'Owner',
     featured: false,
+    latitude: record.latitude == null ? null : Number(record.latitude),
+    longitude: record.longitude == null ? null : Number(record.longitude),
   }
 }
 
@@ -211,7 +224,7 @@ export async function fetchPublicProperties(
   }
 
   if (filters.listingType) {
-    params.set('listing_type', filters.listingType === 'For Rent' ? 'rent' : 'sale')
+    params.set('listing_type', listingTypeToApiValue(filters.listingType as ListingType))
   }
 
   const query = params.toString()
