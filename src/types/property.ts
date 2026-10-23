@@ -16,6 +16,7 @@ export interface Property {
   price: number
   area: number
   description: string
+  aiTags: string[]
   images: string[]
   contactName: string
   contactRole: 'Owner' | 'Broker'

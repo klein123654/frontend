@@ -201,8 +201,8 @@ async function handleLogin() {
             </div>
 
             <!-- LOGIN BUTTON -->
-            <button type="submit" class="login-button">
-              Sign In
+            <button type="submit" class="login-button" :disabled="loading">
+              {{ loading ? 'Signing In…' : 'Sign In' }}
             </button>
 
           </form>
@@ -215,7 +215,7 @@ async function handleLogin() {
             </RouterLink>
           </div>
 
-          
+
 
         </div>
       </section>

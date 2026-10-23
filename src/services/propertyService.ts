@@ -28,6 +28,7 @@ export interface BackendProperty {
   lot_area?: number | string | null
   broker_id?: number | null
   images?: BackendImage[]
+  ai_tags?: string[]
   status?: string
   created_at?: string
   inquiries_count?: number
@@ -136,6 +137,7 @@ export interface PropertySearchFilters {
   search?: string
   propertyType?: string
   listingType?: string
+  aiTags?: string[]
 }
 
 function normalizePropertyType(value: string): PropertyType {
@@ -172,7 +174,7 @@ function resolveImageUrl(path: string): string {
   return `${API_ORIGIN}/${path}`
 }
 
-function mapProperty(record: BackendProperty): Property {
+export function mapProperty(record: BackendProperty): Property {
   const images = [...(record.images ?? [])]
     .sort((a, b) => {
       if (a.is_primary && !b.is_primary) return -1
@@ -200,6 +202,7 @@ function mapProperty(record: BackendProperty): Property {
     price: Number(record.price),
     area: Number(record.floor_area ?? record.lot_area ?? 0),
     description: record.description,
+    aiTags: record.ai_tags ?? [],
     images,
     contactName: record.broker?.name || record.owner?.name || 'Listing contact',
     contactRole: record.broker_id ? 'Broker' : 'Owner',
@@ -226,6 +229,8 @@ export async function fetchPublicProperties(
   if (filters.listingType) {
     params.set('listing_type', listingTypeToApiValue(filters.listingType as ListingType))
   }
+
+  filters.aiTags?.forEach((tag) => params.append('ai_tags[]', tag))
 
   const query = params.toString()
   const response = await apiRequest<PaginatedResponse>(

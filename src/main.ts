@@ -5,8 +5,8 @@ import App from './App.vue'
 import router from './router'
 
 import PrimeVue from 'primevue/config'
-import Aura from '@primeuix/themes/aura'
-import { definePreset } from '@primeuix/themes'
+import Aura from '@primevue/themes/aura'
+import { definePreset } from '@primevue/themes'
 
 const ButuanSpacesTheme = definePreset(Aura, {
   semantic: {

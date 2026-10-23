@@ -7,6 +7,8 @@ export interface BrokerInquiry {
   customerEmail: string
   subject: string
   message: string
+  aiSummary: string | null
+  aiPriority: 'high' | 'medium' | 'low' | 'unscored'
   status: BrokerInquiryStatus
   dateReceived: string
 }

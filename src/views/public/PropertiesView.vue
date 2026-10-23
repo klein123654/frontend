@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProperties } from '@/composables/useProperties'
+import AiSearchBar from '@/components/property/AiSearchBar.vue'
 import PropertyCard from '@/components/property/PropertyCard.vue'
 
 const route = useRoute()
@@ -11,7 +12,7 @@ const getQuery = (value: unknown) =>
 
 const search = ref(getQuery(route.query.search))
 const propertyType = ref(getQuery(route.query.type) || 'All Types')
-const listingType = ref('All Listings')
+const listingType = ref(getQuery(route.query.listing) || 'All Listings')
 
 const types = [
   'All Types',
@@ -22,6 +23,20 @@ const types = [
 ]
 
 const { properties, loading, error, total, load } = useProperties()
+const selectedTags = ref<string[]>([])
+const suggestedTags = [
+  'near port',
+  'high-ceiling',
+  'flood-free',
+  'highway access',
+  'corner lot',
+  'loading bay',
+]
+const tagOptions = computed(() => [...new Set([
+  ...suggestedTags,
+  ...properties.value.flatMap((property) => property.aiTags),
+  ...selectedTags.value,
+])].sort())
 
 let debounceTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -32,6 +47,7 @@ function loadWithCurrentFilters() {
       propertyType.value === 'All Types' ? undefined : propertyType.value,
     listingType:
       listingType.value === 'All Listings' ? undefined : listingType.value,
+    aiTags: selectedTags.value,
   })
 }
 
@@ -40,11 +56,12 @@ watch(
   (query) => {
     search.value = getQuery(query.search)
     propertyType.value = getQuery(query.type) || 'All Types'
+    listingType.value = getQuery(query.listing) || 'All Listings'
   },
 )
 
 watch(
-  [search, propertyType, listingType],
+  [search, propertyType, listingType, selectedTags],
   () => {
     if (debounceTimer) clearTimeout(debounceTimer)
     debounceTimer = setTimeout(loadWithCurrentFilters, 300)
@@ -56,6 +73,13 @@ function resetFilters() {
   search.value = ''
   propertyType.value = 'All Types'
   listingType.value = 'All Listings'
+  selectedTags.value = []
+}
+
+function toggleTag(tag: string) {
+  selectedTags.value = selectedTags.value.includes(tag)
+    ? selectedTags.value.filter((selectedTag) => selectedTag !== tag)
+    : [...selectedTags.value, tag]
 }
 
 onBeforeUnmount(() => {
@@ -72,6 +96,10 @@ onBeforeUnmount(() => {
         <p>Discover business spaces across Butuan City.</p>
       </div>
     </section>
+
+    <div class="container">
+      <AiSearchBar />
+    </div>
 
     <div class="container content">
       <aside class="filters">
@@ -100,6 +128,23 @@ onBeforeUnmount(() => {
           <option>For Lease</option>
           <option>For Sale</option>
         </select>
+
+        <fieldset class="tag-filter">
+          <legend>Property features</legend>
+          <div class="tag-options">
+            <button
+              v-for="tag in tagOptions"
+              :key="tag"
+              type="button"
+              class="tag-chip"
+              :class="{ selected: selectedTags.includes(tag) }"
+              :aria-pressed="selectedTags.includes(tag)"
+              @click="toggleTag(tag)"
+            >
+              {{ tag }}
+            </button>
+          </div>
+        </fieldset>
       </aside>
 
       <section class="results">
@@ -196,6 +241,45 @@ label {
   font-size: 13px;
   font-weight: 600;
   color: #334155;
+}
+
+.tag-filter {
+  min-width: 0;
+  padding: 0;
+  margin: 24px 0 0;
+  border: 0;
+}
+
+.tag-filter legend {
+  margin-bottom: 10px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tag-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-chip {
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  background: white;
+  color: #52657b;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.tag-chip.selected {
+  border-color: #087e75;
+  background: #e6f5f2;
+  color: #075e58;
 }
 
 input, select {

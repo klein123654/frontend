@@ -16,6 +16,8 @@ export interface OwnerInquiry {
   customerPhone: string
   subject: string
   message: string
+  aiSummary: string | null
+  aiPriority: 'high' | 'medium' | 'low' | 'unscored'
   contactPreference: InquiryContactPreference
   status: InquiryStatus
   dateReceived: string

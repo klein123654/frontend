@@ -32,8 +32,15 @@ const confirmation = ref('')
 const noticeType = ref<NoticeType>('success')
 const lastAction = ref<'Draft' | 'Pending' | null>(null)
 const savedPropertyId = ref<number | null>(null)
+const isSubmitting = ref(false)
 
 async function handleSave(property: OwnerFormPayload) {
+  if (isSubmitting.value) {
+    return
+  }
+
+  isSubmitting.value = true
+
   try {
     const saved = await addOwnerProperty(property)
     clearFormDraft(`property-${route.fullPath}`)
@@ -45,7 +52,19 @@ async function handleSave(property: OwnerFormPayload) {
       : `"${property.title}" was submitted for review.`
   } catch (error) {
     noticeType.value = 'warning'
-    confirmation.value = error instanceof Error ? error.message : 'Unable to save the property.'
+
+    const message = error instanceof Error ? error.message : 'Unable to save the property.'
+    const lower = message.toLowerCase()
+
+    confirmation.value = lower.includes('image upload failed') || lower.includes('storage') || lower.includes('bucket')
+      ? 'The listing could not be saved because the image upload failed. Please check the storage bucket and credentials.'
+      : lower.includes('sign in') || lower.includes('unauthenticated')
+        ? 'Your session expired. Please sign in again and try submitting the property.'
+        : lower.includes('please review') || lower.includes('validation')
+          ? 'Please review the listing details and fix the highlighted fields.'
+          : message
+  } finally {
+    isSubmitting.value = false
   }
 
   window.scrollTo({

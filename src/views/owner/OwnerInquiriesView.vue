@@ -145,6 +145,19 @@ function getSeverity(status: InquiryStatus) {
   }
 }
 
+function getAiPrioritySeverity(priority: OwnerInquiry['aiPriority']) {
+  switch (priority) {
+    case 'high':
+      return 'danger'
+    case 'medium':
+      return 'warn'
+    case 'low':
+      return 'info'
+    default:
+      return 'secondary'
+  }
+}
+
 // DETAILS DIALOG
 
 const detailsVisible = ref(false)
@@ -414,6 +427,16 @@ function clearFilters() {
             sortable
           />
 
+          <Column header="Lead Priority">
+            <template #body="{ data }">
+              <Tag
+                :value="data.aiPriority"
+                :severity="getAiPrioritySeverity(data.aiPriority)"
+                rounded
+              />
+            </template>
+          </Column>
+
           <!-- STATUS -->
           <Column
             field="status"
@@ -551,6 +574,13 @@ function clearFilters() {
                 {{ selectedInquiry.dateReceived }}
               </strong>
             </div>
+          </section>
+
+          <section class="dialog-section">
+            <h3>AI Lead Summary</h3>
+            <p class="ai-summary">
+              {{ selectedInquiry.aiSummary || 'Not scored yet.' }}
+            </p>
           </section>
 
           <!-- MESSAGE -->
@@ -1151,6 +1181,16 @@ function clearFilters() {
   line-height: 1.9;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.ai-summary {
+  margin: 0;
+  padding: 14px 16px;
+  border-left: 3px solid #087e75;
+  background: #eff8f6;
+  color: #285b56;
+  font-size: 13px;
+  line-height: 1.65;
 }
 
 .status-label {

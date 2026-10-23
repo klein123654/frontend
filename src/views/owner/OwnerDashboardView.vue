@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import { Building2 } from '@lucide/vue'
 
 import AppSidebar from '@/components/layout/AppSidebar.vue'
+import AiMarketInsight from '@/components/dashboard/AiMarketInsight.vue'
 import { usePublisherBasePath } from '@/composables/usePublisherBasePath'
 
 import { formatOwnerPrice } from '@/data/owner/ownerProperties'
@@ -241,6 +242,8 @@ function navigateTo(path: string) {
 
         </div>
       </section>
+
+      <AiMarketInsight class="market-insight-widget" />
 
       <!-- MAIN CONTENT GRID -->
       <div class="content-grid">

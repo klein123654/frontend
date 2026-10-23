@@ -17,7 +17,8 @@ import {
   Save,
   Send,
   Info,
-  CircleAlert
+  CircleAlert,
+  Sparkles
 } from '@lucide/vue'
 
 import type {
@@ -30,6 +31,7 @@ import type {
 } from '@/data/owner/ownerProperties'
 import LocationMap from '@/components/property/LocationMap.vue'
 import { useFormDraft } from '@/composables/useFormDraft'
+import { apiRequest } from '@/services/api'
 import { BUTUAN_BARANGAYS, BUTUAN_CITY, BUTUAN_PROVINCE, canonicalButuanBarangay, isButuanBarangay } from '@/data/butuanLocation'
 
 type SaveStatus = 'Draft' | 'Pending'
@@ -106,6 +108,8 @@ const attemptedSubmit = ref(false)
 const attemptedDraft = ref(false)
 const errorMessage = ref('')
 const imageError = ref('')
+const descriptionGenerationMessage = ref('')
+const isGeneratingDescription = ref(false)
 
 const propertyTypes: PropertyType[] = [
   'Office Spaces',
@@ -288,6 +292,54 @@ function buildPayload(
 function setCoordinates(coordinates: { latitude: number; longitude: number }) {
   latitude.value = coordinates.latitude
   longitude.value = coordinates.longitude
+}
+
+async function generateDescription() {
+  if (isGeneratingDescription.value) return
+
+  isGeneratingDescription.value = true
+  descriptionGenerationMessage.value = ''
+
+  try {
+    const response = await apiRequest<{
+      success: boolean
+      description?: string
+      message?: string
+    }>('ai/describe', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: title.value.trim(),
+        size: area.value,
+        location: [
+          location.value.trim(),
+          barangay.value.trim(),
+          BUTUAN_CITY,
+          BUTUAN_PROVINCE,
+        ].filter(Boolean).join(', '),
+        price: price.value,
+        type: propertyType.value ?? '',
+        listing_type: listingType.value ?? '',
+      }),
+    })
+
+    if (!response.success) {
+      descriptionGenerationMessage.value = response.message || 'AI description generation is unavailable.'
+      return
+    }
+
+    if (!response.description?.trim()) {
+      descriptionGenerationMessage.value = 'The AI returned an empty description. Please try again.'
+      return
+    }
+
+    description.value = response.description.trim()
+  } catch (cause) {
+    descriptionGenerationMessage.value = cause instanceof Error
+      ? cause.message
+      : 'AI description generation is temporarily unavailable. Please try again.'
+  } finally {
+    isGeneratingDescription.value = false
+  }
 }
 
 // SAVE DRAFT OR SAVE CHANGES
@@ -610,9 +662,24 @@ function submitForReview() {
       </div>
 
       <div class="field">
-        <label for="property-description">
-          Description <span>*</span>
-        </label>
+        <div class="description-controls">
+          <label for="property-description">
+            Description <span>*</span>
+          </label>
+          <button
+            type="button"
+            class="generate-description-button"
+            :disabled="isGeneratingDescription"
+            @click="generateDescription"
+          >
+            <Sparkles v-if="!isGeneratingDescription" :size="15" aria-hidden="true" />
+            <span>{{ isGeneratingDescription ? 'Generating…' : 'Generate Description' }}</span>
+          </button>
+        </div>
+
+        <small v-if="descriptionGenerationMessage" class="description-generation-message" role="status">
+          {{ descriptionGenerationMessage }}
+        </small>
 
         <Textarea
           id="property-description"
@@ -866,6 +933,41 @@ function submitForReview() {
   color: #dc2626;
 }
 
+.description-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.generate-description-button {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 11px;
+  border: 1px solid #9bd6cb;
+  border-radius: 6px;
+  background: #f0faf8;
+  color: #087e75;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.generate-description-button:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
+.description-generation-message {
+  color: #a33b2b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 /* PRIMEVUE FIELD SIZING */
 
 .field :deep(.p-inputtext),
@@ -1116,6 +1218,11 @@ function submitForReview() {
 /* RESPONSIVE DESIGN */
 
 @media (max-width: 650px) {
+  .description-controls {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .form-card {
     padding: 20px 17px;
   }

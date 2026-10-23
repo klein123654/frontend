@@ -37,6 +37,8 @@ export interface BackendInquiry {
   email: string
   phone: string | null
   message: string
+  ai_summary: string | null
+  ai_priority: 'high' | 'medium' | 'low' | 'unscored'
   status: string
   created_at: string
   property?: { id: number; title: string; owner_id: number; broker_id: number | null }

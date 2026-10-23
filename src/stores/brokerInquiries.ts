@@ -10,6 +10,7 @@ export async function loadBrokerInquiries(): Promise<void> {
     id: item.id, listingId: item.property_id, customerName: item.name,
     customerEmail: item.email, subject: item.property?.title ?? 'Property inquiry',
     message: item.message,
+    aiSummary: item.ai_summary, aiPriority: item.ai_priority ?? 'unscored',
     status: ({ new: 'New', in_progress: 'In Progress', resolved: 'Closed' } as const)[item.status as 'new' | 'in_progress' | 'resolved'] ?? 'New',
     dateReceived: item.created_at.slice(0, 10),
   }))
