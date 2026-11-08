@@ -6,6 +6,7 @@ import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
+import InquiryConversationPanel from '@/components/inquiries/InquiryConversationPanel.vue'
 import { RouterLink } from 'vue-router'
 import { Inbox, Eye, Search } from '@lucide/vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
@@ -20,6 +21,7 @@ import type { BrokerInquiry, BrokerInquiryStatus } from '@/data/broker/brokerInq
 const search = ref('')
 const status = ref<BrokerInquiryStatus | null>(null)
 const showDetails = ref(false)
+const conversationVisible = ref(false)
 const selected = ref<BrokerInquiry | null>(null)
 const feedback = ref('')
 onMounted(() => Promise.all([loadBrokerInquiries(), loadBrokerListings()]))
@@ -177,6 +179,7 @@ function aiPrioritySeverity(priority: BrokerInquiry['aiPriority']) {
             rounded
           />
           <div class="message">{{ current.message }}</div>
+          <button type="button" class="conversation-open-button" @click="conversationVisible = true">View Conversation</button>
           <label for="broker-inquiry-status">Inquiry Status</label
           ><Select
             id="broker-inquiry-status"
@@ -190,6 +193,7 @@ function aiPrioritySeverity(priority: BrokerInquiry['aiPriority']) {
           <p role="status">{{ feedback }}</p>
         </div></Dialog
       >
+      <InquiryConversationPanel v-model:visible="conversationVisible" :inquiry-id="current?.id ?? null" />
     </main></AppSidebar
   >
 </template>
@@ -198,6 +202,7 @@ function aiPrioritySeverity(priority: BrokerInquiry['aiPriority']) {
   max-width: 1350px;
   margin: auto;
 }
+.conversation-open-button{border:0;border-radius:7px;padding:10px 15px;background:#142d4e;color:white;font-weight:700;cursor:pointer}
 .eyebrow {
   color: #2563eb;
   font-size: 11px;

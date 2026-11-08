@@ -3,6 +3,7 @@
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
+import { useBrokerVerification } from '@/composables/useBrokerVerification'
 
 type DashboardRole = 'buyer' | 'owner' | 'broker' | 'developer' | 'admin'
 
@@ -33,6 +34,7 @@ const props = withDefaults(
 const route = useRoute()
 const router = useRouter()
 const { user, logout } = useAuth()
+const { canManageListings, verificationLoading } = useBrokerVerification(props.role === 'broker')
 const mobileOpen = ref(false)
 const initials = computed(() => user.value?.name?.trim().charAt(0).toUpperCase() || '?')
 async function signOut() {
@@ -85,7 +87,7 @@ const navigation = computed<NavigationItem[]>(() => {
   }
 
   if (props.role === 'broker') {
-    return [
+    const brokerNavigation: NavigationItem[] = [
       { label: 'Dashboard', path: '/broker/dashboard', icon: 'dashboard' },
       { label: 'My Listings', path: '/broker/listings', icon: 'properties' },
       { label: 'Add Listing', path: '/broker/listings/create', icon: 'add' },
@@ -94,6 +96,8 @@ const navigation = computed<NavigationItem[]>(() => {
       { label: 'Browse Properties', path: '/properties', icon: 'properties' },
       { label: 'Report an Issue', path: '/report-issue', icon: 'reports' }
     ]
+
+    return brokerNavigation.filter((item) => item.path !== '/broker/listings/create' || canManageListings.value)
   }
 
   if (props.role === 'developer') {
@@ -379,7 +383,7 @@ function closeMobile() {
 }
 
 .sidebar-heading p {
-  color: #94a3b8;
+  color: #5f6b7a;
   font-size: 12px;
   margin: 0;
 }
@@ -390,7 +394,7 @@ function closeMobile() {
 
 .navigation-title {
   padding: 28px 14px 12px;
-  color: #94a3b8;
+  color: #5f6b7a;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 1.3px;
@@ -512,7 +516,7 @@ function closeMobile() {
 }
 
 .profile-info span {
-  color: #94a3b8;
+  color: #5f6b7a;
   font-size: 11px;
 }
 

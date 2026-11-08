@@ -1,7 +1,7 @@
 export type AdminDecision = 'Approved' | 'Rejected'
 export type ReviewState = 'Pending' | AdminDecision
 export type VerificationState = 'Pending' | 'Verified' | 'Rejected'
-export type UserRole = 'Client' | 'Owner' | 'Broker' | 'Admin'
+export type UserRole = 'Client' | 'Owner' | 'Broker' | 'Developer' | 'Admin'
 export type UserState = 'Active' | 'Suspended'
 export type CaseState = 'New' | 'In Progress' | 'Resolved'
 

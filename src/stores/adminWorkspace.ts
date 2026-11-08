@@ -16,7 +16,7 @@ export const adminSummary = ref<Record<string, number>>({})
 export const adminLoading = ref(false)
 export const adminError = ref('')
 
-const statuses: Record<string, string> = { draft: 'Draft', pending: 'Pending', published: 'Approved', rejected: 'Rejected', active: 'Active', suspended: 'Suspended', verified: 'Verified', new: 'New', open: 'New', in_progress: 'In Progress', resolved: 'Resolved' }
+const statuses: Record<string, string> = { draft: 'Draft', pending: 'Pending', published: 'Approved', rejected: 'Rejected', active: 'Active', suspended: 'Suspended', verified: 'Verified', developer: 'Developer', new: 'New', open: 'New', in_progress: 'In Progress', resolved: 'Resolved' }
 const titleCase = (value: string) => statuses[value] ?? value
 
 export const adminListings = computed(() => properties.value)

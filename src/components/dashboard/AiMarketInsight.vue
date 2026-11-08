@@ -23,10 +23,12 @@ interface MarketInsightResponse {
   aggregates: MarketAggregates
 }
 
-const aggregates = ref<MarketAggregates>({
+const defaultAggregates: MarketAggregates = {
   average_price_by_type: [],
   count_by_location: [],
-})
+}
+
+const aggregates = ref<MarketAggregates>(defaultAggregates)
 const summary = ref('')
 const message = ref('')
 const loading = ref(false)
@@ -47,9 +49,11 @@ async function refresh() {
 
   try {
     const response = await apiRequest<MarketInsightResponse>('ai/market-insight')
-    aggregates.value = response.aggregates
-    summary.value = response.summary ?? ''
-    message.value = response.message ?? ''
+    const payload = response ?? ({ aggregates: defaultAggregates, summary: '', message: '' } as MarketInsightResponse)
+
+    aggregates.value = payload.aggregates ?? defaultAggregates
+    summary.value = payload.summary ?? ''
+    message.value = payload.message ?? ''
   } catch (cause) {
     loadError.value = cause instanceof Error
       ? cause.message
@@ -91,14 +95,14 @@ onMounted(() => {
     <p v-else-if="message" class="notice" role="status">{{ message }}</p>
     <p v-if="summary" class="summary">{{ summary }}</p>
 
-    <div v-if="loading && !aggregates.average_price_by_type.length" class="loading" role="status">
+    <div v-if="loading && !aggregates.average_price_by_type?.length" class="loading" role="status">
       Loading aggregate listing data…
     </div>
 
     <div v-else class="aggregate-grid">
       <section class="aggregate-section">
         <h3>Average asking price by type</h3>
-        <div v-if="aggregates.average_price_by_type.length" class="aggregate-list">
+        <div v-if="aggregates.average_price_by_type?.length" class="aggregate-list">
           <div v-for="row in aggregates.average_price_by_type" :key="row.property_type" class="aggregate-row">
             <span>{{ row.property_type }}</span>
             <strong>{{ formatPrice(row.average_price) }}</strong>
@@ -110,7 +114,7 @@ onMounted(() => {
 
       <section class="aggregate-section">
         <h3>Published listings by location</h3>
-        <div v-if="aggregates.count_by_location.length" class="aggregate-list">
+        <div v-if="aggregates.count_by_location?.length" class="aggregate-list">
           <div v-for="row in aggregates.count_by_location" :key="`${row.city}-${row.province}`" class="aggregate-row">
             <span>{{ row.city }}, {{ row.province }}</span>
             <strong>{{ row.listing_count }}</strong>

@@ -9,6 +9,7 @@ import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
+import InquiryConversationPanel from '@/components/inquiries/InquiryConversationPanel.vue'
 
 import {
   MessageSquare,
@@ -161,6 +162,7 @@ function getAiPrioritySeverity(priority: OwnerInquiry['aiPriority']) {
 // DETAILS DIALOG
 
 const detailsVisible = ref(false)
+const conversationVisible = ref(false)
 const selectedInquiryId = ref<number | null>(null)
 
 const selectedInquiry = computed(() =>
@@ -173,6 +175,11 @@ function openInquiry(inquiry: OwnerInquiry) {
   selectedInquiryId.value = inquiry.id
   feedbackMessage.value = ''
   detailsVisible.value = true
+}
+
+function openConversation() {
+  detailsVisible.value = false
+  conversationVisible.value = true
 }
 
 // STATUS UPDATES
@@ -599,6 +606,10 @@ function clearFilters() {
             </div>
           </section>
 
+          <button type="button" class="conversation-open-button" @click="openConversation">
+            View Conversation
+          </button>
+
           <!-- CHANGE STATUS -->
           <section class="dialog-section">
             <h3>
@@ -670,6 +681,8 @@ function clearFilters() {
         </template>
       </Dialog>
 
+      <InquiryConversationPanel v-model:visible="conversationVisible" :inquiry-id="selectedInquiry?.id ?? null" />
+
     </main>
   </AppSidebar>
 </template>
@@ -681,6 +694,7 @@ function clearFilters() {
   min-width: 0;
   margin: 0 auto;
 }
+.conversation-open-button{border:0;border-radius:7px;padding:10px 15px;background:#142d4e;color:white;font-weight:700;cursor:pointer}
 
 /* HEADER */
 
