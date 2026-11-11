@@ -19,6 +19,7 @@ const property = {
   barangay: 'Libertad',
   images: [{ path: 'https://cdn.example.test/lot.jpg', is_primary: true }],
   updated_at: '2026-11-01T00:00:00Z',
+  publisher: { id: 5, name: 'Ana Reyes', role: 'broker', role_label: 'Licensed broker', verified: true, license_number: 'PRC-0012345', agency_name: 'Agusan Realty', contact: { phone: '09171234567' } },
 }
 
 describe('prerender', () => {
@@ -45,10 +46,18 @@ describe('prerender', () => {
     expect(html).not.toContain('<!--app-prerender-->')
   })
 
+  it('shows the verified publisher with a link to their profile', () => {
+    const html = renderPropertyPage(template, property)
+
+    expect(html).toContain('href="https://frontend-1cf.pages.dev/publishers/5">Ana Reyes, Agusan Realty · PRC-licensed broker (License PRC-0012345)</a>')
+    expect(html).toContain('href="tel:09171234567"')
+  })
+
   it('lists static pages and every property in the sitemap', () => {
     const xml = renderSitemap([property])
 
     expect(xml).toContain('<loc>https://frontend-1cf.pages.dev/properties</loc>')
     expect(xml).toContain('<loc>https://frontend-1cf.pages.dev/properties/12</loc><lastmod>2026-11-01</lastmod>')
+    expect(xml).toContain('<loc>https://frontend-1cf.pages.dev/publishers/5</loc>')
   })
 })

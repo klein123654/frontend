@@ -17,6 +17,7 @@ export interface PropertyBrowseState {
   search: string
   propertyType: string
   listingType: string
+  barangay: string
   tags: string[]
   minPrice: number | null
   maxPrice: number | null
@@ -47,6 +48,7 @@ export function parseBrowseQuery(query: LocationQuery): PropertyBrowseState {
     search: firstString(query.search),
     propertyType: firstString(query.type) || ALL_TYPES,
     listingType: firstString(query.listing) || ALL_LISTINGS,
+    barangay: firstString(query.barangay),
     tags: firstString(query.tags).split(',').map((tag) => tag.trim()).filter(Boolean),
     minPrice: parsePrice(firstString(query.min_price)),
     maxPrice: parsePrice(firstString(query.max_price)),
@@ -61,6 +63,7 @@ export function toBrowseQuery(state: PropertyBrowseState): LocationQueryRaw {
   if (state.search.trim()) query.search = state.search.trim()
   if (state.propertyType !== ALL_TYPES) query.type = state.propertyType
   if (state.listingType !== ALL_LISTINGS) query.listing = state.listingType
+  if (state.barangay.trim()) query.barangay = state.barangay.trim()
   if (state.tags.length) query.tags = state.tags.join(',')
   if (state.minPrice !== null) query.min_price = String(state.minPrice)
   if (state.maxPrice !== null) query.max_price = String(state.maxPrice)

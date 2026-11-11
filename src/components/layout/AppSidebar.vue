@@ -81,6 +81,7 @@ const navigation = computed<NavigationItem[]>(() => {
         path: `${base}/inquiries`,
         icon: 'inquiries'
       },
+      { label: 'Public Profile', path: `${base}/profile`, icon: 'users' },
       { label: 'Browse Properties', path: '/properties', icon: 'properties' },
       { label: 'Report an Issue', path: '/report-issue', icon: 'reports' }
     ]
@@ -92,7 +93,7 @@ const navigation = computed<NavigationItem[]>(() => {
       { label: 'My Listings', path: '/broker/listings', icon: 'properties' },
       { label: 'Add Listing', path: '/broker/listings/create', icon: 'add' },
       { label: 'Inquiries', path: '/broker/inquiries', icon: 'inquiries' },
-      { label: 'Broker Profile', path: '/broker/profile', icon: 'users' },
+      { label: 'Profile & Contact', path: '/broker/profile', icon: 'users' },
       { label: 'Browse Properties', path: '/properties', icon: 'properties' },
       { label: 'Report an Issue', path: '/report-issue', icon: 'reports' }
     ]
@@ -106,6 +107,7 @@ const navigation = computed<NavigationItem[]>(() => {
       { label: 'Portfolio', path: '/developer/properties', icon: 'properties' },
       { label: 'Add Property', path: '/developer/properties/create', icon: 'add' },
       { label: 'Inquiries', path: '/developer/inquiries', icon: 'inquiries' },
+      { label: 'Public Profile', path: '/developer/profile', icon: 'users' },
       { label: 'Browse Properties', path: '/properties', icon: 'properties' },
       { label: 'Report an Issue', path: '/report-issue', icon: 'reports' },
     ]

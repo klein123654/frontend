@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useProperties } from '@/composables/useProperties'
 import AiSearchBar from '@/components/property/AiSearchBar.vue'
 import PropertyCard from '@/components/property/PropertyCard.vue'
+import { BUTUAN_BARANGAYS } from '@/data/butuanLocation'
 import {
   ALL_LISTINGS,
   ALL_TYPES,
@@ -24,6 +25,7 @@ const initialState = parseBrowseQuery(route.query)
 const search = ref(initialState.search)
 const propertyType = ref(initialState.propertyType)
 const listingType = ref(initialState.listingType)
+const barangay = ref(initialState.barangay)
 const selectedTags = ref<string[]>(initialState.tags)
 const minPrice = ref<number | null>(initialState.minPrice)
 const maxPrice = ref<number | null>(initialState.maxPrice)
@@ -66,6 +68,7 @@ function currentFormState(page: number): PropertyBrowseState {
     search: search.value,
     propertyType: propertyType.value,
     listingType: listingType.value,
+    barangay: barangay.value,
     tags: selectedTags.value,
     minPrice: minPrice.value,
     maxPrice: maxPrice.value,
@@ -80,6 +83,7 @@ function loadFromRoute() {
     search: state.search,
     propertyType: state.propertyType === ALL_TYPES ? undefined : state.propertyType,
     listingType: state.listingType === ALL_LISTINGS ? undefined : state.listingType,
+    barangay: state.barangay,
     aiTags: state.tags,
     minPrice: state.minPrice,
     maxPrice: state.maxPrice,
@@ -97,6 +101,7 @@ watch(
     search.value = state.search
     propertyType.value = state.propertyType
     listingType.value = state.listingType
+    barangay.value = state.barangay
     selectedTags.value = state.tags
     minPrice.value = state.minPrice
     maxPrice.value = state.maxPrice
@@ -108,7 +113,7 @@ watch(
 
 /** Form edits update the URL (and reset to page 1) after a short pause. */
 watch(
-  [search, propertyType, listingType, selectedTags, minPrice, maxPrice, sort],
+  [search, propertyType, listingType, barangay, selectedTags, minPrice, maxPrice, sort],
   () => {
     if (debounceTimer) clearTimeout(debounceTimer)
     debounceTimer = setTimeout(() => {
@@ -131,6 +136,7 @@ function resetFilters() {
   search.value = ''
   propertyType.value = ALL_TYPES
   listingType.value = ALL_LISTINGS
+  barangay.value = ''
   selectedTags.value = []
   minPrice.value = null
   maxPrice.value = null
@@ -193,6 +199,12 @@ onBeforeUnmount(() => {
           <option>For Rent</option>
           <option>For Lease</option>
           <option>For Sale</option>
+        </select>
+
+        <label for="barangay-filter">Barangay</label>
+        <select id="barangay-filter" v-model="barangay">
+          <option value="">All barangays</option>
+          <option v-for="name in BUTUAN_BARANGAYS" :key="name" :value="name">{{ name }}</option>
         </select>
 
         <fieldset class="price-filter">

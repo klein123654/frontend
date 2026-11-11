@@ -1,4 +1,5 @@
 import { formatPeso } from '@/utils/format'
+import type { ListingAvailability } from '@/types/property'
 
 export type OwnerListingStatus =
   | 'Approved'
@@ -28,6 +29,8 @@ export interface OwnerProperty {
   images: string[]
   inquiries: number
   dateCreated: string
+  availability: ListingAvailability
+  availabilityConfirmedAt: string | null
   reviewNotes?: string | null
   latitude?: number | null
   longitude?: number | null

@@ -13,6 +13,7 @@ import {
   Store,
 } from '@lucide/vue'
 import PropertyCard from '@/components/property/PropertyCard.vue'
+import BarangayCoverage from '@/components/property/BarangayCoverage.vue'
 import { useProperties } from '@/composables/useProperties'
 import { useFormDraft } from '@/composables/useFormDraft'
 import type { ListingType, PropertyType } from '@/types/property'
@@ -162,6 +163,8 @@ function formatPrice(price: number, listingType: ListingType): string {
         </button>
       </div>
     </section>
+
+    <BarangayCoverage />
 
     <section id="properties" class="listing-section" aria-labelledby="listing-heading">
       <div class="container">

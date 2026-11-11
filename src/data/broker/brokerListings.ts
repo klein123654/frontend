@@ -1,5 +1,5 @@
 import { formatPeso } from '@/utils/format'
-import type { ListingType, PropertyType } from '@/types/property'
+import type { ListingAvailability, ListingType, PropertyType } from '@/types/property'
 
 export type BrokerListingStatus = 'Approved' | 'Pending' | 'Draft' | 'Rejected'
 
@@ -19,11 +19,13 @@ export interface BrokerListing {
   images: string[]
   inquiries: number
   dateCreated: string
+  availability: ListingAvailability
+  availabilityConfirmedAt: string | null
   latitude?: number | null
   longitude?: number | null
 }
 
-export type BrokerListingInput = Omit<BrokerListing, 'id' | 'images' | 'inquiries' | 'dateCreated' | 'status'> & {
+export type BrokerListingInput = Omit<BrokerListing, 'id' | 'images' | 'inquiries' | 'dateCreated' | 'status' | 'availability' | 'availabilityConfirmedAt'> & {
   status: 'Draft' | 'Pending'
   images?: File[]
 }

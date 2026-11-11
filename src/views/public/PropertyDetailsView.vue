@@ -7,6 +7,10 @@ import type { Property } from '@/types/property'
 import { fetchPublicProperty } from '@/services/propertyService'
 import PropertyGallery from '@/components/property/PropertyGallery.vue'
 import InquiryForm from '@/components/forms/InquiryForm.vue'
+import PublisherContactCard from '@/components/publisher/PublisherContactCard.vue'
+import VerifiedBadge from '@/components/publisher/VerifiedBadge.vue'
+import ShareListing from '@/components/property/ShareListing.vue'
+import ReportListing from '@/components/property/ReportListing.vue'
 import { saveProperty } from '@/services/savedPropertyService'
 import { setPageMeta } from '@/utils/pageMeta'
 
@@ -39,6 +43,9 @@ async function toggleSaved() {
 }
 
 const formatPrice = formatPeso
+const shareUrl = computed(() =>
+  property.value && typeof window !== 'undefined' ? `${window.location.origin}/properties/${property.value.id}` : '',
+)
 
 async function loadProperty() {
   const id = String(route.params.id ?? '')
@@ -92,7 +99,11 @@ watch(() => route.params.id, loadProperty, { immediate: true })
           <span class="category">{{ property.type }}</span>
           <h1>{{ property.title }}</h1>
           <p class="location">{{ property.location }}</p>
-          <span class="listing-badge">{{ property.listingType }}</span>
+          <div class="trust-row">
+            <span class="listing-badge">{{ property.listingType }}</span>
+            <VerifiedBadge v-if="property.publisher" :publisher="property.publisher" />
+          </div>
+          <ShareListing :title="property.title" :url="shareUrl" class="share-row" />
           <div v-if="user && user.role !== 'admin'" class="save-action">
             <button type="button" :disabled="saving" @click="toggleSaved">{{ saving ? 'Saving…' : 'Save Property' }}</button>
             <span v-if="savedMessage" role="status">{{ savedMessage }}</span>
@@ -165,9 +176,17 @@ watch(() => route.params.id, loadProperty, { immediate: true })
             Property details are provided by the listing account. Verify
             information before making a transaction.
           </div>
+
+          <ReportListing :property-id="property.id" class="report-row" />
         </div>
 
         <aside class="inquiry-sidebar">
+          <PublisherContactCard
+            v-if="property.publisher"
+            :publisher="property.publisher"
+            :property-title="property.title"
+            class="publisher-card"
+          />
           <div class="inquiry-panel">
             <InquiryForm
               :key="property.id"
@@ -184,6 +203,30 @@ watch(() => route.params.id, loadProperty, { immediate: true })
 </template>
 
 <style scoped>
+.trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.trust-row .listing-badge {
+  margin-top: 0;
+}
+
+.share-row {
+  margin-top: 14px;
+}
+
+.report-row {
+  margin-top: 18px;
+}
+
+.publisher-card {
+  margin-bottom: 18px;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;

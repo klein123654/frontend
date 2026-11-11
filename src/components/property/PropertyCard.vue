@@ -1,5 +1,6 @@
 
 <script setup lang="ts">
+import VerifiedBadge from '@/components/publisher/VerifiedBadge.vue'
 import { formatPeso } from '@/utils/format'
 import type { Property } from '@/types/property'
 
@@ -25,7 +26,8 @@ const formatPrice = formatPeso
 
       <div class="meta">
         <span>{{ property.area }} sqm</span>
-        <span>{{ property.contactRole }} Listed</span>
+        <VerifiedBadge v-if="property.publisher?.verified" :publisher="property.publisher" compact />
+        <span v-else>{{ property.contactRole }} Listed</span>
       </div>
 
       <div class="bottom">

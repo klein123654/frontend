@@ -1,5 +1,6 @@
 
 <script setup lang="ts">
+import AvailabilityAttentionBanner from '@/components/property/AvailabilityAttentionBanner.vue'
 import { deleteListingConfirmation } from '@/utils/listingRules'
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
@@ -164,6 +165,8 @@ function clearFilters() {
           Drafts and submitted listings are stored in your account. Pending submissions become public after an administrator approves them.
         </span>
       </div>
+
+      <AvailabilityAttentionBanner :listings="allOwnerProperties" :details-base="`${workspaceBase}/properties`" />
 
       <!-- SUMMARY CARDS -->
       <div class="summary-grid">

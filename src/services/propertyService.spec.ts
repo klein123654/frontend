@@ -22,6 +22,11 @@ const backendProperty = {
   ai_tags: ['near port'],
   broker_id: null,
   owner: { id: 1, name: 'Ana Owner' },
+  publisher: {
+    id: 1, name: 'Ana Owner', role: 'owner', role_label: 'Property owner', verified: true,
+    license_number: null, agency_name: null, member_since: '2026-10-01',
+    contact: { phone: '09171234567', email: null, messenger_url: null, viber_url: null },
+  },
   images: [
     { path: 'storage/properties/second.jpg', sort_order: 1, is_primary: false },
     { path: 'https://cdn.example.test/primary.jpg', sort_order: 0, is_primary: true },
@@ -43,6 +48,8 @@ describe('buildPropertySearchParams', () => {
       page: 2,
       perPage: 12,
       aiTags: ['flood-free'],
+      barangay: 'Libertad',
+      publisherId: 5,
     })
 
     expect(params.get('search')).toBe('office')
@@ -53,6 +60,8 @@ describe('buildPropertySearchParams', () => {
     expect(params.get('page')).toBe('2')
     expect(params.get('per_page')).toBe('12')
     expect(params.getAll('ai_tags[]')).toEqual(['flood-free'])
+    expect(params.get('barangay')).toBe('Libertad')
+    expect(params.get('publisher')).toBe('5')
   })
 
   it('leaves out the default sort and first page', () => {
@@ -78,6 +87,12 @@ describe('mapProperty', () => {
       contactRole: 'Owner',
       latitude: 8.9475,
     })
+  })
+
+  it('maps the verified publisher and contact details', () => {
+    const property = mapProperty(backendProperty as never)
+
+    expect(property.publisher).toMatchObject({ id: 1, verified: true, roleLabel: 'Property owner', contact: { phone: '09171234567', email: null } })
   })
 
   it('puts the primary photo first and resolves relative paths', () => {

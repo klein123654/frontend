@@ -68,6 +68,19 @@ async function fetchPublishedProperties() {
   return properties
 }
 
+export function describePublisher(publisher) {
+  if (!publisher) return null
+  const credential = publisher.role === 'broker'
+    ? `PRC-licensed broker${publisher.license_number ? ` (License ${publisher.license_number})` : ''}`
+    : publisher.role === 'developer' ? 'Verified developer' : 'Verified owner'
+  return {
+    url: `${SITE_URL}/publishers/${publisher.id}`,
+    name: publisher.name,
+    line: `${publisher.name}${publisher.agency_name ? `, ${publisher.agency_name}` : ''} · ${publisher.verified ? credential : publisher.role_label}`,
+    phone: publisher.contact?.phone ?? null,
+  }
+}
+
 export function describeProperty(property) {
   const listingLabel = LISTING_LABELS[property.listing_type] ?? 'For Sale'
   const location = [property.address_line, property.barangay, property.city, property.province]
@@ -89,6 +102,7 @@ export function describeProperty(property) {
     price,
     image: images[0] ?? '',
     body: truncate(property.description, 1200),
+    publisher: describePublisher(property.publisher),
     area: Number(property.floor_area ?? property.lot_area ?? 0),
   }
 }
@@ -133,6 +147,7 @@ export function renderPropertyPage(template, property) {
         ${page.area > 0 ? `<p>Floor area: ${escapeHtml(page.area.toLocaleString('en-PH'))} sq. m.</p>` : ''}
         ${page.image ? `<img src="${escapeHtml(page.image)}" alt="${escapeHtml(page.heading)}" width="800" height="500" loading="lazy">` : ''}
         <p>${escapeHtml(page.body)}</p>
+        ${page.publisher ? `<p>Listed by <a href="${escapeHtml(page.publisher.url)}">${escapeHtml(page.publisher.line)}</a>${page.publisher.phone ? ` · <a href="tel:${escapeHtml(page.publisher.phone)}">${escapeHtml(page.publisher.phone)}</a>` : ''}</p>` : ''}
       </main>`
 
   return template
@@ -151,6 +166,10 @@ export function renderSitemap(propertyEntries) {
     ...propertyEntries.map((property) => ({
       loc: `${SITE_URL}/properties/${property.id}`,
       lastmod: String(property.updated_at || property.published_at || today).slice(0, 10),
+    })),
+    ...[...new Set(propertyEntries.map((property) => property.publisher?.id).filter(Boolean))].map((id) => ({
+      loc: `${SITE_URL}/publishers/${id}`,
+      lastmod: today,
     })),
   ]
 

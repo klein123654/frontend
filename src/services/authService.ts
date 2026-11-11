@@ -1,5 +1,5 @@
 import { apiRequest } from './api'
-import type { AuthResponse, AuthUser } from '@/types/user'
+import type { AuthResponse, AuthUser, PublicContactInput } from '@/types/user'
 
 const TOKEN_KEY = 'butuanspaces_auth_token'
 const USER_KEY = 'butuanspaces_auth_user'
@@ -62,6 +62,16 @@ export async function fetchCurrentUser(): Promise<AuthUser> {
   const user = response.user
   localStorage.setItem(USER_KEY, JSON.stringify(user))
   return user
+}
+
+/** Save the contact details a publisher wants shown publicly. Empty values hide that option. */
+export async function updatePublicContact(input: PublicContactInput): Promise<AuthUser> {
+  const response = await apiRequest<{ user: AuthUser }>('user', {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  })
+  localStorage.setItem(USER_KEY, JSON.stringify(response.user))
+  return response.user
 }
 
 export async function requestPasswordReset(email: string): Promise<void> {

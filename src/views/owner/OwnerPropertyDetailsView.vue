@@ -32,8 +32,10 @@ import {
 import {
   allOwnerProperties,
   getEditableOwnerProperty,
-  loadOwnerProperties
+  loadOwnerProperties,
+  setOwnerPropertyAvailability
 } from '@/stores/ownerProperties'
+import ListingAvailabilityControl from '@/components/property/ListingAvailabilityControl.vue'
 onMounted(() => loadOwnerProperties())
 
 // CURRENT PROPERTY ID
@@ -285,6 +287,12 @@ function handleImageError() {
 
           <!-- SIDEBAR INFORMATION -->
           <aside class="side-column">
+
+            <ListingAvailabilityControl
+              :listing="property"
+              :save="(availability) => setOwnerPropertyAvailability(property!.id, availability)"
+              :confirmed-from-email="route.query.availability === 'confirmed'"
+            />
 
             <!-- PRICE AND AREA -->
             <section class="details-card">

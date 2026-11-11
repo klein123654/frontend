@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AvailabilityAttentionBanner from '@/components/property/AvailabilityAttentionBanner.vue'
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import DataTable from 'primevue/datatable'
@@ -34,7 +35,7 @@ function severity(status: BrokerListingStatus): 'success'|'warn'|'danger'|'secon
 }
 </script>
 <template>
-  <AppSidebar role="broker"><main class="page"><header class="heading"><div><span class="eyebrow">BROKER WORKSPACE</span><h1>My Listings</h1><p>Organize and manage your commercial property listings.</p></div><RouterLink v-if="canManageListings" to="/broker/listings/create" class="button"><Plus :size="18"/> Add Listing</RouterLink></header>
+  <AppSidebar role="broker"><main class="page"><header class="heading"><div><span class="eyebrow">BROKER WORKSPACE</span><h1>My Listings</h1><p>Organize and manage your commercial property listings.</p></div><RouterLink v-if="canManageListings" to="/broker/listings/create" class="button"><Plus :size="18"/> Add Listing</RouterLink></header><AvailabilityAttentionBanner :listings="allBrokerListings" details-base="/broker/listings"/>
     <div v-if="!verificationLoading && !canManageListings" class="verification-warning" role="status">{{ brokerVerificationRequiredMessage }}</div>
     <div class="notice">Listings are stored in your account. Broker verification is required before submitting listings for review.</div><p v-if="message" role="status">{{ message }}</p>
     <section class="panel"><div class="panel-heading"><div><h2>Property Listings</h2><p>{{ filtered.length }} listings</p></div></div><div class="filters"><div class="search"><Search :size="17"/><InputText v-model="search" placeholder="Search listings..." aria-label="Search listings"/></div><Select v-model="statusFilter" :options="statuses" option-label="label" option-value="value" placeholder="All Statuses" class="filter"/><button class="reset" type="button" @click="search='';statusFilter=null">Reset</button></div>

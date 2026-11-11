@@ -7,6 +7,7 @@ describe('parseBrowseQuery', () => {
       search: '',
       propertyType: 'All Types',
       listingType: 'All Listings',
+      barangay: '',
       tags: [],
       minPrice: null,
       maxPrice: null,
@@ -55,7 +56,7 @@ describe('toBrowseQuery', () => {
   })
 
   it('round-trips through parseBrowseQuery', () => {
-    const query = { search: 'office', type: 'Office Spaces', tags: 'flood-free', min_price: '5000', sort: 'price_desc', page: '2' }
+    const query = { search: 'office', type: 'Office Spaces', barangay: 'Libertad', tags: 'flood-free', min_price: '5000', sort: 'price_desc', page: '2' }
 
     expect(toBrowseQuery(parseBrowseQuery(query))).toEqual(query)
   })
