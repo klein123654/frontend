@@ -130,7 +130,7 @@ function formatPrice(price: number, listingType: ListingType): string {
               />
             </div>
 
-            <button class="search-button" type="submit">
+            <button class="search-button" type="submit" aria-label="Search">
               <Search :size="17" aria-hidden="true" />
               <span>Search</span>
             </button>
