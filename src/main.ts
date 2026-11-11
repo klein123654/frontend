@@ -1,6 +1,5 @@
 
 import { createApp } from 'vue'
-import * as Sentry from '@sentry/vue'
 import App from './App.vue'
 import router from './router'
 
@@ -28,21 +27,25 @@ const ButuanSpacesTheme = definePreset(Aura, {
 
 const app = createApp(App)
 
-if (import.meta.env.VITE_SENTRY_DSN) {
-  Sentry.init({
-    app,
-    dsn: import.meta.env.VITE_SENTRY_DSN,
-    integrations: [Sentry.browserTracingIntegration({ router })],
-    tracesSampleRate: 0.1,
-    beforeSend(event) {
-      if (event.request) {
-        if (typeof event.request.url === 'string') {
-          event.request.url = event.request.url.split('?')[0]
+const sentryDsn = import.meta.env.VITE_SENTRY_DSN
+if (sentryDsn) {
+  // Loaded on demand so the error-reporting SDK stays out of the main bundle.
+  void import('@sentry/vue').then((Sentry) => {
+    Sentry.init({
+      app,
+      dsn: sentryDsn,
+      integrations: [Sentry.browserTracingIntegration({ router })],
+      tracesSampleRate: 0.1,
+      beforeSend(event) {
+        if (event.request) {
+          if (typeof event.request.url === 'string') {
+            event.request.url = event.request.url.split('?')[0]
+          }
+          delete event.request.query_string
         }
-        delete event.request.query_string
-      }
-      return event
-    },
+        return event
+      },
+    })
   })
 }
 

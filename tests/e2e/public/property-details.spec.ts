@@ -3,7 +3,7 @@ import { installApiMocks } from '../../helpers/api-mocks'
 import { seedAuthenticatedRole } from '../../helpers/auth'
 import { expectNoAxeViolations } from '../../helpers/accessibility'
 import { waitForRouteReady } from '../../helpers/route-smoke'
-import { listing, users } from '../../fixtures/test-data'
+import { listing } from '../../fixtures/test-data'
 import { PropertyDetailsPage } from '../../pages/property-details.page'
 
 test('visitor can open a property detail page', async ({ page }) => {

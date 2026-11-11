@@ -295,7 +295,7 @@ function resetForm() {
 
 .sign-in-required { padding: 20px; border: 1px solid #dbeafe; border-radius: 10px; background: #f8fbff; }
 .sign-in-required h3 { margin: 0 0 8px; color: #142d4e; }
-.sign-in-required p { color: #64748b; font-size: 13px; line-height: 1.6; }
+.sign-in-required p { color: #5e6d82; font-size: 13px; line-height: 1.6; }
 .account-actions { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
 .account-button { padding: 10px 14px; border-radius: 8px; background: #142d4e; color: #fff; font-size: 12px; font-weight: 700; text-decoration: none; }
 .account-link { color: #2563eb; font-size: 12px; font-weight: 700; text-decoration: none; }
@@ -314,7 +314,7 @@ function resetForm() {
 }
 
 .inquiry-header p {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   line-height: 1.7;
 }
@@ -356,7 +356,7 @@ function resetForm() {
 }
 
 .contact-details span {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
 }
 
@@ -385,7 +385,7 @@ function resetForm() {
 }
 
 .form-group label .optional {
-  color: #94a3b8;
+  color: #5e6d82;
   font-weight: 400;
 }
 
@@ -414,7 +414,7 @@ function resetForm() {
   border-radius: 8px;
   font-size: 12px;
   line-height: 1.7;
-  color: #64748b;
+  color: #5e6d82;
 }
 
 /* BUTTONS */
@@ -459,7 +459,7 @@ function resetForm() {
 }
 
 .success-message p {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   line-height: 1.7;
 }

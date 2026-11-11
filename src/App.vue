@@ -5,6 +5,7 @@ import { RouterView, useRoute } from 'vue-router'
 
 import AppNavbar from '@/components/layout/AppNavbar.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
+import ServerWakeNotice from '@/components/common/ServerWakeNotice.vue'
 
 const route = useRoute()
 
@@ -25,6 +26,8 @@ const isDashboardRoute = computed(() =>
   <RouterView />
 
   <AppFooter v-if="!isDashboardRoute" />
+
+  <ServerWakeNotice />
 </template>
 
 <style>

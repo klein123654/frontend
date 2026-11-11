@@ -44,7 +44,7 @@ const showConfirmPassword = ref(false)
 const submitted = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
-const { register, loading } = useAuth()
+const { register } = useAuth()
 
 function selectAccountType(type: AccountType) {
   form.accountType = type
@@ -426,7 +426,7 @@ async function handleRegister() {
 
 .page-heading p,
 .section-heading p {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 14px;
   line-height: 1.8;
 }
@@ -503,7 +503,7 @@ async function handleRegister() {
 }
 
 .account-description {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   line-height: 1.7;
 }
@@ -561,7 +561,7 @@ async function handleRegister() {
 }
 
 .optional {
-  color: #94a3b8;
+  color: #5e6d82;
   font-weight: 400;
 }
 
@@ -590,7 +590,7 @@ async function handleRegister() {
 }
 
 .form-group input::placeholder {
-  color: #94a3b8;
+  color: #5e6d82;
 }
 
 .password-field {
@@ -639,7 +639,7 @@ async function handleRegister() {
 }
 
 .role-heading p {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   line-height: 1.7;
   margin: 0;
@@ -679,7 +679,7 @@ async function handleRegister() {
 }
 
 .checkbox-label span {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   line-height: 1.8;
 }
@@ -713,14 +713,14 @@ select:focus-visible {
 
 .demo-notice {
   margin: -8px 0 0;
-  color: #94a3b8;
+  color: #5e6d82;
   font-size: 11px;
   text-align: center;
 }
 
 .login-link {
   text-align: center;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   margin-top: 25px;
 }

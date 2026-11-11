@@ -34,7 +34,7 @@ const props = withDefaults(
 const route = useRoute()
 const router = useRouter()
 const { user, logout } = useAuth()
-const { canManageListings, verificationLoading } = useBrokerVerification(props.role === 'broker')
+const { canManageListings } = useBrokerVerification(props.role === 'broker')
 const mobileOpen = ref(false)
 const initials = computed(() => user.value?.name?.trim().charAt(0).toUpperCase() || '?')
 async function signOut() {
@@ -413,7 +413,7 @@ function closeMobile() {
 
   padding: 13px 14px;
 
-  color: #64748b;
+  color: #5e6d82;
   border-radius: 9px;
   text-decoration: none;
 
@@ -524,7 +524,7 @@ function closeMobile() {
   display: block;
   padding: 14px 0;
 
-  color: #64748b;
+  color: #5e6d82;
   text-decoration: none;
 
   font-size: 12px;

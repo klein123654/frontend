@@ -10,6 +10,8 @@ export function useProperties() {
   const loading = ref(false)
   const error = ref('')
   const total = ref(0)
+  const currentPage = ref(1)
+  const lastPage = ref(1)
 
   let requestVersion = 0
 
@@ -26,6 +28,8 @@ export function useProperties() {
 
       properties.value = result.properties
       total.value = result.total
+      currentPage.value = result.currentPage
+      lastPage.value = result.lastPage
     } catch (cause) {
       if (version !== requestVersion) return
 
@@ -36,6 +40,8 @@ export function useProperties() {
 
       properties.value = []
       total.value = 0
+      currentPage.value = 1
+      lastPage.value = 1
     } finally {
       if (version === requestVersion) {
         loading.value = false
@@ -43,5 +49,5 @@ export function useProperties() {
     }
   }
 
-  return { properties, loading, error, total, load }
+  return { properties, loading, error, total, currentPage, lastPage, load }
 }

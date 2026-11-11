@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { formatPeso } from '@/utils/format'
+import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useRoute } from 'vue-router'
 import type { Property } from '@/types/property'
 import { fetchPublicProperty } from '@/services/propertyService'
 import PropertyGallery from '@/components/property/PropertyGallery.vue'
-import LocationMap from '@/components/property/LocationMap.vue'
 import InquiryForm from '@/components/forms/InquiryForm.vue'
 import { saveProperty } from '@/services/savedPropertyService'
+import { setPageMeta } from '@/utils/pageMeta'
+
+// Leaflet is large, so the map loads separately after the listing details render.
+const LocationMap = defineAsyncComponent(() => import('@/components/property/LocationMap.vue'))
 
 const route = useRoute()
 const propertiesPath = '/properties'
@@ -34,12 +38,7 @@ async function toggleSaved() {
   } finally { saving.value = false }
 }
 
-const formatPrice = (price: number) =>
-  new Intl.NumberFormat('en-PH', {
-    style: 'currency',
-    currency: 'PHP',
-    maximumFractionDigits: 0,
-  }).format(price)
+const formatPrice = formatPeso
 
 async function loadProperty() {
   const id = String(route.params.id ?? '')
@@ -50,6 +49,10 @@ async function loadProperty() {
 
   try {
     property.value = await fetchPublicProperty(id)
+    setPageMeta(
+      `${property.value.title} – ${property.value.listingType} in ${property.value.location || 'Butuan City'}`,
+      property.value.description,
+    )
   } catch (cause) {
     error.value =
       cause instanceof Error ? cause.message : 'Unable to load this property.'
@@ -225,7 +228,7 @@ watch(() => route.params.id, loadProperty, { immediate: true })
 }
 
 .location {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 14px;
 }
 
@@ -254,7 +257,7 @@ watch(() => route.params.id, loadProperty, { immediate: true })
 }
 
 .price small {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   font-weight: 400;
 }
@@ -291,7 +294,7 @@ watch(() => route.params.id, loadProperty, { immediate: true })
 }
 
 .panel p {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 14px;
   line-height: 1.8;
 }
@@ -311,7 +314,7 @@ watch(() => route.params.id, loadProperty, { immediate: true })
 }
 
 .specifications span {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
 }
 
@@ -382,7 +385,7 @@ watch(() => route.params.id, loadProperty, { immediate: true })
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   line-height: 1.7;
 }
@@ -399,7 +402,7 @@ watch(() => route.params.id, loadProperty, { immediate: true })
 }
 
 .not-found p {
-  color: #64748b;
+  color: #5e6d82;
   line-height: 1.7;
 }
 

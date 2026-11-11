@@ -1,3 +1,4 @@
+import { formatPeso } from '@/utils/format'
 
 export type OwnerListingStatus =
   | 'Approved'
@@ -34,10 +35,4 @@ export interface OwnerProperty {
 
 export const ownerProperties: OwnerProperty[] = []
 
-export function formatOwnerPrice(price: number): string {
-  return new Intl.NumberFormat('en-PH', {
-    style: 'currency',
-    currency: 'PHP',
-    maximumFractionDigits: 0
-  }).format(price)
-}
+export const formatOwnerPrice = formatPeso

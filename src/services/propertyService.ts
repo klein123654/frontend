@@ -1,4 +1,5 @@
 import { API_ORIGIN, apiRequest } from './api'
+import { compressImage } from '@/utils/imageCompression'
 import type { ListingType, Property, PropertyType } from '@/types/property'
 import type { OwnerProperty } from '@/data/owner/ownerProperties'
 import { BUTUAN_CITY, BUTUAN_PROVINCE, canonicalButuanBarangay } from '@/data/butuanLocation'
@@ -78,7 +79,7 @@ export function mapListing(record: BackendProperty): OwnerProperty {
   }
 }
 
-function listingFormData(input: ListingInput): FormData {
+async function listingFormData(input: ListingInput): Promise<FormData> {
   const data = new FormData()
   data.set('title', input.title)
   data.set('property_type', input.propertyType)
@@ -93,7 +94,8 @@ function listingFormData(input: ListingInput): FormData {
   if (input.longitude != null) data.set('longitude', String(input.longitude))
   data.set('floor_area', String(input.area))
   data.set('submit_for_review', input.status === 'Pending' ? '1' : '0')
-  input.images.forEach((file) => data.append('images[]', file))
+  const images = await Promise.all(input.images.map((file) => compressImage(file)))
+  images.forEach((file) => data.append('images[]', file))
   return data
 }
 
@@ -104,13 +106,13 @@ export async function fetchMyListings() {
 
 export async function createMyListing(input: ListingInput) {
   const response = await apiRequest<{ data: BackendProperty }>('my/properties', {
-    method: 'POST', body: listingFormData(input),
+    method: 'POST', body: await listingFormData(input),
   })
   return mapListing(response.data)
 }
 
 export async function updateMyListing(id: number, input: ListingInput) {
-  const data = listingFormData(input)
+  const data = await listingFormData(input)
   data.set('_method', 'PATCH')
   const response = await apiRequest<{ data: BackendProperty }>(`my/properties/${id}`, {
     method: 'POST', body: data,
@@ -126,6 +128,8 @@ interface PaginatedResponse {
   data: BackendProperty[]
   meta?: {
     total?: number
+    current_page?: number
+    last_page?: number
   }
 }
 
@@ -138,6 +142,18 @@ export interface PropertySearchFilters {
   propertyType?: string
   listingType?: string
   aiTags?: string[]
+  minPrice?: number | null
+  maxPrice?: number | null
+  sort?: 'newest' | 'oldest' | 'price_asc' | 'price_desc'
+  page?: number
+  perPage?: number
+}
+
+export interface PropertySearchResult {
+  properties: Property[]
+  total: number
+  currentPage: number
+  lastPage: number
 }
 
 function normalizePropertyType(value: string): PropertyType {
@@ -212,11 +228,9 @@ export function mapProperty(record: BackendProperty): Property {
   }
 }
 
-export async function fetchPublicProperties(
-  filters: PropertySearchFilters = {},
-): Promise<{ properties: Property[]; total: number }> {
+export function buildPropertySearchParams(filters: PropertySearchFilters = {}): URLSearchParams {
   const params = new URLSearchParams()
-  params.set('per_page', '50')
+  params.set('per_page', String(filters.perPage ?? 50))
 
   if (filters.search?.trim()) {
     params.set('search', filters.search.trim())
@@ -230,16 +244,28 @@ export async function fetchPublicProperties(
     params.set('listing_type', listingTypeToApiValue(filters.listingType as ListingType))
   }
 
+  if (filters.minPrice != null) params.set('min_price', String(filters.minPrice))
+  if (filters.maxPrice != null) params.set('max_price', String(filters.maxPrice))
+  if (filters.sort && filters.sort !== 'newest') params.set('sort', filters.sort)
+  if (filters.page && filters.page > 1) params.set('page', String(filters.page))
+
   filters.aiTags?.forEach((tag) => params.append('ai_tags[]', tag))
 
-  const query = params.toString()
+  return params
+}
+
+export async function fetchPublicProperties(
+  filters: PropertySearchFilters = {},
+): Promise<PropertySearchResult> {
   const response = await apiRequest<PaginatedResponse>(
-    `properties?${query}`,
+    `properties?${buildPropertySearchParams(filters).toString()}`,
   )
 
   return {
     properties: response.data.map(mapProperty),
     total: response.meta?.total ?? response.data.length,
+    currentPage: response.meta?.current_page ?? 1,
+    lastPage: response.meta?.last_page ?? 1,
   }
 }
 
@@ -251,4 +277,39 @@ export async function fetchPublicProperty(
   )
 
   return mapProperty(response.data)
+}
+
+export interface DescriptionRequest {
+  title: string
+  area: number | null
+  location: string
+  price: number | null
+  propertyType: string
+  listingType: string
+}
+
+/** Ask the AI service to draft a listing description. Throws with a user-facing message on failure. */
+export async function generateListingDescription(input: DescriptionRequest): Promise<string> {
+  const response = await apiRequest<{ success: boolean; description?: string; message?: string }>('ai/describe', {
+    method: 'POST',
+    body: JSON.stringify({
+      title: input.title,
+      size: input.area,
+      location: input.location,
+      price: input.price,
+      type: input.propertyType,
+      listing_type: input.listingType,
+    }),
+  })
+
+  if (!response.success) {
+    throw new Error(response.message || 'AI description generation is unavailable.')
+  }
+
+  const description = response.description?.trim()
+  if (!description) {
+    throw new Error('The AI returned an empty description. Please try again.')
+  }
+
+  return description
 }

@@ -14,7 +14,7 @@ describe('login API requests', () => {
     const responseBody = {
       message: 'The provided credentials are incorrect.',
     }
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(responseBody), {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify(responseBody), {
       status: 422,
       headers: { 'Content-Type': 'application/json' },
     }))
@@ -49,7 +49,7 @@ describe('property image upload requests', () => {
   })
 
   it('sends selected files as images[] FormData without overriding the multipart boundary', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
       data: {
         id: 321,
         title: 'Warehouse test',
@@ -97,7 +97,7 @@ describe('property image upload requests', () => {
   })
 
   it('removes a caller-supplied Content-Type so fetch generates the multipart boundary', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: [] }), {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ data: [] }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     }))

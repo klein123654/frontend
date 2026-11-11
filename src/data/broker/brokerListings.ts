@@ -1,3 +1,4 @@
+import { formatPeso } from '@/utils/format'
 import type { ListingType, PropertyType } from '@/types/property'
 
 export type BrokerListingStatus = 'Approved' | 'Pending' | 'Draft' | 'Rejected'
@@ -29,8 +30,4 @@ export type BrokerListingInput = Omit<BrokerListing, 'id' | 'images' | 'inquirie
 
 export const brokerListings: BrokerListing[] = []
 
-export function formatBrokerPrice(price: number): string {
-  return new Intl.NumberFormat('en-PH', {
-    style: 'currency', currency: 'PHP', maximumFractionDigits: 0
-  }).format(price)
-}
+export const formatBrokerPrice = formatPeso

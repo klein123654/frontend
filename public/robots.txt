@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /owner/
+Disallow: /broker/
+Disallow: /developer/
+Disallow: /buyer/
+Disallow: /publisher/
+Disallow: /reset-password
+
+Sitemap: https://frontend-1cf.pages.dev/sitemap.xml

@@ -107,7 +107,7 @@ onBeforeUnmount(() => {
 
 .map-hint {
   margin: 9px 0 0;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   line-height: 1.5;
 }

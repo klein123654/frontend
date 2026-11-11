@@ -1,0 +1,13 @@
+# Cloudflare Pages response headers. https://developers.cloudflare.com/pages/configuration/headers/
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cloud.umami.is; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://*.tile.openstreetmap.org https://backend1-3fwi.onrender.com; font-src 'self' data:; connect-src 'self' https://backend1-3fwi.onrender.com https://*.supabase.co https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://cloud.umami.is https://api-gateway.umami.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Cross-Origin-Opener-Policy: same-origin
+
+# Hashed build assets never change, so browsers can cache them for a year.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

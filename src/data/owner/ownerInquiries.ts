@@ -24,3 +24,44 @@ export interface OwnerInquiry {
 }
 
 export const ownerInquiries: OwnerInquiry[] = []
+
+export type TagSeverity = 'info' | 'warn' | 'success' | 'danger' | 'secondary'
+
+export const INQUIRY_STATUSES: InquiryStatus[] = ['New', 'In Progress', 'Resolved']
+
+/** PrimeVue Tag colour for an inquiry's workflow status. */
+export function inquiryStatusSeverity(status: InquiryStatus): TagSeverity {
+  switch (status) {
+    case 'New':
+      return 'info'
+    case 'In Progress':
+      return 'warn'
+    case 'Resolved':
+      return 'success'
+    default:
+      return 'secondary'
+  }
+}
+
+/** PrimeVue Tag colour for the AI lead priority score. */
+export function aiPrioritySeverity(priority: OwnerInquiry['aiPriority']): TagSeverity {
+  switch (priority) {
+    case 'high':
+      return 'danger'
+    case 'medium':
+      return 'warn'
+    case 'low':
+      return 'info'
+    default:
+      return 'secondary'
+  }
+}
+
+/** Count inquiries per status for the summary cards. */
+export function countInquiriesByStatus(inquiries: Pick<OwnerInquiry, 'status'>[]): Record<InquiryStatus, number> {
+  const counts: Record<InquiryStatus, number> = { New: 0, 'In Progress': 0, Resolved: 0 }
+  for (const inquiry of inquiries) {
+    if (inquiry.status in counts) counts[inquiry.status] += 1
+  }
+  return counts
+}

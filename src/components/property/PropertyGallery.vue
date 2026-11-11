@@ -50,7 +50,7 @@ watch(
     <!-- MAIN IMAGE -->
     <div v-if="images.length" class="main-image">
 
-      <img
+      <img decoding="async"
         :src="currentImage"
         :alt="`${title} - Photo ${activeIndex + 1}`"
       />
@@ -107,7 +107,7 @@ watch(
         :aria-pressed="activeIndex === index"
         @click="selectImage(index)"
       >
-        <img
+        <img loading="lazy" decoding="async"
           :src="image"
           :alt="`${title} thumbnail ${index + 1}`"
         />
@@ -238,12 +238,12 @@ watch(
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  color: #5e6d82;
 }
 
 .empty-icon {
   font-size: 42px;
-  color: #94a3b8;
+  color: #5e6d82;
 }
 
 /* RESPONSIVE */

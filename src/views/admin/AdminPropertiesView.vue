@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatPeso } from '@/utils/format'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import AdminShell from '@/components/admin/AdminShell.vue'
 import { adminListings, pendingAdminListings, reviewAdminListing, unpublishAdminListing, loadAdminWorkspace, adminError } from '@/stores/adminWorkspace'
@@ -54,7 +55,7 @@ async function unpublish() {
   feedback.value = await unpublishAdminListing(selected.value.key, note.value)
     ? 'Listing unpublished and returned to draft.' : 'Unpublish could not be saved.'
 }
-function currency(price: number) { return price > 0 ? new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(price) : 'Not specified' }
+function currency(price: number) { return price > 0 ? formatPeso(price) : 'Not specified' }
 </script>
 <template><AdminShell>
   <header class="admin-heading"><div><span class="admin-eyebrow">ADMIN WORKSPACE</span><h1>Property Approvals</h1><p>Review properties submitted by owners and brokers.</p></div></header>
@@ -71,7 +72,7 @@ function currency(price: number) { return price > 0 ? new Intl.NumberFormat('en-
       <section ref="detailsPanel" class="details-dialog" role="dialog" aria-modal="true" aria-labelledby="listing-details-title" tabindex="-1">
         <div class="details-header"><div><span class="details-eyebrow">{{ selected.source }} LISTING</span><h2 id="listing-details-title">Listing Details</h2></div><button type="button" class="details-close" aria-label="Close listing details" @click="closeDetails">&times;</button></div>
         <div class="details-summary"><h3>{{ selected.title }}</h3><div class="details-meta"><div><span>Property ID</span><strong>{{ selected.id }}</strong></div><div><span>Submitted</span><strong>{{ selected.dateCreated }}</strong></div><div><span>Location</span><strong>{{ selected.location || 'Not specified' }}<template v-if="selected.barangay">, {{ selected.barangay }}</template></strong></div><div><span>Status</span><span class="admin-status" :class="selected.status.toLowerCase()">{{ selected.status }}</span></div></div><p v-if="selected.reviewNote" class="details-review-note"><strong>Previous decision note</strong>{{ selected.reviewNote }}</p></div>
-        <section class="details-photos" aria-label="Listing photos"><div class="details-section-head"><h3>Listing Photos</h3><span>{{ selected.images.length }}</span></div><div v-if="selected.images.length" class="details-photo-grid"><a v-for="(image, index) in selected.images" :key="image.url" :href="image.url" target="_blank" rel="noopener noreferrer" :aria-label="`Open photo ${index + 1} for ${selected.title}`"><img :src="image.url" :alt="image.alt" /></a></div><p v-else class="details-no-photos">No photos have been uploaded for this listing.</p></section>
+        <section class="details-photos" aria-label="Listing photos"><div class="details-section-head"><h3>Listing Photos</h3><span>{{ selected.images.length }}</span></div><div v-if="selected.images.length" class="details-photo-grid"><a v-for="(image, index) in selected.images" :key="image.url" :href="image.url" target="_blank" rel="noopener noreferrer" :aria-label="`Open photo ${index + 1} for ${selected.title}`"><img loading="lazy" decoding="async" :src="image.url" :alt="image.alt" /></a></div><p v-else class="details-no-photos">No photos have been uploaded for this listing.</p></section>
         <template v-if="selected.status==='Pending'"><div class="details-fields"><div class="details-field"><label for="admin-review-note">Review Note <span>Required for rejection</span></label><textarea id="admin-review-note" v-model="note" placeholder="Add context for the decision. A reason is required to reject this listing."></textarea></div></div>
           <div class="details-actions"><button type="button" class="admin-button-success" @click="decide('Approved')">Approve Listing</button><button type="button" class="admin-button-danger" @click="decide('Rejected')">Reject Listing</button></div></template>
         <template v-else-if="selected.status==='Approved'"><div class="details-fields"><div class="details-field"><label for="admin-unpublish-note">Reason for unpublishing</label><textarea id="admin-unpublish-note" v-model="note" placeholder="Explain why this listing should be removed from public results."></textarea></div></div>
@@ -123,7 +124,7 @@ function currency(price: number) { return price > 0 ? new Intl.NumberFormat('en-
 }
 
 .details-eyebrow {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 10px;
   font-weight: 700;
 }
@@ -143,7 +144,7 @@ function currency(price: number) { return price > 0 ? new Intl.NumberFormat('en-
 
 .details-readonly {
   margin: 20px 0 0;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
 }
 
@@ -178,7 +179,7 @@ function currency(price: number) { return price > 0 ? new Intl.NumberFormat('en-
 }
 
 .details-meta > div > span:first-child {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 11px;
   font-weight: 700;
 }
@@ -249,7 +250,7 @@ function currency(price: number) { return price > 0 ? new Intl.NumberFormat('en-
 }
 
 .details-section-head span {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
 }
 
@@ -284,7 +285,7 @@ function currency(price: number) { return price > 0 ? new Intl.NumberFormat('en-
   padding: 18px;
   border: 1px dashed #cbd5e1;
   border-radius: 7px;
-  color: #64748b;
+  color: #5e6d82;
   background: #f8fafc;
   font-size: 12px;
   text-align: center;
@@ -310,7 +311,7 @@ function currency(price: number) { return price > 0 ? new Intl.NumberFormat('en-
 
 .details-field label span {
   margin-left: 5px;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 11px;
   font-weight: 400;
 }

@@ -1,6 +1,5 @@
-
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import InputText from 'primevue/inputtext'
@@ -16,7 +15,6 @@ import {
   FileText,
   Save,
   Send,
-  Info,
   CircleAlert,
   Sparkles
 } from '@lucide/vue'
@@ -29,10 +27,14 @@ import type {
 import type {
   OwnerProperty
 } from '@/data/owner/ownerProperties'
-import LocationMap from '@/components/property/LocationMap.vue'
 import { useFormDraft } from '@/composables/useFormDraft'
-import { apiRequest } from '@/services/api'
+import { generateListingDescription } from '@/services/propertyService'
+import FormSection from '@/components/forms/FormSection.vue'
+import PropertyImagePicker from '@/components/forms/PropertyImagePicker.vue'
 import { BUTUAN_BARANGAYS, BUTUAN_CITY, BUTUAN_PROVINCE, canonicalButuanBarangay, isButuanBarangay } from '@/data/butuanLocation'
+
+// Leaflet is large, so the map loads only when the form renders it.
+const LocationMap = defineAsyncComponent(() => import('@/components/property/LocationMap.vue'))
 
 type SaveStatus = 'Draft' | 'Pending'
 
@@ -189,59 +191,6 @@ function isInvalid(field: FieldName): boolean {
   return attemptedSubmit.value && fieldErrors.value[field]
 }
 
-const imageNames = computed(() =>
-  images.value.map((file) => file.name)
-)
-
-// IMAGE SELECTION
-
-function onFilesSelected(event: Event) {
-  const input = event.target as HTMLInputElement
-  const selected = Array.from(input.files ?? [])
-
-  imageError.value = ''
-  errorMessage.value = ''
-
-  if (selected.length === 0) {
-    images.value = []
-    return
-  }
-
-  if (selected.length > 5) {
-    imageError.value =
-      'Please select a maximum of 5 images.'
-    images.value = []
-    input.value = ''
-    return
-  }
-
-  if (
-    selected.some(
-      (file) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
-    )
-  ) {
-    imageError.value =
-      'Only JPG, PNG, WebP or GIF files are allowed.'
-    images.value = []
-    input.value = ''
-    return
-  }
-
-  if (
-    selected.some(
-      (file) => file.size > 5 * 1024 * 1024
-    )
-  ) {
-    imageError.value =
-      'Each image must be 5 MB or smaller.'
-    images.value = []
-    input.value = ''
-    return
-  }
-
-  images.value = selected
-}
-
 // VALIDATION FOR FULL SUBMISSION
 
 function validateForSubmission(): boolean {
@@ -301,38 +250,14 @@ async function generateDescription() {
   descriptionGenerationMessage.value = ''
 
   try {
-    const response = await apiRequest<{
-      success: boolean
-      description?: string
-      message?: string
-    }>('ai/describe', {
-      method: 'POST',
-      body: JSON.stringify({
-        title: title.value.trim(),
-        size: area.value,
-        location: [
-          location.value.trim(),
-          barangay.value.trim(),
-          BUTUAN_CITY,
-          BUTUAN_PROVINCE,
-        ].filter(Boolean).join(', '),
-        price: price.value,
-        type: propertyType.value ?? '',
-        listing_type: listingType.value ?? '',
-      }),
+    description.value = await generateListingDescription({
+      title: title.value.trim(),
+      area: area.value,
+      location: [location.value.trim(), barangay.value.trim(), BUTUAN_CITY, BUTUAN_PROVINCE].filter(Boolean).join(', '),
+      price: price.value,
+      propertyType: propertyType.value ?? '',
+      listingType: listingType.value ?? '',
     })
-
-    if (!response.success) {
-      descriptionGenerationMessage.value = response.message || 'AI description generation is unavailable.'
-      return
-    }
-
-    if (!response.description?.trim()) {
-      descriptionGenerationMessage.value = 'The AI returned an empty description. Please try again.'
-      return
-    }
-
-    description.value = response.description.trim()
   } catch (cause) {
     descriptionGenerationMessage.value = cause instanceof Error
       ? cause.message
@@ -379,19 +304,11 @@ function submitForReview() {
     @submit.prevent="submitForReview"
   >
     <!-- BASIC INFORMATION -->
-    <section class="form-card">
-      <div class="section-heading">
-        <div class="section-icon">
-          <Building2 :size="20" />
-        </div>
-
-        <div>
-          <h2>Basic Information</h2>
-          <p>
-            Enter the main details of your commercial property.
-          </p>
-        </div>
-      </div>
+    <FormSection
+      :icon="Building2"
+      title="Basic Information"
+      description="Enter the main details of your commercial property."
+    >
 
       <div class="fields-grid">
 
@@ -471,22 +388,14 @@ function submitForReview() {
         </div>
 
       </div>
-    </section>
+    </FormSection>
 
     <!-- PROPERTY LOCATION -->
-    <section class="form-card">
-      <div class="section-heading">
-        <div class="section-icon">
-          <MapPin :size="20" />
-        </div>
-
-        <div>
-          <h2>Property Location</h2>
-          <p>
-            Specify where the property is located in Butuan City.
-          </p>
-        </div>
-      </div>
+    <FormSection
+      :icon="MapPin"
+      title="Property Location"
+      description="Specify where the property is located in Butuan City."
+    >
 
       <div class="fields-grid">
 
@@ -556,22 +465,14 @@ function submitForReview() {
         </div>
 
       </div>
-    </section>
+    </FormSection>
 
     <!-- PRICING AND AREA -->
-    <section class="form-card">
-      <div class="section-heading">
-        <div class="section-icon">
-          <PhilippinePeso :size="20" />
-        </div>
-
-        <div>
-          <h2>Pricing & Area</h2>
-          <p>
-            Provide the property's asking price and floor or lot area.
-          </p>
-        </div>
-      </div>
+    <FormSection
+      :icon="PhilippinePeso"
+      title="Pricing &amp; Area"
+      description="Provide the property's asking price and floor or lot area."
+    >
 
       <div class="fields-grid">
 
@@ -644,22 +545,14 @@ function submitForReview() {
         </div>
 
       </div>
-    </section>
+    </FormSection>
 
     <!-- PROPERTY DESCRIPTION -->
-    <section class="form-card">
-      <div class="section-heading">
-        <div class="section-icon">
-          <FileText :size="20" />
-        </div>
-
-        <div>
-          <h2>Property Description</h2>
-          <p>
-            Describe its features, accessibility, and intended use.
-          </p>
-        </div>
-      </div>
+    <FormSection
+      :icon="FileText"
+      title="Property Description"
+      description="Describe its features, accessibility, and intended use."
+    >
 
       <div class="field">
         <div class="description-controls">
@@ -699,95 +592,22 @@ function submitForReview() {
           Please provide a property description.
         </small>
       </div>
-    </section>
+    </FormSection>
 
     <!-- PROPERTY IMAGES -->
-    <section class="form-card">
-      <div class="section-heading">
-        <div class="section-icon">
-          <ImagePlus :size="20" />
-        </div>
+    <FormSection
+      :icon="ImagePlus"
+      title="Property Images"
+      :description="isEditMode ? 'Keep the existing photos or upload additional property images.' : 'Select clear photos of your commercial property.'"
+    >
 
-        <div>
-          <h2>Property Images</h2>
-          <p>
-            {{
-              isEditMode
-                ? 'Keep the existing photos or upload additional property images.'
-                : 'Select clear photos of your commercial property.'
-            }}
-          </p>
-        </div>
-      </div>
-
-      <!-- PROPERTY PHOTO SELECTION -->
-        <div
-          class="upload-area"
-          :class="{
-            'upload-invalid':
-              isInvalid('images') || Boolean(imageError)
-          }"
-        >
-          <ImagePlus :size="32" :stroke-width="1.5" />
-
-          <strong>Select Property Photos</strong>
-
-          <p>
-            Select up to 5 JPG, PNG, or WebP photos (5 MB each). Images are uploaded securely to the application storage.
-          </p>
-
-          <input
-            id="property-images"
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            multiple
-            aria-label="Select property images"
-            :aria-invalid="
-              isInvalid('images') || Boolean(imageError)
-            "
-            @change="onFilesSelected"
-          />
-        </div>
-
-        <small
-          v-if="imageError || isInvalid('images')"
-          class="field-error image-field-error"
-        >
-          <CircleAlert :size="13" />
-          {{
-            imageError ||
-            'Please select at least one property image.'
-          }}
-        </small>
-
-        <div
-          v-if="imageNames.length"
-          class="selected-images"
-        >
-          <strong>Selected images:</strong>
-
-          <ul>
-            <li
-              v-for="(name, index) in imageNames"
-              :key="`${index}-${name}`"
-            >
-              {{ name }}
-            </li>
-          </ul>
-        </div>
-
-      <div class="info-note">
-        <Info :size="17" />
-
-        <span v-if="isEditMode">
-          Existing photos remain on the listing. New images are uploaded to the application storage.
-        </span>
-
-        <span v-else>
-          Selected photos are uploaded when you save or submit the listing.
-        </span>
-      </div>
-    </section>
+      <PropertyImagePicker
+        v-model:files="images"
+        v-model:error="imageError"
+        :required="isInvalid('images')"
+        :is-edit-mode="isEditMode"
+      />
+    </FormSection>
 
     <!-- GENERAL VALIDATION MESSAGE -->
     <div
@@ -849,48 +669,7 @@ function submitForReview() {
 
 /* FORM CARDS */
 
-.form-card {
-  padding: 28px;
-  border: 1px solid #e2e8f0;
-  border-radius: 13px;
-  background: #ffffff;
-}
-
 /* SECTION HEADINGS */
-
-.section-heading {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding-bottom: 23px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid #edf2f7;
-}
-
-.section-icon {
-  display: grid;
-  place-items: center;
-  width: 46px;
-  height: 46px;
-  flex-shrink: 0;
-  border-radius: 11px;
-  background: #eaf1fc;
-  color: #2563eb;
-}
-
-.section-heading h2 {
-  margin: 0 0 7px;
-  color: #142d4e;
-  font-size: 17px;
-  font-weight: 750;
-}
-
-.section-heading p {
-  margin: 0;
-  color: #64748b;
-  font-size: 12px;
-  line-height: 1.6;
-}
 
 /* FIELD GRID */
 
@@ -913,7 +692,7 @@ function submitForReview() {
 
 .location-scope {
   margin: 0;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
 }
 
@@ -1036,119 +815,11 @@ function submitForReview() {
   flex-shrink: 0;
 }
 
-.image-field-error {
-  margin-top: 10px;
-}
-
-/* IMAGE UPLOAD */
-
-.upload-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 13px;
-  padding: 30px 18px;
-  border: 2px dashed #cbd5e1;
-  border-radius: 12px;
-  background: #f8fafc;
-  color: #2563eb;
-  text-align: center;
-  transition:
-    border-color 0.2s,
-    background 0.2s,
-    box-shadow 0.2s;
-}
-
-.upload-area strong {
-  color: #142d4e;
-  font-size: 14px;
-}
-
-.upload-area p {
-  margin: 0;
-  color: #64748b;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.upload-area input {
-  max-width: 100%;
-  color: #475569;
-  font-size: 12px;
-}
-
-/* INVALID IMAGE UPLOAD */
-
-.upload-area.upload-invalid {
-  border-color: #ef4444;
-  background: #fffafa;
-  box-shadow:
-    0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-/* IMAGE AREA WHEN EDITING */
-
-.image-unavailable {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 24px;
-  border: 1px dashed #cbd5e1;
-  border-radius: 12px;
-  background: #f8fafc;
-}
-
-.image-unavailable > svg {
-  flex-shrink: 0;
-  color: #2563eb;
-}
-
-.image-unavailable strong {
-  color: #142d4e;
-  font-size: 13px;
-}
-
-.image-unavailable p {
-  margin: 7px 0 0;
-  color: #64748b;
-  font-size: 12px;
-  line-height: 1.7;
-}
+/* IMAGE UPLOAD *//* INVALID IMAGE UPLOAD *//* IMAGE AREA WHEN EDITING */
 
 /* SELECTED IMAGES */
 
-.selected-images {
-  margin-top: 17px;
-  color: #334155;
-  font-size: 12px;
-  overflow-wrap: anywhere;
-}
-
-.selected-images ul {
-  padding-left: 22px;
-  line-height: 1.9;
-}
-
 /* INFORMATION NOTE */
-
-.info-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-top: 18px;
-  padding: 14px;
-  background: #eff6ff;
-  border: 1px solid #dbeafe;
-  border-radius: 9px;
-  color: #47617f;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.info-note svg {
-  flex-shrink: 0;
-  color: #2563eb;
-}
 
 /* GENERAL VALIDATION MESSAGE */
 
@@ -1223,10 +894,6 @@ function submitForReview() {
     flex-direction: column;
   }
 
-  .form-card {
-    padding: 20px 17px;
-  }
-
   .fields-grid {
     grid-template-columns: 1fr;
     gap: 18px;
@@ -1236,10 +903,6 @@ function submitForReview() {
     grid-column: auto;
   }
 
-  .section-heading {
-    align-items: flex-start;
-  }
-
   .form-actions {
     flex-direction: column;
   }
@@ -1247,10 +910,6 @@ function submitForReview() {
   .draft-button,
   .submit-button {
     width: 100%;
-  }
-
-  .image-unavailable {
-    padding: 18px;
   }
 }
 </style>

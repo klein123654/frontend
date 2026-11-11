@@ -222,7 +222,7 @@ async function handleSave(values: OwnerFormPayload) {
   align-items: center;
   gap: 8px;
   margin-bottom: 28px;
-  color: #64748b;
+  color: #5e6d82;
   text-decoration: none;
   font-size: 12px;
   font-weight: 600;
@@ -255,7 +255,7 @@ async function handleSave(values: OwnerFormPayload) {
 
 .page-header p {
   margin: 0;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   line-height: 1.7;
 }
@@ -291,7 +291,7 @@ async function handleSave(values: OwnerFormPayload) {
 
 .property-context p {
   margin: 6px 0 0;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
 }
 
@@ -397,7 +397,7 @@ async function handleSave(values: OwnerFormPayload) {
   border: 1px solid #e2e8f0;
   border-radius: 13px;
   background: #ffffff;
-  color: #64748b;
+  color: #5e6d82;
   text-align: center;
 }
 

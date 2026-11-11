@@ -1,29 +1,19 @@
-
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
-import Tag from 'primevue/tag'
-import Dialog from 'primevue/dialog'
 import InquiryConversationPanel from '@/components/inquiries/InquiryConversationPanel.vue'
+import InquiryDetailsDialog from '@/components/inquiries/InquiryDetailsDialog.vue'
+import InquirySummaryCards from '@/components/inquiries/InquirySummaryCards.vue'
+import OwnerInquiriesTable from '@/components/inquiries/OwnerInquiriesTable.vue'
 
 import {
-  MessageSquare,
-  Mail,
-  Clock3,
-  CheckCircle2,
   Search,
   RotateCcw,
-  Eye,
   Building2,
   ArrowRight,
-  Phone,
-  CalendarDays,
-  UserRound,
   Info
 } from '@lucide/vue'
 
@@ -61,14 +51,6 @@ const statusOptions: {
   { label: 'Resolved', value: 'Resolved' }
 ]
 
-const editableStatuses: {
-  label: string
-  value: InquiryStatus
-}[] = [
-  { label: 'New', value: 'New' },
-  { label: 'In Progress', value: 'In Progress' },
-  { label: 'Resolved', value: 'Resolved' }
-]
 
 // PROPERTY LOOKUP
 
@@ -103,61 +85,6 @@ const filteredInquiries = computed(() => {
     return matchesSearch && matchesStatus
   })
 })
-
-// SUMMARY COUNTS
-
-const totalCount = computed(
-  () => allOwnerInquiries.value.length
-)
-
-const newCount = computed(
-  () =>
-    allOwnerInquiries.value.filter(
-      (inquiry) => inquiry.status === 'New'
-    ).length
-)
-
-const inProgressCount = computed(
-  () =>
-    allOwnerInquiries.value.filter(
-      (inquiry) => inquiry.status === 'In Progress'
-    ).length
-)
-
-const resolvedCount = computed(
-  () =>
-    allOwnerInquiries.value.filter(
-      (inquiry) => inquiry.status === 'Resolved'
-    ).length
-)
-
-// STATUS BADGES
-
-function getSeverity(status: InquiryStatus) {
-  switch (status) {
-    case 'New':
-      return 'info'
-    case 'In Progress':
-      return 'warn'
-    case 'Resolved':
-      return 'success'
-    default:
-      return 'secondary'
-  }
-}
-
-function getAiPrioritySeverity(priority: OwnerInquiry['aiPriority']) {
-  switch (priority) {
-    case 'high':
-      return 'danger'
-    case 'medium':
-      return 'warn'
-    case 'low':
-      return 'info'
-    default:
-      return 'secondary'
-  }
-}
 
 // DETAILS DIALOG
 
@@ -196,14 +123,6 @@ async function changeStatus(
   feedbackIsWarning.value = !updated
 }
 
-async function handleStatusChange(
-  inquiryId: number,
-  status: InquiryStatus | null
-) {
-  if (status !== null) {
-    await changeStatus(inquiryId, status)
-  }
-}
 
 // RESET FILTERS
 
@@ -251,54 +170,7 @@ function clearFilters() {
         </p>
       </div>
 
-      <!-- SUMMARY -->
-      <div class="summary-grid">
-
-        <div class="summary-card">
-          <div class="summary-icon">
-            <MessageSquare :size="21" />
-          </div>
-
-          <div class="summary-content">
-            <span>Total Inquiries</span>
-            <strong>{{ totalCount }}</strong>
-          </div>
-        </div>
-
-        <div class="summary-card">
-          <div class="summary-icon new-icon">
-            <Mail :size="21" />
-          </div>
-
-          <div class="summary-content">
-            <span>New</span>
-            <strong>{{ newCount }}</strong>
-          </div>
-        </div>
-
-        <div class="summary-card">
-          <div class="summary-icon progress-icon">
-            <Clock3 :size="21" />
-          </div>
-
-          <div class="summary-content">
-            <span>In Progress</span>
-            <strong>{{ inProgressCount }}</strong>
-          </div>
-        </div>
-
-        <div class="summary-card">
-          <div class="summary-icon closed-icon">
-            <CheckCircle2 :size="21" />
-          </div>
-
-          <div class="summary-content">
-            <span>Resolved</span>
-            <strong>{{ resolvedCount }}</strong>
-          </div>
-        </div>
-
-      </div>
+      <InquirySummaryCards :inquiries="allOwnerInquiries" />
 
       <!-- INQUIRIES PANEL -->
       <section class="table-panel">
@@ -365,138 +237,13 @@ function clearFilters() {
           {{ feedbackMessage }}
         </div>
 
-        <!-- TABLE -->
-        <DataTable
-          :value="filteredInquiries"
-          data-key="id"
-          paginator
-          :rows="5"
-          :rows-per-page-options="[5, 10, 20]"
-          striped-rows
-          sort-field="dateReceived"
-          :sort-order="-1"
-          table-style="min-width: 850px"
-          class="inquiries-table"
-        >
-
-          <!-- INQUIRER -->
-          <Column
-            field="customerName"
-            header="Inquirer"
-            sortable
-          >
-            <template #body="{ data }">
-              <div class="inquirer-cell">
-                <div class="avatar">
-                  <UserRound :size="19" />
-                </div>
-
-                <div class="inquirer-info">
-                  <strong>{{ data.customerName }}</strong>
-                  <span>{{ data.customerEmail }}</span>
-                </div>
-              </div>
-            </template>
-          </Column>
-
-          <!-- PROPERTY -->
-          <Column
-            field="propertyId"
-            header="Property"
-          >
-            <template #body="{ data }">
-              <RouterLink
-                :to="`${workspaceBase}/properties/${data.propertyId}`"
-                class="property-link"
-              >
-                {{ getPropertyTitle(data.propertyId) }}
-              </RouterLink>
-            </template>
-          </Column>
-
-          <!-- SUBJECT -->
-          <Column
-            field="subject"
-            header="Subject"
-            sortable
-          >
-            <template #body="{ data }">
-              <span class="subject-text">
-                {{ data.subject }}
-              </span>
-            </template>
-          </Column>
-
-          <!-- DATE -->
-          <Column
-            field="dateReceived"
-            header="Received"
-            sortable
-          />
-
-          <Column header="Lead Priority">
-            <template #body="{ data }">
-              <Tag
-                :value="data.aiPriority"
-                :severity="getAiPrioritySeverity(data.aiPriority)"
-                rounded
-              />
-            </template>
-          </Column>
-
-          <!-- STATUS -->
-          <Column
-            field="status"
-            header="Status"
-            sortable
-          >
-            <template #body="{ data }">
-              <Tag
-                :value="data.status"
-                :severity="getSeverity(data.status)"
-                rounded
-              />
-            </template>
-          </Column>
-
-          <!-- ACTIONS -->
-          <Column header="Actions">
-            <template #body="{ data }">
-              <button
-                type="button"
-                class="view-button"
-                :aria-label="`View inquiry from ${data.customerName}`"
-                :title="`View inquiry from ${data.customerName}`"
-                @click="openInquiry(data)"
-              >
-                <Eye :size="17" />
-                View
-              </button>
-            </template>
-          </Column>
-
-          <!-- EMPTY STATE -->
-          <template #empty>
-            <div class="empty-state">
-              <MessageSquare :size="34" />
-
-              <h3>No inquiries found</h3>
-
-              <p>
-                Try changing your search or status filter.
-              </p>
-
-              <button
-                type="button"
-                class="secondary-button"
-                @click="clearFilters"
-              >
-                Clear Filters
-              </button>
-            </div>
-          </template>
-
-        </DataTable>
+        <OwnerInquiriesTable
+          :inquiries="filteredInquiries"
+          :property-title="getPropertyTitle"
+          :workspace-base="workspaceBase"
+          @view="openInquiry"
+          @clear-filters="clearFilters"
+        />
       </section>
 
       <div class="bottom-actions">
@@ -505,181 +252,16 @@ function clearFilters() {
         </p>
       </div>
 
-      <!-- INQUIRY DETAILS DIALOG -->
-      <Dialog
+      <InquiryDetailsDialog
         v-model:visible="detailsVisible"
-        modal
-        header="Inquiry Details"
-        :style="{ width: 'min(560px, 95vw)' }"
-        :draggable="false"
-        :dismissable-mask="true"
-      >
-        <div
-          v-if="selectedInquiry"
-          class="dialog-content"
-        >
-
-          <!-- CUSTOMER -->
-          <section class="dialog-section">
-            <h3>
-              <UserRound :size="17" />
-              Customer Information
-            </h3>
-
-            <div class="detail-pair">
-              <span>Name</span>
-              <strong>
-                {{ selectedInquiry.customerName }}
-              </strong>
-            </div>
-
-            <div class="detail-pair">
-              <span>Email</span>
-              <strong>
-                {{ selectedInquiry.customerEmail }}
-              </strong>
-            </div>
-
-            <div class="detail-pair">
-              <span>Phone</span>
-              <strong>
-                {{ selectedInquiry.customerPhone }}
-              </strong>
-            </div>
-
-            <div class="detail-pair">
-              <span>Preferred Contact</span>
-              <strong>
-                {{ selectedInquiry.contactPreference }}
-              </strong>
-            </div>
-          </section>
-
-          <!-- PROPERTY -->
-          <section class="dialog-section">
-            <h3>
-              <Building2 :size="17" />
-              Property Information
-            </h3>
-
-            <RouterLink
-              :to="`${workspaceBase}/properties/${selectedInquiry.propertyId}`"
-              class="dialog-property-link"
-              @click="detailsVisible = false"
-            >
-              {{ getPropertyTitle(selectedInquiry.propertyId) }}
-              <ArrowRight :size="16" />
-            </RouterLink>
-
-            <div class="detail-pair date-pair">
-              <span>
-                <CalendarDays :size="15" />
-                Received
-              </span>
-
-              <strong>
-                {{ selectedInquiry.dateReceived }}
-              </strong>
-            </div>
-          </section>
-
-          <section class="dialog-section">
-            <h3>AI Lead Summary</h3>
-            <p class="ai-summary">
-              {{ selectedInquiry.aiSummary || 'Not scored yet.' }}
-            </p>
-          </section>
-
-          <!-- MESSAGE -->
-          <section class="dialog-section">
-            <h3>
-              <MessageSquare :size="17" />
-              Customer Message
-            </h3>
-
-            <strong class="message-subject">
-              {{ selectedInquiry.subject }}
-            </strong>
-
-            <div class="message-box">
-              {{ selectedInquiry.message }}
-            </div>
-          </section>
-
-          <button type="button" class="conversation-open-button" @click="openConversation">
-            View Conversation
-          </button>
-
-          <!-- CHANGE STATUS -->
-          <section class="dialog-section">
-            <h3>
-              <Clock3 :size="17" />
-              Manage Inquiry
-            </h3>
-
-            <label class="status-label">
-              Inquiry Status
-            </label>
-
-            <Select
-              :model-value="selectedInquiry.status"
-              :options="editableStatuses"
-              option-label="label"
-              option-value="value"
-              class="dialog-status-select"
-              aria-label="Change inquiry status"
-              @update:model-value="
-                (value) =>
-                  handleStatusChange(
-                    selectedInquiry!.id,
-                    value as InquiryStatus
-                  )
-              "
-            />
-
-            <p class="status-help">
-              Status changes are saved to the application database.
-            </p>
-
-            <div
-              v-if="feedbackMessage"
-              class="feedback-message"
-              :class="{ warning: feedbackIsWarning }"
-              role="status"
-            >
-              {{ feedbackMessage }}
-            </div>
-          </section>
-
-          <div class="contact-note">
-            <Info :size="17" />
-
-            <span>
-              Use the contact information provided by the customer to follow up.
-            </span>
-          </div>
-
-          <!-- CONTACT DISPLAY -->
-          <div class="contact-icons">
-            <Mail :size="16" />
-            <span>Email</span>
-
-            <Phone :size="16" />
-            <span>Phone</span>
-          </div>
-
-        </div>
-
-        <template #footer>
-          <button
-            type="button"
-            class="close-button"
-            @click="detailsVisible = false"
-          >
-            Close
-          </button>
-        </template>
-      </Dialog>
+        :inquiry="selectedInquiry"
+        :property-title="selectedInquiry ? getPropertyTitle(selectedInquiry.propertyId) : ''"
+        :property-link="selectedInquiry ? `${workspaceBase}/properties/${selectedInquiry.propertyId}` : ''"
+        :feedback-message="feedbackMessage"
+        :feedback-is-warning="feedbackIsWarning"
+        @change-status="changeStatus"
+        @open-conversation="openConversation"
+      />
 
       <InquiryConversationPanel v-model:visible="conversationVisible" :inquiry-id="selectedInquiry?.id ?? null" />
 
@@ -694,7 +276,6 @@ function clearFilters() {
   min-width: 0;
   margin: 0 auto;
 }
-.conversation-open-button{border:0;border-radius:7px;padding:10px 15px;background:#142d4e;color:white;font-weight:700;cursor:pointer}
 
 /* HEADER */
 
@@ -722,7 +303,7 @@ function clearFilters() {
 
 .page-header p {
   margin: 0;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   line-height: 1.7;
 }
@@ -775,68 +356,6 @@ function clearFilters() {
 
 /* SUMMARY CARDS */
 
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 28px;
-}
-
-.summary-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-  padding: 22px 18px;
-  border: 1px solid #e2e8f0;
-  border-radius: 13px;
-  background: white;
-}
-
-.summary-icon {
-  display: grid;
-  place-items: center;
-  width: 46px;
-  height: 46px;
-  flex-shrink: 0;
-  border-radius: 10px;
-  background: #eaf1fc;
-  color: #2563eb;
-}
-
-.new-icon {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.progress-icon {
-  background: #fef9c3;
-  color: #a16207;
-}
-
-.closed-icon {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.summary-content {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.summary-content span {
-  color: #64748b;
-  font-size: 12px;
-}
-
-.summary-content strong {
-  color: #142d4e;
-  font-size: 26px;
-  font-weight: 800;
-}
-
 /* TABLE PANEL */
 
 .table-panel {
@@ -864,7 +383,7 @@ function clearFilters() {
 .panel-header p,
 .result-count {
   margin: 0;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
 }
 
@@ -892,7 +411,7 @@ function clearFilters() {
   top: 50%;
   left: 14px;
   transform: translateY(-50%);
-  color: #94a3b8;
+  color: #5e6d82;
   pointer-events: none;
   z-index: 1;
 }
@@ -918,7 +437,7 @@ function clearFilters() {
   border: 1px solid #e2e8f0;
   border-radius: 9px;
   background: white;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -930,101 +449,6 @@ function clearFilters() {
 }
 
 /* TABLE */
-
-.inquiries-table {
-  width: 100%;
-}
-
-.inquiries-table :deep(.p-datatable-table-container) {
-  overflow-x: auto;
-}
-
-.inquiries-table :deep(.p-datatable-thead > tr > th) {
-  padding: 15px;
-  background: #f8fafc;
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.inquiries-table :deep(.p-datatable-tbody > tr > td) {
-  padding: 16px 15px;
-  color: #334155;
-  font-size: 12px;
-  vertical-align: middle;
-}
-
-.inquirer-cell {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  min-width: 190px;
-}
-
-.avatar {
-  display: grid;
-  place-items: center;
-  width: 39px;
-  height: 39px;
-  flex-shrink: 0;
-  border-radius: 10px;
-  background: #eaf1fc;
-  color: #2563eb;
-}
-
-.inquirer-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.inquirer-info strong {
-  color: #142d4e;
-  font-size: 12px;
-}
-
-.inquirer-info span {
-  color: #94a3b8;
-  font-size: 11px;
-  overflow-wrap: anywhere;
-}
-
-.property-link {
-  color: #2563eb;
-  text-decoration: none;
-  font-weight: 600;
-  line-height: 1.6;
-}
-
-.property-link:hover {
-  text-decoration: underline;
-}
-
-.subject-text {
-  display: block;
-  max-width: 200px;
-  color: #334155;
-  line-height: 1.6;
-}
-
-.view-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 9px 12px;
-  border: 1px solid #dbeafe;
-  border-radius: 8px;
-  background: #eff6ff;
-  color: #2563eb;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.view-button:hover {
-  background: #dbeafe;
-}
 
 /* FEEDBACK */
 
@@ -1047,27 +471,6 @@ function clearFilters() {
 
 /* EMPTY STATE */
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 45px 12px;
-  color: #94a3b8;
-}
-
-.empty-state h3 {
-  margin: 0;
-  color: #142d4e;
-  font-size: 16px;
-}
-
-.empty-state p {
-  margin: 0;
-  color: #94a3b8;
-  font-size: 12px;
-}
-
 /* BOTTOM ACTIONS */
 
 .bottom-actions {
@@ -1081,7 +484,7 @@ function clearFilters() {
 
 .bottom-actions p {
   margin: 0;
-  color: #94a3b8;
+  color: #5e6d82;
   font-size: 11px;
   line-height: 1.6;
 }
@@ -1094,7 +497,7 @@ function clearFilters() {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   background: white;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
@@ -1105,181 +508,9 @@ function clearFilters() {
   color: #334155;
 }
 
-/* DETAILS DIALOG */
-
-.dialog-content {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  padding: 6px 0;
-}
-
-.dialog-section {
-  display: flex;
-  flex-direction: column;
-  gap: 13px;
-}
-
-.dialog-section + .dialog-section {
-  padding-top: 20px;
-  border-top: 1px solid #edf2f7;
-}
-
-.dialog-section h3 {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0 0 4px;
-  color: #142d4e;
-  font-size: 14px;
-}
-
-.dialog-section h3 svg {
-  color: #2563eb;
-}
-
-.detail-pair {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.detail-pair > span {
-  color: #94a3b8;
-}
-
-.detail-pair strong {
-  color: #334155;
-  text-align: right;
-  overflow-wrap: anywhere;
-}
-
-.date-pair {
-  margin-top: 3px;
-}
-
-.date-pair > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.dialog-property-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #2563eb;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.dialog-property-link:hover {
-  text-decoration: underline;
-}
-
-.message-subject {
-  color: #142d4e;
-  font-size: 13px;
-}
-
-.message-box {
-  padding: 17px;
-  border: 1px solid #e2e8f0;
-  border-radius: 9px;
-  background: #f8fafc;
-  color: #475569;
-  font-size: 13px;
-  line-height: 1.9;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.ai-summary {
-  margin: 0;
-  padding: 14px 16px;
-  border-left: 3px solid #087e75;
-  background: #eff8f6;
-  color: #285b56;
-  font-size: 13px;
-  line-height: 1.65;
-}
-
-.status-label {
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.dialog-status-select {
-  width: 100%;
-}
-
-.status-help {
-  margin: 0;
-  color: #94a3b8;
-  font-size: 11px;
-  line-height: 1.6;
-}
-
-.contact-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid #dbeafe;
-  border-radius: 9px;
-  background: #eff6ff;
-  color: #47617f;
-  font-size: 11px;
-  line-height: 1.7;
-}
-
-.contact-note svg {
-  flex-shrink: 0;
-  color: #2563eb;
-}
-
-.contact-icons {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  color: #94a3b8;
-  font-size: 11px;
-}
-
-.contact-icons svg {
-  margin-left: 8px;
-}
-
 /* DIALOG FOOTER */
 
-.close-button {
-  padding: 10px 20px;
-  border: 1px solid #142d4e;
-  border-radius: 8px;
-  background: #142d4e;
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.close-button:hover {
-  background: #2563eb;
-  border-color: #2563eb;
-}
-
 /* RESPONSIVE */
-
-@media (max-width: 1100px) {
-  .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
 
 @media (max-width: 650px) {
   .page-header {
@@ -1289,15 +520,6 @@ function clearFilters() {
 
   .properties-link {
     width: 100%;
-  }
-
-  .summary-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .summary-card {
-    padding: 17px;
   }
 
   .filter-bar {
@@ -1320,15 +542,6 @@ function clearFilters() {
   .panel-header {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .detail-pair {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .detail-pair strong {
-    text-align: left;
   }
 }
 </style>

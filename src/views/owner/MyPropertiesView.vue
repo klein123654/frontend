@@ -277,12 +277,11 @@ function clearFilters() {
               <div class="property-cell">
 
                 <!-- PROPERTY IMAGE -->
-                <img
+                <img loading="lazy" decoding="async"
                   v-if="data.images.length > 0 && data.images[0]"
                   :src="data.images[0]"
                   :alt="data.title"
                   class="property-image"
-                  loading="lazy"
                 />
 
                 <!-- NO IMAGE PLACEHOLDER -->
@@ -501,7 +500,7 @@ function clearFilters() {
 }
 
 .page-header p {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   line-height: 1.7;
   margin: 0;
@@ -601,7 +600,7 @@ function clearFilters() {
 }
 
 .summary-card span {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
 }
 
@@ -636,13 +635,13 @@ function clearFilters() {
 }
 
 .panel-header p {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   margin: 0;
 }
 
 .result-count {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   white-space: nowrap;
 }
@@ -667,7 +666,7 @@ function clearFilters() {
   top: 50%;
   left: 14px;
   transform: translateY(-50%);
-  color: #94a3b8;
+  color: #5e6d82;
   pointer-events: none;
   z-index: 1;
 }
@@ -696,7 +695,7 @@ function clearFilters() {
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 9px;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -719,7 +718,7 @@ function clearFilters() {
 
 .properties-table :deep(.p-datatable-thead > tr > th) {
   background: #f8fafc;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   font-weight: 700;
   padding: 15px;
@@ -777,7 +776,7 @@ function clearFilters() {
 
 .property-information span,
 .property-information small {
-  color: #94a3b8;
+  color: #5e6d82;
   font-size: 11px;
   overflow-wrap: anywhere;
 }
@@ -796,12 +795,12 @@ function clearFilters() {
 }
 
 .price-cell .price-unavailable {
-  color: #94a3b8;
+  color: #5e6d82;
   font-weight: 500;
 }
 
 .price-cell small {
-  color: #94a3b8;
+  color: #5e6d82;
 }
 
 /* ACTION BUTTONS */
@@ -822,7 +821,7 @@ function clearFilters() {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   background: white;
-  color: #64748b;
+  color: #5e6d82;
   text-decoration: none;
   cursor: pointer;
   transition:
@@ -860,7 +859,7 @@ function clearFilters() {
   align-items: center;
   gap: 12px;
   padding: 45px 10px;
-  color: #94a3b8;
+  color: #5e6d82;
 }
 
 .empty-state h3 {
@@ -879,7 +878,7 @@ function clearFilters() {
 
 .bottom-note {
   margin-top: 20px;
-  color: #94a3b8;
+  color: #5e6d82;
   font-size: 11px;
   line-height: 1.7;
 }
