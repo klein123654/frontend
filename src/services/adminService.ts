@@ -74,6 +74,12 @@ export function unpublishAdminProperty(id: number, review_notes: string) {
     body: JSON.stringify({ review_notes }),
   })
 }
+export function deleteAdminProperty(id: number, reason: string) {
+  return apiRequest(`admin/properties/${id}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ reason: reason || null }),
+  })
+}
 export function setUserAccountStatus(id: number, account_status: 'active' | 'suspended') {
   return apiRequest(`admin/users/${id}`, { method: 'PATCH', body: JSON.stringify({ account_status }) })
 }

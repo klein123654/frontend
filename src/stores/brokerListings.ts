@@ -12,8 +12,9 @@ export function getBrokerListing(id: number): BrokerListing | undefined {
   return allBrokerListings.value.find((item) => item.id === id)
 }
 
+/** Brokers can edit any of their own listings; editing a live or pending one sends it back to review. */
 export function getEditableBrokerListing(id: number): BrokerListing | undefined {
-  return allBrokerListings.value.find((item) => item.id === id && ['Draft', 'Rejected'].includes(item.status))
+  return allBrokerListings.value.find((item) => item.id === id)
 }
 
 export async function addBrokerListing(input: BrokerListingInput): Promise<BrokerListing> {

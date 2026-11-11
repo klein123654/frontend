@@ -1,5 +1,6 @@
 
 <script setup lang="ts">
+import { deleteListingConfirmation } from '@/utils/listingRules'
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
@@ -103,14 +104,15 @@ function getSeverity(status: OwnerListingStatus) {
 }
 
 // EDIT PERMISSIONS
-// Only browser-saved Draft listings can be edited.
+// Owners can edit or delete any of their own listings.
 function canEditProperty(id: number): boolean {
   return getEditableOwnerProperty(id) !== undefined
 }
 
 async function removeProperty(id: number, title: string) {
-  if (!getEditableOwnerProperty(id)) return
-  if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return
+  const property = getEditableOwnerProperty(id)
+  if (!property) return
+  if (!window.confirm(deleteListingConfirmation(title, property.status))) return
   try {
     await deleteOwnerProperty(id)
     actionMessage.value = 'Listing deleted.'
@@ -403,7 +405,7 @@ function clearFilters() {
                   <Trash2 :size="17" />
                 </button>
 
-                <!-- EDIT: BROWSER-SAVED DRAFTS ONLY -->
+                <!-- EDIT -->
                 <RouterLink
                   v-if="canEditProperty(data.id)"
                   :to="`${workspaceBase}/properties/${data.id}/edit`"
@@ -413,18 +415,6 @@ function clearFilters() {
                 >
                   <Pencil :size="17" />
                 </RouterLink>
-
-                <!-- EDIT UNAVAILABLE -->
-                <button
-                  v-else
-                  type="button"
-                  class="icon-button"
-                  title="Only locally saved Draft listings can be edited"
-                  aria-label="Editing unavailable for this listing"
-                  disabled
-                >
-                  <Pencil :size="17" />
-                </button>
 
               </div>
             </template>

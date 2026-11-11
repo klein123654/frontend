@@ -2,7 +2,7 @@
 import { formatPeso } from '@/utils/format'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import AdminShell from '@/components/admin/AdminShell.vue'
-import { adminListings, pendingAdminListings, reviewAdminListing, unpublishAdminListing, loadAdminWorkspace, adminError } from '@/stores/adminWorkspace'
+import { adminListings, pendingAdminListings, reviewAdminListing, unpublishAdminListing, deleteAdminListing, loadAdminWorkspace, adminError } from '@/stores/adminWorkspace'
 import type { AdminDecision } from '@/data/admin/adminTypes'
 
 const query = ref('')
@@ -12,6 +12,7 @@ const detailsPanel = ref<HTMLElement | null>(null)
 const detailsTrigger = ref<HTMLElement | null>(null)
 const note = ref('')
 const feedback = ref('')
+const deletedMessage = ref('')
 const selected = computed(() => adminListings.value.find((item) => item.key === selectedKey.value))
 function handleDialogKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape' && selectedKey.value) {
@@ -55,11 +56,25 @@ async function unpublish() {
   feedback.value = await unpublishAdminListing(selected.value.key, note.value)
     ? 'Listing unpublished and returned to draft.' : 'Unpublish could not be saved.'
 }
+async function removeListing() {
+  if (!selected.value) return
+  const title = selected.value.title
+  if (!window.confirm(`Permanently delete "${title}"? Its photos, inquiries, messages and reports will also be deleted, and the owner will be emailed. This cannot be undone.`)) return
+  const deleted = await deleteAdminListing(selected.value.key, note.value)
+  if (deleted) {
+    await closeDetails()
+    feedback.value = ''
+    deletedMessage.value = `"${title}" was deleted.`
+  } else {
+    feedback.value = 'Delete could not be saved.'
+  }
+}
 function currency(price: number) { return price > 0 ? formatPeso(price) : 'Not specified' }
 </script>
 <template><AdminShell>
   <header class="admin-heading"><div><span class="admin-eyebrow">ADMIN WORKSPACE</span><h1>Property Approvals</h1><p>Review properties submitted by owners and brokers.</p></div></header>
   <div v-if="adminError" class="admin-notice" role="alert">{{ adminError }}</div>
+  <div v-if="deletedMessage" class="admin-notice admin-notice-success" role="status">{{ deletedMessage }}</div>
   <div class="admin-stats"><div class="admin-stat"><span>All Listings</span><strong>{{ adminListings.length }}</strong></div><div class="admin-stat"><span>Awaiting Review</span><strong>{{ pendingAdminListings.length }}</strong></div></div>
   <section class="admin-panel"><div class="admin-panel-head"><h2>Listing Review Queue</h2><span class="admin-count">{{ filtered.length }} records</span></div>
     <div class="admin-filters"><input v-model="query" aria-label="Search property approvals" placeholder="Search properties..."/><select v-model="statusFilter" aria-label="Filter property status"><option>All</option><option>Pending</option><option>Approved</option><option>Rejected</option><option>Draft</option></select></div>
@@ -78,6 +93,13 @@ function currency(price: number) { return price > 0 ? formatPeso(price) : 'Not s
         <template v-else-if="selected.status==='Approved'"><div class="details-fields"><div class="details-field"><label for="admin-unpublish-note">Reason for unpublishing</label><textarea id="admin-unpublish-note" v-model="note" placeholder="Explain why this listing should be removed from public results."></textarea></div></div>
           <div class="details-actions"><button type="button" class="admin-button-danger" @click="unpublish">Unpublish Listing</button></div></template>
         <p v-else class="details-readonly">This listing is not awaiting review.</p>
+        <div class="details-danger-zone">
+          <div>
+            <strong>Delete listing</strong>
+            <p>Permanently removes the listing for spam or test data. Any note above is included in the email to the owner.</p>
+          </div>
+          <button type="button" class="admin-button-danger" @click="removeListing">Delete Listing</button>
+        </div>
         <p v-if="feedback" role="status" class="admin-feedback" :class="{error: feedback.includes('required') || feedback.includes('could not')}">{{ feedback }}</p>
       </section>
     </div>
@@ -333,6 +355,50 @@ function currency(price: number) { return price > 0 ? formatPeso(price) : 'Not s
 .details-field textarea:focus {
   outline: 2px solid #93c5fd;
   outline-offset: 1px;
+}
+
+.details-danger-zone {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+}
+
+.details-danger-zone strong {
+  color: #991b1b;
+  font-size: 14px;
+}
+
+.details-danger-zone p {
+  margin: 4px 0 0;
+  color: #7f1d1d;
+  font-size: 13px;
+}
+
+.details-danger-zone button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #b91c1c;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.details-danger-zone button:hover {
+  background: #991b1b;
+}
+
+.admin-notice.admin-notice-success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
 }
 
 .details-actions {

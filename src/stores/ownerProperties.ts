@@ -39,8 +39,9 @@ export async function addOwnerProperty(input: NewOwnerPropertyInput): Promise<Ow
   return property
 }
 
+/** Owners can edit any of their own listings; editing a live or pending one sends it back to review. */
 export function getEditableOwnerProperty(id: number): OwnerProperty | undefined {
-  return allOwnerProperties.value.find((property) => property.id === id && ['Draft', 'Rejected'].includes(property.status))
+  return allOwnerProperties.value.find((property) => property.id === id)
 }
 
 export async function updateOwnerProperty(id: number, input: NewOwnerPropertyInput): Promise<OwnerProperty> {

@@ -99,6 +99,29 @@ for (const { role, basePath } of workspaces) {
       await expect(page.getByRole('status').filter({ hasText: /changes saved/i })).toContainText('Changes Saved')
     })
 
+    test(`${role} can edit an approved listing and it goes back to review`, async ({ page }) => {
+      await openWorkspace(page, role, `${basePath}/properties/${listing.id}/edit`)
+      await page.route(`**/api/my/properties/${listing.id}`, (route) =>
+        route.fulfill({ json: { data: { ...listing, status: 'pending', published_at: null } } }))
+      await expect(page.getByRole('note')).toContainText(/back to an administrator for review/i)
+      await page.locator('#property-title').fill(`Updated ${role} live listing`)
+      await page.locator('#property-barangay').fill('Baan KM 3')
+      await page.getByRole('button', { name: /save changes/i }).click()
+      await expect(page.getByRole('status').filter({ hasText: /sent to an administrator for review/i })).toBeVisible()
+    })
+
+    test(`${role} can delete an approved listing after a warning`, async ({ page }) => {
+      await openWorkspace(page, role, `${basePath}/properties`)
+      let confirmation = ''
+      page.once('dialog', (dialog) => {
+        confirmation = dialog.message()
+        void dialog.accept()
+      })
+      await page.getByRole('button', { name: `Delete ${listing.title}` }).click()
+      await expect(page.getByRole('status').filter({ hasText: /deleted/i })).toContainText(/deleted/i)
+      expect(confirmation).toMatch(/live and will be removed from the public site/i)
+    })
+
     test(`${role} can view listing details and return to the list`, async ({ page }) => {
       await openWorkspace(page, role, `${basePath}/properties/${draftListing.id}`)
       const details = new ListingWorkspacePropertyDetailsPage(page, basePath)

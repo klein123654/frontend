@@ -47,6 +47,21 @@ test('admin can search, filter, inspect, and approve a property listing', async 
   expect(decisionSent).toBe(true)
 })
 
+test('admin can permanently delete any listing', async ({ page }) => {
+  let deleteSent = false
+  await openAdmin(page, '/admin/properties')
+  await page.route(`**/api/admin/properties/${listing.id}`, async (route) => {
+    deleteSent = route.request().method() === 'DELETE'
+    await route.fulfill({ json: { message: 'Listing deleted.' } })
+  })
+  page.once('dialog', (dialog) => void dialog.accept())
+  await page.getByRole('button', { name: `Review ${listing.title}` }).click()
+  await page.getByRole('button', { name: /delete listing/i }).click()
+  await expect(page.getByRole('status').filter({ hasText: /was deleted/i })).toBeVisible()
+  expect(deleteSent).toBe(true)
+  await expect(page.getByRole('button', { name: `Review ${listing.title}` })).toHaveCount(0)
+})
+
 test('admin requires a reason to reject a listing', async ({ page }) => {
   await openAdmin(page, '/admin/properties')
   await page.getByRole('button', { name: `Review ${pendingListing.title}` }).click()

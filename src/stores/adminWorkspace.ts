@@ -4,7 +4,7 @@ import { updateInquiryStatus } from '@/services/inquiryService'
 import {
   fetchAdminInquiries, fetchAdminProperties, fetchAdminReports, fetchAdminSummary,
   fetchAdminUsers, fetchAdminVerifications, resolveAdminImageUrl, reviewBroker, reviewProperty,
-  setReportStatus, setUserAccountStatus, unpublishAdminProperty,
+  setReportStatus, setUserAccountStatus, unpublishAdminProperty, deleteAdminProperty,
 } from '@/services/adminService'
 
 const properties = ref<AdminListing[]>([])
@@ -87,6 +87,20 @@ export async function reviewAdminListing(key: string, decision: 'Approved' | 'Re
     item.reviewNote = note
     return true
   } catch (error) { adminError.value = error instanceof Error ? error.message : 'Unable to review listing.'; return false }
+}
+
+/** Permanently delete any listing (e.g. spam or test data). */
+export async function deleteAdminListing(key: string, reason: string): Promise<boolean> {
+  const item = properties.value.find((row) => row.key === key)
+  if (!item) return false
+  try {
+    await deleteAdminProperty(item.id, reason.trim())
+    properties.value = properties.value.filter((row) => row.key !== key)
+    return true
+  } catch (error) {
+    adminError.value = error instanceof Error ? error.message : 'Unable to delete listing.'
+    return false
+  }
 }
 
 export async function unpublishAdminListing(key: string, note: string): Promise<boolean> {

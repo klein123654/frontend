@@ -8,6 +8,7 @@ import Select from 'primevue/select'
 import Tag from 'primevue/tag'
 import { Building2, Plus, Eye, Pencil, Search, Trash2 } from '@lucide/vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
+import { deleteListingConfirmation } from '@/utils/listingRules'
 import { allBrokerListings, getEditableBrokerListing, loadBrokerListings, deleteBrokerListing } from '@/stores/brokerListings'
 import { formatBrokerPrice, type BrokerListingStatus } from '@/data/broker/brokerListings'
 import { brokerVerificationRequiredMessage, useBrokerVerification } from '@/composables/useBrokerVerification'
@@ -19,7 +20,8 @@ const message = ref('')
 const { canManageListings, verificationLoading } = useBrokerVerification()
 onMounted(() => loadBrokerListings().catch((error) => { message.value = error instanceof Error ? error.message : 'Unable to load listings.' }))
 async function remove(id: number, title: string) {
-  if (!getEditableBrokerListing(id) || !window.confirm(`Delete "${title}"? This cannot be undone.`)) return
+  const listing = getEditableBrokerListing(id)
+  if (!listing || !window.confirm(deleteListingConfirmation(title, listing.status))) return
   const removed = await deleteBrokerListing(id)
   message.value = removed ? 'Listing deleted.' : 'Unable to delete this listing.'
 }
