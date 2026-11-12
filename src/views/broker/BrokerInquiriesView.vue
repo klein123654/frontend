@@ -221,7 +221,7 @@ h2 {
 }
 p {
   font-size: 12px;
-  color: #64748b;
+  color: #5e6d82;
   line-height: 1.7;
 }
 .notice {
@@ -247,7 +247,7 @@ p {
 }
 .panel-heading > span {
   font-size: 12px;
-  color: #64748b;
+  color: #5e6d82;
 }
 .filters {
   display: flex;
@@ -263,7 +263,7 @@ p {
   position: absolute;
   top: 13px;
   left: 13px;
-  color: #94a3b8;
+  color: #5e6d82;
   z-index: 1;
 }
 .search input {
@@ -278,7 +278,7 @@ p {
   background: white;
   border-radius: 8px;
   padding: 12px;
-  color: #64748b;
+  color: #5e6d82;
 }
 .inquiry-table :deep(.p-datatable-table-container) {
   overflow: auto;
@@ -300,7 +300,7 @@ p {
 .empty {
   text-align: center;
   padding: 50px 14px;
-  color: #94a3b8;
+  color: #5e6d82;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -343,7 +343,7 @@ p {
 }
 .details label {
   font-size: 12px;
-  color: #64748b;
+  color: #5e6d82;
 }
 .status-select {
   width: 100%;

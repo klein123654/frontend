@@ -1,4 +1,5 @@
-import type { ListingType, PropertyType } from '@/types/property'
+import { formatPeso } from '@/utils/format'
+import type { ListingAvailability, ListingType, PropertyType } from '@/types/property'
 
 export type BrokerListingStatus = 'Approved' | 'Pending' | 'Draft' | 'Rejected'
 
@@ -18,19 +19,17 @@ export interface BrokerListing {
   images: string[]
   inquiries: number
   dateCreated: string
+  availability: ListingAvailability
+  availabilityConfirmedAt: string | null
   latitude?: number | null
   longitude?: number | null
 }
 
-export type BrokerListingInput = Omit<BrokerListing, 'id' | 'images' | 'inquiries' | 'dateCreated' | 'status'> & {
+export type BrokerListingInput = Omit<BrokerListing, 'id' | 'images' | 'inquiries' | 'dateCreated' | 'status' | 'availability' | 'availabilityConfirmedAt'> & {
   status: 'Draft' | 'Pending'
   images?: File[]
 }
 
 export const brokerListings: BrokerListing[] = []
 
-export function formatBrokerPrice(price: number): string {
-  return new Intl.NumberFormat('en-PH', {
-    style: 'currency', currency: 'PHP', maximumFractionDigits: 0
-  }).format(price)
-}
+export const formatBrokerPrice = formatPeso

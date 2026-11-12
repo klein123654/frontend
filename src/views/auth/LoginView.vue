@@ -329,7 +329,7 @@ async function handleLogin() {
 }
 
 .form-heading p {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   line-height: 1.7;
 }
@@ -375,7 +375,7 @@ async function handleLogin() {
 }
 
 .form-group input::placeholder {
-  color: #94a3b8;
+  color: #5e6d82;
 }
 
 .label-row {
@@ -451,7 +451,7 @@ async function handleLogin() {
 .register-section {
   margin-top: 30px;
   text-align: center;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
 }
 
@@ -467,7 +467,7 @@ async function handleLogin() {
 }
 
 .demo-note {
-  color: #94a3b8;
+  color: #5e6d82;
   font-size: 11px;
   line-height: 1.7;
   text-align: center;

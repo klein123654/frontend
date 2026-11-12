@@ -1,3 +1,5 @@
+import { formatPeso } from '@/utils/format'
+import type { ListingAvailability } from '@/types/property'
 
 export type OwnerListingStatus =
   | 'Approved'
@@ -27,6 +29,8 @@ export interface OwnerProperty {
   images: string[]
   inquiries: number
   dateCreated: string
+  availability: ListingAvailability
+  availabilityConfirmedAt: string | null
   reviewNotes?: string | null
   latitude?: number | null
   longitude?: number | null
@@ -34,10 +38,4 @@ export interface OwnerProperty {
 
 export const ownerProperties: OwnerProperty[] = []
 
-export function formatOwnerPrice(price: number): string {
-  return new Intl.NumberFormat('en-PH', {
-    style: 'currency',
-    currency: 'PHP',
-    maximumFractionDigits: 0
-  }).format(price)
-}
+export const formatOwnerPrice = formatPeso

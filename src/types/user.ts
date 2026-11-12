@@ -8,7 +8,14 @@ export interface AuthUser {
   role: UserRole
   account_status: string
   created_at?: string
+  /** Public contact details shown on a publisher's listings and profile. */
+  contact_phone?: string | null
+  contact_email?: string | null
+  messenger_username?: string | null
+  viber_number?: string | null
 }
+
+export type PublicContactInput = Pick<AuthUser, 'contact_phone' | 'contact_email' | 'messenger_username' | 'viber_number'>
 
 export interface AuthResponse {
   token: string

@@ -1,5 +1,6 @@
 
 <script setup lang="ts">
+import { REVIEW_ON_EDIT_NOTICE, editRequiresReview } from '@/utils/listingRules'
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
@@ -60,11 +61,13 @@ async function handleSave(values: OwnerFormPayload) {
   try {
     const updated = await updateOwnerProperty(propertyId.value, values)
     clearFormDraft(`property-${route.fullPath}`)
-    if (values.status === 'Pending') {
+    if (values.status === 'Pending' && !editRequiresReview(property.value?.status ?? 'Draft')) {
       void router.push(`${workspaceBase.value}/properties/${propertyId.value}`)
       return
     }
-    confirmation.value = `Changes to "${updated.title}" were saved.`
+    confirmation.value = updated.status === 'Pending'
+      ? `Changes to "${updated.title}" were saved and sent to an administrator for review.`
+      : `Changes to "${updated.title}" were saved.`
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Unable to update this property.'
   }
@@ -105,6 +108,10 @@ async function handleSave(values: OwnerFormPayload) {
 
       <!-- EDITABLE PROPERTY -->
       <template v-if="property">
+
+        <p v-if="editRequiresReview(property.status)" class="review-notice" role="note">
+          {{ REVIEW_ON_EDIT_NOTICE }}
+        </p>
 
         <div class="property-context">
           <div class="context-icon">
@@ -189,7 +196,7 @@ async function handleSave(values: OwnerFormPayload) {
         <h2>Property Cannot Be Edited</h2>
 
         <p>
-          This property does not exist, is unavailable, or is no longer an editable draft.
+          This property does not exist or does not belong to your account.
         </p>
 
         <RouterLink
@@ -206,6 +213,16 @@ async function handleSave(values: OwnerFormPayload) {
 </template>
 
 <style scoped>
+.review-notice {
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 14px;
+}
+
 /* PAGE */
 
 .edit-property-page {
@@ -222,7 +239,7 @@ async function handleSave(values: OwnerFormPayload) {
   align-items: center;
   gap: 8px;
   margin-bottom: 28px;
-  color: #64748b;
+  color: #5e6d82;
   text-decoration: none;
   font-size: 12px;
   font-weight: 600;
@@ -255,7 +272,7 @@ async function handleSave(values: OwnerFormPayload) {
 
 .page-header p {
   margin: 0;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   line-height: 1.7;
 }
@@ -291,7 +308,7 @@ async function handleSave(values: OwnerFormPayload) {
 
 .property-context p {
   margin: 6px 0 0;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
 }
 
@@ -397,7 +414,7 @@ async function handleSave(values: OwnerFormPayload) {
   border: 1px solid #e2e8f0;
   border-radius: 13px;
   background: #ffffff;
-  color: #64748b;
+  color: #5e6d82;
   text-align: center;
 }
 

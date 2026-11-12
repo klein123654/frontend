@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatPeso } from '@/utils/format'
 import { onMounted, ref } from 'vue'
 import { RefreshCw, TrendingUp } from '@lucide/vue'
 import { apiRequest } from '@/services/api'
@@ -34,12 +35,7 @@ const message = ref('')
 const loading = ref(false)
 const loadError = ref('')
 
-const formatPrice = (amount: number) =>
-  new Intl.NumberFormat('en-PH', {
-    style: 'currency',
-    currency: 'PHP',
-    maximumFractionDigits: 0,
-  }).format(amount)
+const formatPrice = formatPeso
 
 async function refresh() {
   if (loading.value) return
@@ -257,7 +253,7 @@ h2 {
 
 .aggregate-row small {
   flex: 0 0 auto;
-  color: #718096;
+  color: #606c7f;
   font-size: 10px;
 }
 
@@ -265,7 +261,7 @@ h2 {
 .loading {
   margin: 0;
   padding: 10px 0;
-  color: #718096;
+  color: #606c7f;
   font-size: 12px;
 }
 

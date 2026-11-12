@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatPeso } from '@/utils/format'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
@@ -12,6 +13,7 @@ import {
   Store,
 } from '@lucide/vue'
 import PropertyCard from '@/components/property/PropertyCard.vue'
+import BarangayCoverage from '@/components/property/BarangayCoverage.vue'
 import { useProperties } from '@/composables/useProperties'
 import { useFormDraft } from '@/composables/useFormDraft'
 import type { ListingType, PropertyType } from '@/types/property'
@@ -67,11 +69,7 @@ function setTransactionType(value: string) {
 function formatPrice(price: number, listingType: ListingType): string {
   if (!price) return 'Contact for pricing'
 
-  const formatted = new Intl.NumberFormat('en-PH', {
-    style: 'currency',
-    currency: 'PHP',
-    maximumFractionDigits: 0,
-  }).format(price)
+  const formatted = formatPeso(price)
 
   return listingType === 'For Rent' ? `${formatted} / month` : formatted
 }
@@ -82,7 +80,13 @@ function formatPrice(price: number, listingType: ListingType): string {
     <section class="hero" aria-labelledby="home-title">
       <img
         class="hero-image"
-        src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=2200&q=85"
+        src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=75"
+        srcset="
+          https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=800&q=75 800w,
+          https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=75 1600w,
+          https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=2200&q=75 2200w
+        "
+        sizes="100vw"
         alt=""
         fetchpriority="high"
       />
@@ -127,7 +131,7 @@ function formatPrice(price: number, listingType: ListingType): string {
               />
             </div>
 
-            <button class="search-button" type="submit">
+            <button class="search-button" type="submit" aria-label="Search">
               <Search :size="17" aria-hidden="true" />
               <span>Search</span>
             </button>
@@ -159,6 +163,8 @@ function formatPrice(price: number, listingType: ListingType): string {
         </button>
       </div>
     </section>
+
+    <BarangayCoverage />
 
     <section id="properties" class="listing-section" aria-labelledby="listing-heading">
       <div class="container">
@@ -192,7 +198,7 @@ function formatPrice(price: number, listingType: ListingType): string {
         <template v-else-if="featuredProperty">
           <RouterLink :to="`/properties/${featuredProperty.id}`" class="featured-property">
             <div class="featured-image-wrap">
-              <img
+              <img decoding="async"
                 v-if="featuredProperty.images[0]"
                 :src="featuredProperty.images[0]"
                 :alt="featuredProperty.title"
@@ -514,7 +520,7 @@ function formatPrice(price: number, listingType: ListingType): string {
 
 .category-copy { display: grid; min-width: 0; gap: 4px; }
 .category-copy strong { font-size: 12px; }
-.category-copy small { color: #758581; font-size: 10px; line-height: 1.35; }
+.category-copy small { color: #626f6c; font-size: 10px; line-height: 1.35; }
 .category-arrow { flex: 0 0 auto; margin-left: auto; color: #899893; }
 
 .listing-section {
@@ -531,7 +537,7 @@ function formatPrice(price: number, listingType: ListingType): string {
 }
 
 .section-heading h2 { margin-bottom: 5px; }
-.section-heading p { margin: 0; color: #6e7d79; font-size: 12px; }
+.section-heading p { margin: 0; color: #616f6b; font-size: 12px; }
 
 .section-action {
   display: flex;
@@ -540,7 +546,7 @@ function formatPrice(price: number, listingType: ListingType): string {
   flex: 0 0 auto;
 }
 
-.inventory-count { color: #788681; font-size: 11px; }
+.inventory-count { color: #5f6b67; font-size: 11px; }
 
 .text-link,
 .featured-cta {
@@ -584,11 +590,11 @@ function formatPrice(price: number, listingType: ListingType): string {
 .featured-details { display: flex; flex-direction: column; align-items: flex-start; padding: 25px 23px; }
 .property-type { color: #087e75; font-size: 10px; font-weight: 800; text-transform: uppercase; }
 .featured-details h3 { margin: 9px 0; color: #173a39; font-size: 21px; line-height: 1.25; }
-.featured-location { display: flex; align-items: center; gap: 5px; color: #6e7d79; font-size: 11px; }
+.featured-location { display: flex; align-items: center; gap: 5px; color: #616f6b; font-size: 11px; }
 .featured-description { display: -webkit-box; overflow: hidden; margin: 13px 0; color: #596b67; font-size: 12px; line-height: 1.6; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 .featured-bottom { display: flex; width: 100%; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 13px; border-top: 1px solid #e9efec; }
 .featured-bottom strong { color: #173a39; font-size: 17px; }
-.featured-bottom span { color: #7a8783; font-size: 10px; }
+.featured-bottom span { color: #646e6b; font-size: 10px; }
 .featured-cta { margin-top: 16px; }
 
 .property-grid {
@@ -626,7 +632,7 @@ function formatPrice(price: number, listingType: ListingType): string {
 .listing-state > div:nth-child(2),
 .listing-state > div:first-child { flex: 1; min-width: 0; }
 .listing-state strong { color: #173a39; font-size: 13px; }
-.listing-state p { margin: 5px 0 0; color: #6e7d79; font-size: 12px; line-height: 1.55; }
+.listing-state p { margin: 5px 0 0; color: #616f6b; font-size: 12px; line-height: 1.55; }
 .error-state { border-color: #e7c5be; background: #fffaf9; }
 .error-state strong { color: #913d30; }
 
@@ -652,6 +658,7 @@ function formatPrice(price: number, listingType: ListingType): string {
 .empty-icon { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border-radius: 6px; background: #edf5f1; color: #087e75; }
 
 .publisher-band { padding-block: 39px; background: #e8f2ef; }
+.publisher-band .eyebrow { color: #066b63; }
 .publisher-content { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
 .publisher-content > div { max-width: 680px; }
 .publisher-content h2 { margin: 8px 0; font-size: 25px; }
@@ -663,7 +670,7 @@ function formatPrice(price: number, listingType: ListingType): string {
 .step-item { position: relative; padding: 16px 18px 10px 0; border-top: 1px solid #dce6e2; }
 .step-index { color: #087e75; font-size: 10px; font-weight: 800; }
 .step-item h3 { margin: 8px 0 6px; color: #173a39; font-size: 15px; }
-.step-item p { max-width: 310px; margin: 0; color: #6e7d79; font-size: 12px; line-height: 1.6; }
+.step-item p { max-width: 310px; margin: 0; color: #616f6b; font-size: 12px; line-height: 1.6; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 

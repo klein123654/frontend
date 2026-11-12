@@ -1,5 +1,6 @@
 import { ref } from 'vue'
-import { createMyListing, deleteMyListing, fetchMyListings, updateMyListing } from '@/services/propertyService'
+import { createMyListing, deleteMyListing, fetchMyListings, updateListingAvailability, updateMyListing } from '@/services/propertyService'
+import type { ListingAvailability } from '@/types/property'
 import type { BrokerListing, BrokerListingInput } from '@/data/broker/brokerListings'
 
 export const allBrokerListings = ref<BrokerListing[]>([])
@@ -12,8 +13,9 @@ export function getBrokerListing(id: number): BrokerListing | undefined {
   return allBrokerListings.value.find((item) => item.id === id)
 }
 
+/** Brokers can edit any of their own listings; editing a live or pending one sends it back to review. */
 export function getEditableBrokerListing(id: number): BrokerListing | undefined {
-  return allBrokerListings.value.find((item) => item.id === id && ['Draft', 'Rejected'].includes(item.status))
+  return allBrokerListings.value.find((item) => item.id === id)
 }
 
 export async function addBrokerListing(input: BrokerListingInput): Promise<BrokerListing> {
@@ -40,5 +42,16 @@ export async function deleteBrokerListing(id: number): Promise<boolean> {
     return true
   } catch {
     return false
+  }
+}
+
+/** Save a listing's availability. Resolves to an error message, or '' on success. */
+export async function setBrokerListingAvailability(id: number, availability: ListingAvailability): Promise<string> {
+  try {
+    const listing = await updateListingAvailability(id, availability) as BrokerListing
+    allBrokerListings.value = allBrokerListings.value.map((item) => item.id === id ? listing : item)
+    return ''
+  } catch (error) {
+    return error instanceof Error ? error.message : 'Unable to update availability.'
   }
 }

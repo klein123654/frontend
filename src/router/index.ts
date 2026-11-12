@@ -2,6 +2,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { getToken } from '@/services/authService'
 import { useAuth } from '@/composables/useAuth'
+import { titleForRoute } from '@/utils/pageMeta'
 
 const HomeView = () => import('@/views/public/HomeView.vue')
 const PropertiesView = () => import('@/views/public/PropertiesView.vue')
@@ -34,6 +35,9 @@ const AdminVerificationsView = () => import('@/views/admin/AdminVerificationsVie
 const AdminInquiriesView = () => import('@/views/admin/AdminInquiriesView.vue')
 const AdminReportsView = () => import('@/views/admin/AdminReportsView.vue')
 const AdminPublisherApplicationsView = () => import('@/views/admin/AdminPublisherApplicationsView.vue')
+const NotFoundView = () => import('@/views/public/NotFoundView.vue')
+const PublisherProfileView = () => import('@/views/public/PublisherProfileView.vue')
+const PublisherSettingsView = () => import('@/views/owner/PublisherSettingsView.vue')
 
 let hasCompletedInitialNavigation = false
 const scrollStoragePrefix = 'butuanspaces_scroll:'
@@ -58,6 +62,11 @@ const router = createRouter({
       name: 'property-details',
       component: PropertyDetailsView,
       props: true,
+    },
+    {
+      path: '/publishers/:id',
+      name: 'publisher-profile',
+      component: PublisherProfileView,
     },
     {
       path: '/report-issue',
@@ -145,6 +154,11 @@ const router = createRouter({
       name: 'owner-inquiries',
       component: OwnerInquiriesView,
     },
+    {
+      path: '/owner/profile',
+      name: 'owner-profile',
+      component: PublisherSettingsView,
+    },
 
     // Developers share the publisher tools and dashboard layout.
     { path: '/developer/dashboard', name: 'developer-dashboard', component: OwnerDashboardView },
@@ -153,6 +167,7 @@ const router = createRouter({
     { path: '/developer/properties/:id/edit', name: 'developer-edit-property', component: EditPropertyView, props: true },
     { path: '/developer/properties/:id', name: 'developer-property-details', component: OwnerPropertyDetailsView, props: true },
     { path: '/developer/inquiries', name: 'developer-inquiries', component: OwnerInquiriesView },
+    { path: '/developer/profile', name: 'developer-profile', component: PublisherSettingsView },
 
     // BROKER WORKSPACE ROUTES
     {
@@ -228,6 +243,12 @@ const router = createRouter({
       path: '/admin/reports',
       name: 'admin-reports',
       component: AdminReportsView,
+    },
+
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFoundView,
     },
   ],
 
@@ -373,6 +394,10 @@ router.beforeEach(async (to) => {
   }
 
   return true
+})
+
+router.afterEach((to) => {
+  document.title = titleForRoute(to.name)
 })
 
 export default router

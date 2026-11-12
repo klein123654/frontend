@@ -7,7 +7,7 @@ export default mergeConfig(
   defineConfig({
     test: {
       environment: 'jsdom',
-      include: ['src/**/*.{test,spec}.{ts,tsx,js,jsx}'],
+      include: ['src/**/*.{test,spec}.{ts,tsx,js,jsx}', 'scripts/**/*.spec.mjs'],
       exclude: [...configDefaults.exclude, 'tests/**'],
       root: fileURLToPath(new URL('./', import.meta.url)),
     },

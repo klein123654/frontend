@@ -182,7 +182,7 @@ async function handleSave(property: OwnerFormPayload) {
   align-items: center;
   gap: 8px;
   margin-bottom: 28px;
-  color: #64748b;
+  color: #5e6d82;
   text-decoration: none;
   font-size: 12px;
   font-weight: 600;
@@ -215,7 +215,7 @@ async function handleSave(property: OwnerFormPayload) {
 
 .page-header p {
   margin: 0;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   line-height: 1.7;
 }
@@ -307,7 +307,7 @@ async function handleSave(property: OwnerFormPayload) {
 }
 
 .record-reference {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 11px;
 }
 

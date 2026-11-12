@@ -1,5 +1,7 @@
 
 <script setup lang="ts">
+import AvailabilityAttentionBanner from '@/components/property/AvailabilityAttentionBanner.vue'
+import { deleteListingConfirmation } from '@/utils/listingRules'
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
@@ -103,14 +105,15 @@ function getSeverity(status: OwnerListingStatus) {
 }
 
 // EDIT PERMISSIONS
-// Only browser-saved Draft listings can be edited.
+// Owners can edit or delete any of their own listings.
 function canEditProperty(id: number): boolean {
   return getEditableOwnerProperty(id) !== undefined
 }
 
 async function removeProperty(id: number, title: string) {
-  if (!getEditableOwnerProperty(id)) return
-  if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return
+  const property = getEditableOwnerProperty(id)
+  if (!property) return
+  if (!window.confirm(deleteListingConfirmation(title, property.status))) return
   try {
     await deleteOwnerProperty(id)
     actionMessage.value = 'Listing deleted.'
@@ -162,6 +165,8 @@ function clearFilters() {
           Drafts and submitted listings are stored in your account. Pending submissions become public after an administrator approves them.
         </span>
       </div>
+
+      <AvailabilityAttentionBanner :listings="allOwnerProperties" :details-base="`${workspaceBase}/properties`" />
 
       <!-- SUMMARY CARDS -->
       <div class="summary-grid">
@@ -277,12 +282,11 @@ function clearFilters() {
               <div class="property-cell">
 
                 <!-- PROPERTY IMAGE -->
-                <img
+                <img loading="lazy" decoding="async"
                   v-if="data.images.length > 0 && data.images[0]"
                   :src="data.images[0]"
                   :alt="data.title"
                   class="property-image"
-                  loading="lazy"
                 />
 
                 <!-- NO IMAGE PLACEHOLDER -->
@@ -404,7 +408,7 @@ function clearFilters() {
                   <Trash2 :size="17" />
                 </button>
 
-                <!-- EDIT: BROWSER-SAVED DRAFTS ONLY -->
+                <!-- EDIT -->
                 <RouterLink
                   v-if="canEditProperty(data.id)"
                   :to="`${workspaceBase}/properties/${data.id}/edit`"
@@ -414,18 +418,6 @@ function clearFilters() {
                 >
                   <Pencil :size="17" />
                 </RouterLink>
-
-                <!-- EDIT UNAVAILABLE -->
-                <button
-                  v-else
-                  type="button"
-                  class="icon-button"
-                  title="Only locally saved Draft listings can be edited"
-                  aria-label="Editing unavailable for this listing"
-                  disabled
-                >
-                  <Pencil :size="17" />
-                </button>
 
               </div>
             </template>
@@ -501,7 +493,7 @@ function clearFilters() {
 }
 
 .page-header p {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   line-height: 1.7;
   margin: 0;
@@ -601,7 +593,7 @@ function clearFilters() {
 }
 
 .summary-card span {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
 }
 
@@ -636,13 +628,13 @@ function clearFilters() {
 }
 
 .panel-header p {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   margin: 0;
 }
 
 .result-count {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   white-space: nowrap;
 }
@@ -667,7 +659,7 @@ function clearFilters() {
   top: 50%;
   left: 14px;
   transform: translateY(-50%);
-  color: #94a3b8;
+  color: #5e6d82;
   pointer-events: none;
   z-index: 1;
 }
@@ -696,7 +688,7 @@ function clearFilters() {
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 9px;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -719,7 +711,7 @@ function clearFilters() {
 
 .properties-table :deep(.p-datatable-thead > tr > th) {
   background: #f8fafc;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   font-weight: 700;
   padding: 15px;
@@ -777,7 +769,7 @@ function clearFilters() {
 
 .property-information span,
 .property-information small {
-  color: #94a3b8;
+  color: #5e6d82;
   font-size: 11px;
   overflow-wrap: anywhere;
 }
@@ -796,12 +788,12 @@ function clearFilters() {
 }
 
 .price-cell .price-unavailable {
-  color: #94a3b8;
+  color: #5e6d82;
   font-weight: 500;
 }
 
 .price-cell small {
-  color: #94a3b8;
+  color: #5e6d82;
 }
 
 /* ACTION BUTTONS */
@@ -822,7 +814,7 @@ function clearFilters() {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   background: white;
-  color: #64748b;
+  color: #5e6d82;
   text-decoration: none;
   cursor: pointer;
   transition:
@@ -860,7 +852,7 @@ function clearFilters() {
   align-items: center;
   gap: 12px;
   padding: 45px 10px;
-  color: #94a3b8;
+  color: #5e6d82;
 }
 
 .empty-state h3 {
@@ -879,7 +871,7 @@ function clearFilters() {
 
 .bottom-note {
   margin-top: 20px;
-  color: #94a3b8;
+  color: #5e6d82;
   font-size: 11px;
   line-height: 1.7;
 }

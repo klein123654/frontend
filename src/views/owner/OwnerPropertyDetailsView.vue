@@ -32,8 +32,10 @@ import {
 import {
   allOwnerProperties,
   getEditableOwnerProperty,
-  loadOwnerProperties
+  loadOwnerProperties,
+  setOwnerPropertyAvailability
 } from '@/stores/ownerProperties'
+import ListingAvailabilityControl from '@/components/property/ListingAvailabilityControl.vue'
 onMounted(() => loadOwnerProperties())
 
 // CURRENT PROPERTY ID
@@ -182,7 +184,7 @@ function handleImageError() {
             <!-- IMAGE -->
             <section class="details-card image-card">
               <div class="property-image-container">
-                <img
+                <img loading="lazy" decoding="async"
                   v-if="primaryImage && !imageFailed"
                   :src="primaryImage"
                   :alt="property.title"
@@ -285,6 +287,12 @@ function handleImageError() {
 
           <!-- SIDEBAR INFORMATION -->
           <aside class="side-column">
+
+            <ListingAvailabilityControl
+              :listing="property"
+              :save="(availability) => setOwnerPropertyAvailability(property!.id, availability)"
+              :confirmed-from-email="route.query.availability === 'confirmed'"
+            />
 
             <!-- PRICE AND AREA -->
             <section class="details-card">
@@ -415,7 +423,7 @@ function handleImageError() {
   align-items: center;
   gap: 8px;
   margin-bottom: 27px;
-  color: #64748b;
+  color: #5e6d82;
   text-decoration: none;
   font-size: 12px;
   font-weight: 600;
@@ -452,7 +460,7 @@ function handleImageError() {
 
 .page-header p {
   margin: 0;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   line-height: 1.7;
 }
@@ -539,7 +547,7 @@ function handleImageError() {
 
 .status-content p {
   margin: 9px 0 0;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   line-height: 1.7;
 }
@@ -640,12 +648,12 @@ function handleImageError() {
   width: 100%;
   height: 100%;
   padding: 20px;
-  color: #94a3b8;
+  color: #5e6d82;
   text-align: center;
 }
 
 .image-placeholder > svg {
-  color: #64748b;
+  color: #5e6d82;
 }
 
 .image-placeholder strong {
@@ -656,7 +664,7 @@ function handleImageError() {
 .image-placeholder p {
   max-width: 280px;
   margin: 0;
-  color: #94a3b8;
+  color: #5e6d82;
   font-size: 12px;
   line-height: 1.7;
 }
@@ -675,7 +683,7 @@ function handleImageError() {
   align-items: flex-start;
   gap: 8px;
   margin-bottom: 24px;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
   line-height: 1.7;
 }
@@ -704,7 +712,7 @@ function handleImageError() {
 .price-section span,
 .area-section span,
 .activity-row span {
-  color: #94a3b8;
+  color: #5e6d82;
   font-size: 11px;
 }
 
@@ -743,7 +751,7 @@ function handleImageError() {
 }
 
 .price-section .not-specified {
-  color: #94a3b8;
+  color: #5e6d82;
   font-size: 16px;
 }
 
@@ -812,12 +820,12 @@ function handleImageError() {
   border: 1px solid #e2e8f0;
   border-radius: 13px;
   background: #ffffff;
-  color: #64748b;
+  color: #5e6d82;
   text-align: center;
 }
 
 .not-found-card > svg {
-  color: #94a3b8;
+  color: #5e6d82;
 }
 
 .not-found-card h2 {

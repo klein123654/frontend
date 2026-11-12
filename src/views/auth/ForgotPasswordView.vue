@@ -292,7 +292,7 @@ function tryAgain() {
 .back-link {
   display: inline-block;
   margin-bottom: 34px;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;
@@ -330,7 +330,7 @@ function tryAgain() {
 
 .form-heading p,
 .success-content p {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
   line-height: 1.8;
 }
@@ -378,7 +378,7 @@ function tryAgain() {
 }
 
 .form-group input::placeholder {
-  color: #94a3b8;
+  color: #5e6d82;
 }
 
 .error {
@@ -422,7 +422,7 @@ function tryAgain() {
 }
 
 .help-section p {
-  color: #64748b;
+  color: #5e6d82;
   font-size: 13px;
 }
 
@@ -442,7 +442,7 @@ function tryAgain() {
   margin-top: 30px;
   padding-top: 22px;
   border-top: 1px solid #e2e8f0;
-  color: #94a3b8;
+  color: #5e6d82;
   font-size: 11px;
   line-height: 1.8;
   text-align: center;

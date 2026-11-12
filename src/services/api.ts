@@ -1,3 +1,5 @@
+import { trackPendingRequest } from './serverStatus'
+
 const DEV_API_BASE_URL = 'http://127.0.0.1:8000/api'
 const PROD_API_BASE_URL = 'https://backend1-3fwi.onrender.com/api'
 
@@ -51,6 +53,8 @@ export async function apiRequest<T>(
 
   let response: Response
 
+  const settleRequest = trackPendingRequest()
+
   try {
     response = await fetch(`${API_BASE_URL}/${normalizedPath}`, {
       ...options,
@@ -62,6 +66,8 @@ export async function apiRequest<T>(
     }
 
     throw new Error('Unable to reach the server. Check your connection and try again.')
+  } finally {
+    settleRequest()
   }
 
   let payload: unknown

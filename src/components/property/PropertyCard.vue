@@ -1,23 +1,20 @@
 
 <script setup lang="ts">
+import VerifiedBadge from '@/components/publisher/VerifiedBadge.vue'
+import { formatPeso } from '@/utils/format'
 import type { Property } from '@/types/property'
 
 defineProps<{
   property: Property
 }>()
 
-const formatPrice = (price: number) =>
-  new Intl.NumberFormat('en-PH', {
-    style: 'currency',
-    currency: 'PHP',
-    maximumFractionDigits: 0
-  }).format(price)
+const formatPrice = formatPeso
 </script>
 
 <template>
   <RouterLink :to="`/properties/${property.id}`" class="property-card">
     <div class="image-wrapper">
-      <img v-if="property.images[0]" :src="property.images[0]" :alt="property.title" />
+      <img loading="lazy" decoding="async" v-if="property.images[0]" :src="property.images[0]" :alt="property.title" />
       <div v-else class="no-image" role="img" :aria-label="`No photo available for ${property.title}`">No Photo Available</div>
       <span class="status">{{ property.listingType }}</span>
     </div>
@@ -29,7 +26,8 @@ const formatPrice = (price: number) =>
 
       <div class="meta">
         <span>{{ property.area }} sqm</span>
-        <span>{{ property.contactRole }} Listed</span>
+        <VerifiedBadge v-if="property.publisher?.verified" :publisher="property.publisher" compact />
+        <span v-else>{{ property.contactRole }} Listed</span>
       </div>
 
       <div class="bottom">
@@ -61,7 +59,7 @@ const formatPrice = (price: number) =>
 }
 
 .image-wrapper { height: 220px; position: relative; }
-.no-image { height: 100%; display: grid; place-items: center; background: #f1f5f9; color: #64748b; font-size: 13px; }
+.no-image { height: 100%; display: grid; place-items: center; background: #f1f5f9; color: #5e6d82; font-size: 13px; }
 .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
 
 .status {
@@ -78,13 +76,13 @@ const formatPrice = (price: number) =>
 .details { padding: 22px; }
 .type { color: #2563eb; font-size: 12px; font-weight: 700; }
 h3 { font-size: 19px; margin: 10px 0; }
-.location { color: #64748b; font-size: 13px; }
+.location { color: #5e6d82; font-size: 13px; }
 .meta {
   display: flex;
   justify-content: space-between;
   gap: 10px;
   padding: 18px 0;
-  color: #64748b;
+  color: #5e6d82;
   font-size: 12px;
 }
 .bottom {
@@ -96,6 +94,6 @@ h3 { font-size: 19px; margin: 10px 0; }
   gap: 12px;
 }
 strong { font-size: 19px; }
-small { color: #64748b; }
+small { color: #5e6d82; }
 .view { color: #2563eb; font-size: 12px; font-weight: 600; }
 </style>

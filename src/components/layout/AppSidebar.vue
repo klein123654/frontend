@@ -34,7 +34,7 @@ const props = withDefaults(
 const route = useRoute()
 const router = useRouter()
 const { user, logout } = useAuth()
-const { canManageListings, verificationLoading } = useBrokerVerification(props.role === 'broker')
+const { canManageListings } = useBrokerVerification(props.role === 'broker')
 const mobileOpen = ref(false)
 const initials = computed(() => user.value?.name?.trim().charAt(0).toUpperCase() || '?')
 async function signOut() {
@@ -81,6 +81,7 @@ const navigation = computed<NavigationItem[]>(() => {
         path: `${base}/inquiries`,
         icon: 'inquiries'
       },
+      { label: 'Public Profile', path: `${base}/profile`, icon: 'users' },
       { label: 'Browse Properties', path: '/properties', icon: 'properties' },
       { label: 'Report an Issue', path: '/report-issue', icon: 'reports' }
     ]
@@ -92,7 +93,7 @@ const navigation = computed<NavigationItem[]>(() => {
       { label: 'My Listings', path: '/broker/listings', icon: 'properties' },
       { label: 'Add Listing', path: '/broker/listings/create', icon: 'add' },
       { label: 'Inquiries', path: '/broker/inquiries', icon: 'inquiries' },
-      { label: 'Broker Profile', path: '/broker/profile', icon: 'users' },
+      { label: 'Profile & Contact', path: '/broker/profile', icon: 'users' },
       { label: 'Browse Properties', path: '/properties', icon: 'properties' },
       { label: 'Report an Issue', path: '/report-issue', icon: 'reports' }
     ]
@@ -106,6 +107,7 @@ const navigation = computed<NavigationItem[]>(() => {
       { label: 'Portfolio', path: '/developer/properties', icon: 'properties' },
       { label: 'Add Property', path: '/developer/properties/create', icon: 'add' },
       { label: 'Inquiries', path: '/developer/inquiries', icon: 'inquiries' },
+      { label: 'Public Profile', path: '/developer/profile', icon: 'users' },
       { label: 'Browse Properties', path: '/properties', icon: 'properties' },
       { label: 'Report an Issue', path: '/report-issue', icon: 'reports' },
     ]
@@ -413,7 +415,7 @@ function closeMobile() {
 
   padding: 13px 14px;
 
-  color: #64748b;
+  color: #5e6d82;
   border-radius: 9px;
   text-decoration: none;
 
@@ -524,7 +526,7 @@ function closeMobile() {
   display: block;
   padding: 14px 0;
 
-  color: #64748b;
+  color: #5e6d82;
   text-decoration: none;
 
   font-size: 12px;

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import { createMyListing, deleteMyListing, fetchMyListings, updateMyListing } from '@/services/propertyService'
-import type { ListingType, PropertyType } from '@/types/property'
+import { createMyListing, deleteMyListing, fetchMyListings, updateListingAvailability, updateMyListing } from '@/services/propertyService'
+import type { ListingAvailability, ListingType, PropertyType } from '@/types/property'
 import type { OwnerProperty } from '@/data/owner/ownerProperties'
 
 export interface NewOwnerPropertyInput {
@@ -39,8 +39,9 @@ export async function addOwnerProperty(input: NewOwnerPropertyInput): Promise<Ow
   return property
 }
 
+/** Owners can edit any of their own listings; editing a live or pending one sends it back to review. */
 export function getEditableOwnerProperty(id: number): OwnerProperty | undefined {
-  return allOwnerProperties.value.find((property) => property.id === id && ['Draft', 'Rejected'].includes(property.status))
+  return allOwnerProperties.value.find((property) => property.id === id)
 }
 
 export async function updateOwnerProperty(id: number, input: NewOwnerPropertyInput): Promise<OwnerProperty> {
@@ -59,4 +60,15 @@ export async function updateOwnerProperty(id: number, input: NewOwnerPropertyInp
 export async function deleteOwnerProperty(id: number): Promise<void> {
   await deleteMyListing(id)
   allOwnerProperties.value = allOwnerProperties.value.filter((property) => property.id !== id)
+}
+
+/** Save a listing's availability. Resolves to an error message, or '' on success. */
+export async function setOwnerPropertyAvailability(id: number, availability: ListingAvailability): Promise<string> {
+  try {
+    const property = await updateListingAvailability(id, availability)
+    allOwnerProperties.value = allOwnerProperties.value.map((item) => item.id === id ? property : item)
+    return ''
+  } catch (error) {
+    return error instanceof Error ? error.message : 'Unable to update availability.'
+  }
 }

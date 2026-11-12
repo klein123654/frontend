@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
+import { defineAsyncComponent, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { RouterLink } from 'vue-router'
 import type { BrokerListing, BrokerListingInput } from '@/data/broker/brokerListings'
 import type { ListingType, PropertyType } from '@/types/property'
-import LocationMap from '@/components/property/LocationMap.vue'
 import { useFormDraft } from '@/composables/useFormDraft'
 import { BUTUAN_BARANGAYS, BUTUAN_CITY, BUTUAN_PROVINCE, canonicalButuanBarangay, isButuanBarangay } from '@/data/butuanLocation'
+
+import { validatePropertyImages } from '@/utils/propertyImages'
+
+// Leaflet is large, so the map loads only when the form renders it.
+const LocationMap = defineAsyncComponent(() => import('@/components/property/LocationMap.vue'))
 
 const props = defineProps<{ initial?: BrokerListing; edit?: boolean }>()
 const emit = defineEmits<{ save: [payload: BrokerListingInput] }>()
@@ -66,8 +70,9 @@ function setCoordinates(coordinates: { latitude: number; longitude: number }) {
 function selectImages(event: Event) {
   const input = event.target as HTMLInputElement
   const files = Array.from(input.files ?? [])
-  if (files.length > 5 || files.some((file) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024)) {
-    validationMessage.value = 'Choose up to 5 JPG, PNG, or WebP images no larger than 5 MB each.'
+  const imageError = validatePropertyImages(files)
+  if (imageError) {
+    validationMessage.value = imageError
     input.value = ''
     images.value = []
     return
@@ -106,10 +111,10 @@ input:focus,select:focus,textarea:focus { outline:2px solid #93c5fd; outline-off
 .actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:10px; }
 .actions button,.cancel { padding:12px 17px; border:1px solid #142d4e; border-radius:8px; color:white; background:#142d4e; font-size:12px; font-weight:700; text-decoration:none; cursor:pointer; }
 .actions .secondary-action { background:#2563eb; border-color:#2563eb; }
-.cancel { background:white; color:#64748b; border-color:#cbd5e1; }
+.cancel { background:white; color:#5e6d82; border-color:#cbd5e1; }
 .validation { margin:0; color:#b91c1c; font-size:12px; }
-.form-note { margin:0; color:#94a3b8; font-size:11px; }
-.location-scope { grid-column:1/-1; margin:0; color:#64748b; font-size:12px; }
+.form-note { margin:0; color:#5e6d82; font-size:11px; }
+.location-scope { grid-column:1/-1; margin:0; color:#5e6d82; font-size:12px; }
 .location-scope strong { color:#334155; }
 @media(max-width:650px){.listing-form{grid-template-columns:1fr;padding:18px;}}
 </style>
