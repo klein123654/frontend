@@ -329,7 +329,7 @@ p {
 }
 .ai-summary {
   padding: 13px 15px;
-  border-left: 3px solid #087e75;
+  border-left: 3px solid #2563eb;
   background: #eff8f6;
   color: #285b56;
 }

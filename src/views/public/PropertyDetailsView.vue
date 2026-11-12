@@ -5,6 +5,7 @@ import { useAuth } from '@/composables/useAuth'
 import { useRoute } from 'vue-router'
 import type { Property } from '@/types/property'
 import { fetchPublicProperty } from '@/services/propertyService'
+import { ApiRequestError } from '@/services/api'
 import PropertyGallery from '@/components/property/PropertyGallery.vue'
 import InquiryForm from '@/components/forms/InquiryForm.vue'
 import PublisherContactCard from '@/components/publisher/PublisherContactCard.vue'
@@ -61,8 +62,14 @@ async function loadProperty() {
       property.value.description,
     )
   } catch (cause) {
-    error.value =
-      cause instanceof Error ? cause.message : 'Unable to load this property.'
+    // A missing listing is explained by the page itself; only show other
+    // failures (e.g. the server being unavailable) to the visitor.
+    const isNotFound = cause instanceof ApiRequestError && cause.status === 404
+    error.value = isNotFound
+      ? ''
+      : cause instanceof ApiRequestError
+        ? cause.message
+        : 'Unable to load this property. Please try again.'
   } finally {
     loading.value = false
   }
@@ -85,9 +92,9 @@ watch(() => route.params.id, loadProperty, { immediate: true })
     <section v-else-if="!property" class="not-found">
       <h1>Property Not Found</h1>
       <p>
-        The property may not exist, may be unpublished, or could not be loaded.
+        This listing may have been removed, rented out, or is no longer available.
       </p>
-      <p v-if="error" class="error-message">{{ error }}</p>
+      <p v-if="error" class="error-message" role="alert">{{ error }}</p>
       <RouterLink :to="propertiesPath" class="browse-button">
         Browse Properties
       </RouterLink>

@@ -726,10 +726,10 @@ function submitForReview() {
   justify-content: center;
   gap: 7px;
   padding: 0 11px;
-  border: 1px solid #9bd6cb;
+  border: 1px solid #93c5fd;
   border-radius: 6px;
   background: #f0faf8;
-  color: #087e75;
+  color: #2563eb;
   cursor: pointer;
   font: inherit;
   font-size: 11px;

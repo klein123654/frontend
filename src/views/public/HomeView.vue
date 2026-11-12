@@ -305,7 +305,7 @@ function formatPrice(price: number, listingType: ListingType): string {
 
 .hero-shade {
   z-index: -1;
-  background: linear-gradient(90deg, rgb(14 29 31 / 76%) 0%, rgb(14 29 31 / 51%) 52%, rgb(14 29 31 / 16%) 100%);
+  background: linear-gradient(90deg, rgb(12 24 42 / 76%) 0%, rgb(12 24 42 / 51%) 52%, rgb(12 24 42 / 16%) 100%);
 }
 
 .hero-inner {
@@ -313,34 +313,35 @@ function formatPrice(price: number, listingType: ListingType): string {
 }
 
 .hero-copy {
-  max-width: 660px;
+  max-width: 720px;
   color: #fff;
 }
 
 .eyebrow {
   display: block;
-  color: #087e75;
+  color: #2563eb;
   font-size: 10px;
   font-weight: 800;
   line-height: 1.4;
   text-transform: uppercase;
 }
 
-.hero .eyebrow { color: #c5e8df; }
+.hero .eyebrow { color: #bfdbfe; }
 
 .hero h1 {
-  max-width: 640px;
+  max-width: 720px;
   margin: 14px 0 10px;
   color: #fff;
   font-size: 48px;
   line-height: 1.08;
+  text-wrap: balance;
   font-weight: 750;
 }
 
 .hero-copy > p {
   max-width: 530px;
   margin: 0;
-  color: #f1f5f2;
+  color: #f8fafc;
   font-size: 15px;
   line-height: 1.65;
 }
@@ -350,7 +351,7 @@ function formatPrice(price: number, listingType: ListingType): string {
   margin-top: 27px;
   padding: 0 16px 15px;
   border-radius: 7px;
-  background: rgb(21 31 32 / 83%);
+  background: rgb(15 27 46 / 83%);
   box-shadow: 0 10px 28px rgb(0 0 0 / 15%);
   backdrop-filter: blur(8px);
 }
@@ -367,7 +368,7 @@ function formatPrice(price: number, listingType: ListingType): string {
   padding: 0 2px;
   border: 0;
   background: transparent;
-  color: #d8e0dc;
+  color: #e2e8f0;
   cursor: pointer;
   font: inherit;
   font-size: 12px;
@@ -384,7 +385,7 @@ function formatPrice(price: number, listingType: ListingType): string {
   bottom: -1px;
   left: 0;
   height: 2px;
-  background: #55b9a4;
+  background: #60a5fa;
   content: '';
 }
 
@@ -420,7 +421,7 @@ function formatPrice(price: number, listingType: ListingType): string {
   align-items: center;
   gap: 9px;
   padding: 0 12px;
-  color: #81908d;
+  color: #64748b;
 }
 
 .search-input-wrap input {
@@ -430,7 +431,7 @@ function formatPrice(price: number, listingType: ListingType): string {
   border: 0;
   outline: 0;
   background: transparent;
-  color: #263c39;
+  color: #142d4e;
   font: inherit;
   font-size: 12px;
 }
@@ -442,7 +443,7 @@ function formatPrice(price: number, listingType: ListingType): string {
   justify-content: center;
   gap: 8px;
   padding-inline: 17px;
-  background: #087e75;
+  background: #2563eb;
   color: white;
   cursor: pointer;
   font: inherit;
@@ -453,7 +454,7 @@ function formatPrice(price: number, listingType: ListingType): string {
 }
 
 .search-button:hover,
-.publisher-button:hover { background: #06665f; }
+.publisher-button:hover { background: #1d4ed8; }
 
 .hero-caption {
   position: absolute;
@@ -471,7 +472,7 @@ function formatPrice(price: number, listingType: ListingType): string {
 .section-heading h2,
 .publisher-content h2 {
   margin: 8px 0 7px;
-  color: #173a39;
+  color: #142d4e;
   font-size: 24px;
   line-height: 1.2;
 }
@@ -480,7 +481,7 @@ function formatPrice(price: number, listingType: ListingType): string {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 18px;
-  border: 1px solid #e2eae7;
+  border: 1px solid #e2e8f0;
   border-radius: 7px;
   background: #fff;
 }
@@ -493,7 +494,7 @@ function formatPrice(price: number, listingType: ListingType): string {
   gap: 11px;
   padding: 13px 15px;
   border: 0;
-  border-right: 1px solid #e8eeeb;
+  border-right: 1px solid #e2e8f0;
   background: transparent;
   color: #253d3a;
   cursor: pointer;
@@ -501,7 +502,7 @@ function formatPrice(price: number, listingType: ListingType): string {
 }
 
 .category-link:last-child { border-right: 0; }
-.category-link:hover { background: #f4f9f7; }
+.category-link:hover { background: #f8fafc; }
 
 .category-icon {
   display: grid;
@@ -510,18 +511,18 @@ function formatPrice(price: number, listingType: ListingType): string {
   height: 38px;
   place-items: center;
   border-radius: 6px;
-  background: #e9f4f0;
-  color: #087e75;
+  background: #eff6ff;
+  color: #2563eb;
 }
 
 .category-copy { display: grid; min-width: 0; gap: 4px; }
 .category-copy strong { font-size: 12px; }
 .category-copy small { color: #626f6c; font-size: 10px; line-height: 1.35; }
-.category-arrow { flex: 0 0 auto; margin-left: auto; color: #899893; }
+.category-arrow { flex: 0 0 auto; margin-left: auto; color: #64748b; }
 
 .listing-section {
   padding-block: 36px 48px;
-  background: #f6f8f7;
+  background: #f8fafc;
 }
 
 .section-heading {
@@ -533,7 +534,7 @@ function formatPrice(price: number, listingType: ListingType): string {
 }
 
 .section-heading h2 { margin-bottom: 5px; }
-.section-heading p { margin: 0; color: #616f6b; font-size: 12px; }
+.section-heading p { margin: 0; color: #5e6d82; font-size: 12px; }
 
 .section-action {
   display: flex;
@@ -549,7 +550,7 @@ function formatPrice(price: number, listingType: ListingType): string {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #087e75;
+  color: #2563eb;
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -560,16 +561,16 @@ function formatPrice(price: number, listingType: ListingType): string {
   grid-template-columns: minmax(0, 1.45fr) minmax(260px, .8fr);
   min-height: 300px;
   overflow: hidden;
-  border: 1px solid #e0e7e4;
+  border: 1px solid #e2e8f0;
   border-radius: 7px;
   background: #fff;
   color: inherit;
   text-decoration: none;
 }
 
-.featured-image-wrap { position: relative; min-height: 300px; background: #dce8e2; }
+.featured-image-wrap { position: relative; min-height: 300px; background: #dbeafe; }
 .featured-image-wrap > img { width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; }
-.featured-placeholder { display: grid; width: 100%; height: 100%; min-height: 300px; place-items: center; color: #658079; }
+.featured-placeholder { display: grid; width: 100%; height: 100%; min-height: 300px; place-items: center; color: #64748b; }
 
 .featured-label {
   position: absolute;
@@ -577,19 +578,19 @@ function formatPrice(price: number, listingType: ListingType): string {
   left: 13px;
   padding: 7px 9px;
   border-radius: 3px;
-  background: #173a39;
+  background: #142d4e;
   color: white;
   font-size: 9px;
   font-weight: 800;
 }
 
 .featured-details { display: flex; flex-direction: column; align-items: flex-start; padding: 25px 23px; }
-.property-type { color: #087e75; font-size: 10px; font-weight: 800; text-transform: uppercase; }
-.featured-details h3 { margin: 9px 0; color: #173a39; font-size: 21px; line-height: 1.25; }
-.featured-location { display: flex; align-items: center; gap: 5px; color: #616f6b; font-size: 11px; }
+.property-type { color: #2563eb; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.featured-details h3 { margin: 9px 0; color: #142d4e; font-size: 21px; line-height: 1.25; }
+.featured-location { display: flex; align-items: center; gap: 5px; color: #5e6d82; font-size: 11px; }
 .featured-description { display: -webkit-box; overflow: hidden; margin: 13px 0; color: #596b67; font-size: 12px; line-height: 1.6; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
-.featured-bottom { display: flex; width: 100%; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 13px; border-top: 1px solid #e9efec; }
-.featured-bottom strong { color: #173a39; font-size: 17px; }
+.featured-bottom { display: flex; width: 100%; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 13px; border-top: 1px solid #e2e8f0; }
+.featured-bottom strong { color: #142d4e; font-size: 17px; }
 .featured-bottom span { color: #646e6b; font-size: 10px; }
 .featured-cta { margin-top: 16px; }
 
@@ -609,7 +610,7 @@ function formatPrice(price: number, listingType: ListingType): string {
 .listing-skeleton {
   height: 260px;
   border-radius: 7px;
-  background: linear-gradient(100deg, #e8eeeb 20%, #f4f7f5 40%, #e8eeeb 60%);
+  background: linear-gradient(100deg, #e2e8f0 20%, #f8fafc 40%, #e2e8f0 60%);
   background-size: 200% 100%;
   animation: skeleton 1.4s ease-in-out infinite;
 }
@@ -620,15 +621,15 @@ function formatPrice(price: number, listingType: ListingType): string {
   align-items: center;
   gap: 14px;
   padding: 20px;
-  border: 1px solid #e0e7e4;
+  border: 1px solid #e2e8f0;
   border-radius: 7px;
   background: white;
 }
 
 .listing-state > div:nth-child(2),
-.listing-state > div:first-child { flex: 1; min-width: 0; }
-.listing-state strong { color: #173a39; font-size: 13px; }
-.listing-state p { margin: 5px 0 0; color: #616f6b; font-size: 12px; line-height: 1.55; }
+.listing-state > div:first-child:not(.empty-icon) { flex: 1; min-width: 0; }
+.listing-state strong { color: #142d4e; font-size: 13px; }
+.listing-state p { margin: 5px 0 0; color: #5e6d82; font-size: 12px; line-height: 1.55; }
 .error-state { border-color: #e7c5be; background: #fffaf9; }
 .error-state strong { color: #913d30; }
 
@@ -640,10 +641,10 @@ function formatPrice(price: number, listingType: ListingType): string {
   justify-content: center;
   gap: 7px;
   padding: 0 12px;
-  border: 1px solid #b8d7cf;
+  border: 1px solid #bfdbfe;
   border-radius: 5px;
   background: white;
-  color: #087e75;
+  color: #2563eb;
   cursor: pointer;
   font: inherit;
   font-size: 11px;
@@ -651,10 +652,10 @@ function formatPrice(price: number, listingType: ListingType): string {
   text-decoration: none;
 }
 
-.empty-icon { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border-radius: 6px; background: #edf5f1; color: #087e75; }
+.empty-icon { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border-radius: 6px; background: #eff6ff; color: #2563eb; }
 
-.publisher-band { padding-block: 39px; background: #e8f2ef; }
-.publisher-band .eyebrow { color: #066b63; }
+.publisher-band { padding-block: 39px; background: #eff6ff; }
+.publisher-band .eyebrow { color: #1d4ed8; }
 .publisher-content { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
 .publisher-content > div { max-width: 680px; }
 .publisher-content h2 { margin: 8px 0; font-size: 25px; }
@@ -663,10 +664,10 @@ function formatPrice(price: number, listingType: ListingType): string {
 
 .how-section { padding-block: 48px 62px; }
 .steps-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; margin-top: 23px; }
-.step-item { position: relative; padding: 16px 18px 10px 0; border-top: 1px solid #dce6e2; }
-.step-index { color: #087e75; font-size: 10px; font-weight: 800; }
-.step-item h3 { margin: 8px 0 6px; color: #173a39; font-size: 15px; }
-.step-item p { max-width: 310px; margin: 0; color: #616f6b; font-size: 12px; line-height: 1.6; }
+.step-item { position: relative; padding: 16px 18px 10px 0; border-top: 1px solid #e2e8f0; }
+.step-index { color: #2563eb; font-size: 10px; font-weight: 800; }
+.step-item h3 { margin: 8px 0 6px; color: #142d4e; font-size: 15px; }
+.step-item p { max-width: 310px; margin: 0; color: #5e6d82; font-size: 12px; line-height: 1.6; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
@@ -675,7 +676,7 @@ function formatPrice(price: number, listingType: ListingType): string {
 @media (max-width: 950px) {
   .category-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .category-link:nth-child(2) { border-right: 0; }
-  .category-link:nth-child(-n + 2) { border-bottom: 1px solid #e8eeeb; }
+  .category-link:nth-child(-n + 2) { border-bottom: 1px solid #e2e8f0; }
   .property-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .listing-loading { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -684,7 +685,7 @@ function formatPrice(price: number, listingType: ListingType): string {
   .container { width: min(100% - 32px, 1200px); }
   .hero { min-height: 540px; align-items: flex-start; }
   .hero-image { object-position: 58% center; }
-  .hero-shade { background: linear-gradient(90deg, rgb(14 29 31 / 80%), rgb(14 29 31 / 43%)); }
+  .hero-shade { background: linear-gradient(90deg, rgb(12 24 42 / 80%), rgb(12 24 42 / 43%)); }
   .hero-inner { padding-block: 54px 66px; }
   .hero h1 { max-width: 440px; font-size: 38px; }
   .hero-copy > p { max-width: 390px; font-size: 13px; }

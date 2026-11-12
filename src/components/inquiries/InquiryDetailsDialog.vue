@@ -237,7 +237,7 @@ function onStatusSelected(inquiryId: number, value: InquiryStatus | null) {
 .ai-summary {
   margin: 0;
   padding: 14px 16px;
-  border-left: 3px solid #087e75;
+  border-left: 3px solid #2563eb;
   background: #eff8f6;
   color: #285b56;
   font-size: 13px;

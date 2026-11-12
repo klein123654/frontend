@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Menu, X } from '@lucide/vue'
 import { useAuth } from '@/composables/useAuth'
 
 const route = useRoute()
@@ -81,7 +82,8 @@ function becomePublisher() {
         aria-controls="main-navigation"
         @click="menuOpen = !menuOpen"
       >
-        {{ menuOpen ? '✕' : '☰' }}
+        <X v-if="menuOpen" :size="26" aria-hidden="true" />
+        <Menu v-else :size="26" aria-hidden="true" />
       </button>
 
       <!-- NAVIGATION LINKS -->
@@ -271,6 +273,8 @@ function becomePublisher() {
 
 .mobile-toggle {
   display: none;
+  padding: 6px;
+  line-height: 0;
   background: none;
   border: none;
   color: #142d4e;

@@ -1,4 +1,8 @@
 
+<script setup lang="ts">
+const currentYear = new Date().getFullYear()
+</script>
+
 <template>
   <footer class="footer">
     <div class="footer-container">
@@ -9,21 +13,21 @@
 
       <div>
         <h4>Explore</h4>
-        <a href="#home">Home</a>
-        <a href="#properties">Properties</a>
-        <a href="#categories">Categories</a>
+        <RouterLink to="/">Home</RouterLink>
+        <RouterLink to="/properties">Browse Properties</RouterLink>
+        <RouterLink :to="{ path: '/', hash: '#categories' }">Categories</RouterLink>
       </div>
 
       <div>
-        <h4>Information</h4>
-        <a href="#about">About Us</a>
+        <h4>For Publishers</h4>
+        <RouterLink to="/publisher/apply">List a Property</RouterLink>
         <RouterLink to="/report-issue">Report an Issue</RouterLink>
         <p>Butuan City, Philippines</p>
       </div>
     </div>
 
     <div class="copyright">
-      © 2026 ButuanSpaces. Academic project prototype.
+      © {{ currentYear }} ButuanSpaces · Commercial property listings in Butuan City.
     </div>
   </footer>
 </template>

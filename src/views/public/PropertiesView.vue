@@ -298,7 +298,13 @@ onBeforeUnmount(() => {
           />
         </div>
 
-        <nav v-if="!loading && !error && lastPage > 1" class="pagination" aria-label="Search results pages">
+        <div v-else class="empty">
+          <h3>No properties found</h3>
+          <p>Try changing your search or filters.</p>
+          <button type="button" @click="resetFilters">Clear Filters</button>
+        </div>
+
+        <nav v-if="!loading && !error && properties.length && lastPage > 1" class="pagination" aria-label="Search results pages">
           <button type="button" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">
             ← Previous
           </button>
@@ -308,11 +314,6 @@ onBeforeUnmount(() => {
           </button>
         </nav>
 
-        <div v-else class="empty">
-          <h3>No properties found</h3>
-          <p>Try changing your search or filters.</p>
-          <button type="button" @click="resetFilters">Clear Filters</button>
-        </div>
       </section>
     </div>
   </main>
@@ -328,24 +329,24 @@ onBeforeUnmount(() => {
 
 .heading {
   background: #f3f6fb;
-  padding: 65px 0;
+  padding: 32px 0 30px;
 }
 
 .heading h1 {
   font-size: clamp(30px, 4vw, 43px);
   color: #142d4e;
-  margin: 18px 0 10px;
+  margin: 12px 0 6px;
   letter-spacing: -1px;
 }
 
-.heading p { color: #5e6d82; }
+.heading p { margin: 0; color: #5e6d82; }
 .back { color: #2563eb; text-decoration: none; font-size: 13px; }
 
 .content {
   display: grid;
   grid-template-columns: 270px minmax(0, 1fr);
   gap: 30px;
-  padding-top: 55px;
+  padding-top: 36px;
   padding-bottom: 90px;
   align-items: start;
 }
@@ -413,8 +414,8 @@ label {
 }
 
 .tag-chip.selected {
-  border-color: #087e75;
-  background: #e6f5f2;
+  border-color: #2563eb;
+  background: #eff6ff;
   color: #075e58;
 }
 
