@@ -8,4 +8,4 @@ Disallow: /buyer/
 Disallow: /publisher/
 Disallow: /reset-password
 
-Sitemap: https://frontend-1cf.pages.dev/sitemap.xml
+Sitemap: https://butuanspaces.pages.dev/sitemap.xml

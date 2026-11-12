@@ -15,7 +15,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const DIST_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist')
-const SITE_URL = (process.env.SITE_URL || 'https://frontend-1cf.pages.dev').replace(/\/+$/, '')
+const SITE_URL = (process.env.SITE_URL || 'https://butuanspaces.pages.dev').replace(/\/+$/, '')
 const API_BASE_URL = (process.env.VITE_API_BASE_URL || 'https://backend1-3fwi.onrender.com/api').replace(/\/+$/, '')
 const API_ORIGIN = API_BASE_URL.replace(/\/api$/, '')
 const REQUEST_TIMEOUT_MS = 90_000

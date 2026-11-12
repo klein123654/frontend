@@ -5,7 +5,7 @@ const template = `<!DOCTYPE html><html lang="en"><head>
 <title>ButuanSpaces</title>
 <meta name="description" content="generic">
 <meta property="og:title" content="generic">
-<link rel="canonical" href="https://frontend-1cf.pages.dev/">
+<link rel="canonical" href="https://butuanspaces.pages.dev/">
 </head><body><div id="app"><!--app-prerender--></div></body></html>`
 
 const property = {
@@ -32,7 +32,7 @@ describe('prerender', () => {
 
     expect(html.match(/<title>/g)).toHaveLength(1)
     expect(html).toContain('<title>Corner &lt;Lot&gt; – For Sale in Butuan City | ButuanSpaces</title>')
-    expect(html).toContain('href="https://frontend-1cf.pages.dev/properties/12"')
+    expect(html).toContain('href="https://butuanspaces.pages.dev/properties/12"')
     expect(html).toContain('og:image" content="https://cdn.example.test/lot.jpg"')
     expect(html).not.toContain('content="generic"')
   })
@@ -49,15 +49,15 @@ describe('prerender', () => {
   it('shows the verified publisher with a link to their profile', () => {
     const html = renderPropertyPage(template, property)
 
-    expect(html).toContain('href="https://frontend-1cf.pages.dev/publishers/5">Ana Reyes, Agusan Realty · PRC-licensed broker (License PRC-0012345)</a>')
+    expect(html).toContain('href="https://butuanspaces.pages.dev/publishers/5">Ana Reyes, Agusan Realty · PRC-licensed broker (License PRC-0012345)</a>')
     expect(html).toContain('href="tel:09171234567"')
   })
 
   it('lists static pages and every property in the sitemap', () => {
     const xml = renderSitemap([property])
 
-    expect(xml).toContain('<loc>https://frontend-1cf.pages.dev/properties</loc>')
-    expect(xml).toContain('<loc>https://frontend-1cf.pages.dev/properties/12</loc><lastmod>2026-11-01</lastmod>')
-    expect(xml).toContain('<loc>https://frontend-1cf.pages.dev/publishers/5</loc>')
+    expect(xml).toContain('<loc>https://butuanspaces.pages.dev/properties</loc>')
+    expect(xml).toContain('<loc>https://butuanspaces.pages.dev/properties/12</loc><lastmod>2026-11-01</lastmod>')
+    expect(xml).toContain('<loc>https://butuanspaces.pages.dev/publishers/5</loc>')
   })
 })
