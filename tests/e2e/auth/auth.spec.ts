@@ -106,6 +106,8 @@ test.describe('registration', () => {
     await register.terms.check()
     await register.submitButton.click()
     await expect(page.getByRole('status')).toContainText(/account created/i)
+    await page.getByRole('button', { name: /continue now/i }).click()
+    await expect(page).toHaveURL(/\/$/)
   })
 
   test('registration page has no axe violations', async ({ page }) => {
