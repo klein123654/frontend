@@ -80,12 +80,8 @@ function formatPrice(price: number, listingType: ListingType): string {
     <section class="hero" aria-labelledby="home-title">
       <img
         class="hero-image"
-        src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=75"
-        srcset="
-          https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=800&q=75 800w,
-          https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=75 1600w,
-          https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=2200&q=75 2200w
-        "
+        src="/images/hero-1600.webp"
+        srcset="/images/hero-800.webp 800w, /images/hero-1600.webp 1600w, /images/hero-2200.webp 2200w"
         sizes="100vw"
         alt=""
         fetchpriority="high"

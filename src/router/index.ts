@@ -2,7 +2,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { getToken } from '@/services/authService'
 import { useAuth } from '@/composables/useAuth'
-import { titleForRoute } from '@/utils/pageMeta'
+import { setCanonicalUrl, titleForRoute } from '@/utils/pageMeta'
 
 const HomeView = () => import('@/views/public/HomeView.vue')
 const PropertiesView = () => import('@/views/public/PropertiesView.vue')
@@ -398,6 +398,7 @@ router.beforeEach(async (to) => {
 
 router.afterEach((to) => {
   document.title = titleForRoute(to.name)
+  setCanonicalUrl(to.name, to.path, window.location.origin)
 })
 
 export default router

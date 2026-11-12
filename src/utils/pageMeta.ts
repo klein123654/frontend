@@ -67,3 +67,25 @@ export function setPageMeta(pageTitle: string, description: string = DEFAULT_DES
   }
   descriptionTag.content = description.replace(/\s+/g, ' ').trim().slice(0, 160)
 }
+
+/** Pages that search engines should index; everything else is an app screen. */
+const INDEXABLE_ROUTES = new Set(['home', 'properties', 'property-details', 'publisher-profile', 'report-issue'])
+
+/**
+ * Point the canonical link and og:url at the current page (without its query
+ * string), so search engines don't treat every page as a copy of the homepage.
+ */
+export function setCanonicalUrl(routeName: unknown, path: string, origin: string): void {
+  if (typeof document === 'undefined') return
+  const url = typeof routeName === 'string' && INDEXABLE_ROUTES.has(routeName) ? `${origin}${path}` : `${origin}/`
+
+  let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]')
+  if (!canonical) {
+    canonical = document.createElement('link')
+    canonical.rel = 'canonical'
+    document.head.append(canonical)
+  }
+  canonical.href = url
+
+  document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.setAttribute('content', url)
+}
