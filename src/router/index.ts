@@ -3,8 +3,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { getToken } from '@/services/authService'
 import { useAuth } from '@/composables/useAuth'
 import { setCanonicalUrl, titleForRoute } from '@/utils/pageMeta'
+// Most visitors land on the home page, so bundle it with the app instead of
+// fetching it in a second round trip after the app's JavaScript has loaded.
+import HomeView from '@/views/public/HomeView.vue'
 
-const HomeView = () => import('@/views/public/HomeView.vue')
 const PropertiesView = () => import('@/views/public/PropertiesView.vue')
 const PropertyDetailsView = () => import('@/views/public/PropertyDetailsView.vue')
 const ReportIssueView = () => import('@/views/public/ReportIssueView.vue')
