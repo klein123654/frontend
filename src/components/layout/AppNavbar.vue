@@ -2,7 +2,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import Button from 'primevue/button'
 import { useAuth } from '@/composables/useAuth'
 
 const route = useRoute()
@@ -124,26 +123,17 @@ function becomePublisher() {
         <div class="nav-actions">
           <template v-if="user">
             <template v-if="user.role === 'buyer'">
-              <Button label="Become a Publisher" severity="secondary" text @click="becomePublisher" />
-              <Button label="Sign Out" severity="secondary" text @click="signOut" />
+              <button type="button" class="nav-btn" @click="becomePublisher">Become a Publisher</button>
+              <button type="button" class="nav-btn" @click="signOut">Sign Out</button>
             </template>
             <template v-else>
-              <Button label="Dashboard" severity="secondary" text @click="router.push(dashboardPath())" />
-              <Button label="Sign Out" class="list-property-btn" @click="signOut" />
+              <button type="button" class="nav-btn" @click="router.push(dashboardPath())">Dashboard</button>
+              <button type="button" class="nav-btn nav-btn--primary" @click="signOut">Sign Out</button>
             </template>
           </template>
           <template v-else>
-            <Button
-              label="Log In"
-              severity="secondary"
-              text
-              @click="goToLogin"
-            />
-            <Button
-              label="Sign Up"
-              class="list-property-btn"
-              @click="goToRegistration"
-            />
+            <button type="button" class="nav-btn" @click="goToLogin">Log In</button>
+            <button type="button" class="nav-btn nav-btn--primary" @click="goToRegistration">Sign Up</button>
           </template>
         </div>
       </nav>
@@ -235,25 +225,46 @@ function becomePublisher() {
   border-left: 1px solid #e2e8f0;
 }
 
-.nav-actions :deep(.p-button) {
-  white-space: nowrap;
+/* Plain buttons instead of PrimeVue so the storefront doesn't load the
+   component library before its first paint. */
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #475569;
+  font: inherit;
   font-size: 14px;
   font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 
-.nav-actions :deep(.list-property-btn) {
-  background: #142d4e;
-  border: 1px solid #142d4e;
-  color: #ffffff;
-  border-radius: 8px;
+.nav-btn:hover {
+  background: #f1f5f9;
+  color: #142d4e;
+}
+
+.nav-btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.nav-btn--primary {
   padding: 11px 18px;
-  font-weight: 600;
-  transition: background 0.2s, border-color 0.2s;
+  background: #142d4e;
+  border-color: #142d4e;
+  color: #ffffff;
 }
 
-.nav-actions :deep(.list-property-btn:hover) {
+.nav-btn--primary:hover {
   background: #2563eb;
   border-color: #2563eb;
+  color: #ffffff;
 }
 
 /* MOBILE MENU BUTTON */
@@ -309,9 +320,8 @@ function becomePublisher() {
     border-top: 1px solid #e2e8f0;
   }
 
-  .nav-actions :deep(.p-button) {
+  .nav-btn {
     width: 100%;
-    justify-content: center;
   }
 }
 

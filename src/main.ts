@@ -3,27 +3,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 
-import PrimeVue from 'primevue/config'
-import Aura from '@primevue/themes/aura'
-import { definePreset } from '@primevue/themes'
-
-const ButuanSpacesTheme = definePreset(Aura, {
-  semantic: {
-    primary: {
-      50: '{blue.50}',
-      100: '{blue.100}',
-      200: '{blue.200}',
-      300: '{blue.300}',
-      400: '{blue.400}',
-      500: '{blue.600}',
-      600: '{blue.700}',
-      700: '{blue.800}',
-      800: '{blue.900}',
-      900: '{blue.950}',
-      950: '{blue.950}'
-    }
-  }
-})
+import { installPrimeVue, routeNeedsPrimeVue } from './plugins/primevue'
 
 const app = createApp(App)
 
@@ -79,15 +59,21 @@ if (umamiScriptUrl && umamiWebsiteId) {
   })
 }
 
-app.use(PrimeVue, {
-  theme: {
-    preset: ButuanSpacesTheme,
-    options: {
-      darkModeSelector: false
-    }
-  }
-})
+// PrimeVue is only needed by forms, tables and dashboards. Load it before
+// those pages render, and in the background once the first page is idle.
+router.beforeResolve((to) => (routeNeedsPrimeVue(to) ? installPrimeVue(app) : undefined))
 
 app.use(router)
 
-app.mount('#app')
+// Mount once the first page's code has loaded, so the footer doesn't paint
+// at the top and then jump down when the page appears (layout shift).
+void router.isReady().then(() => {
+  app.mount('#app')
+
+  const preload = () => void installPrimeVue(app).catch(() => undefined)
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(preload, { timeout: 4000 })
+  } else {
+    setTimeout(preload, 2000)
+  }
+})

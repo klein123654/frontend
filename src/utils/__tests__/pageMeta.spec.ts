@@ -40,3 +40,17 @@ describe('setPageMeta', () => {
     expect(document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content).toBe('New description')
   })
 })
+
+describe('setCanonicalUrl', () => {
+  it('points public pages at their own URL and app screens at the homepage', async () => {
+    const { setCanonicalUrl } = await import('../pageMeta')
+    document.head.innerHTML = '<link rel="canonical" href="https://example.test/"><meta property="og:url" content="https://example.test/">'
+
+    setCanonicalUrl('properties', '/properties', 'https://example.test')
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe('https://example.test/properties')
+    expect(document.querySelector('meta[property="og:url"]')?.getAttribute('content')).toBe('https://example.test/properties')
+
+    setCanonicalUrl('owner-dashboard', '/owner/dashboard', 'https://example.test')
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe('https://example.test/')
+  })
+})

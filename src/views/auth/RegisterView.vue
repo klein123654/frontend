@@ -1,6 +1,6 @@
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { onBeforeUnmount, reactive, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { useFormDraft } from '@/composables/useFormDraft'
@@ -109,6 +109,17 @@ function validateForm() {
   return Object.keys(errors).length === 0
 }
 
+const SUCCESS_REDIRECT_DELAY_MS = 2500
+let redirectTimer: ReturnType<typeof setTimeout> | undefined
+
+function continueAfterRegistration() {
+  clearTimeout(redirectTimer)
+  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
+  return router.push(redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/')
+}
+
+onBeforeUnmount(() => clearTimeout(redirectTimer))
+
 async function handleRegister() {
   submitted.value = false
   errorMessage.value = ''
@@ -130,8 +141,8 @@ async function handleRegister() {
     submitted.value = true
 
     successMessage.value = 'Your buyer account is ready. You can now save properties and contact listing owners or brokers.'
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
-    await router.push(redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/')
+    // Leave the confirmation on screen long enough to read before moving on.
+    redirectTimer = setTimeout(() => void continueAfterRegistration(), SUCCESS_REDIRECT_DELAY_MS)
   } catch (error) {
     errorMessage.value = error instanceof Error
       ? error.message
@@ -213,6 +224,7 @@ async function handleRegister() {
           <div>
             <h3>Account created successfully</h3>
             <p>{{ successMessage }}</p>
+            <button type="button" class="continue-link" @click="continueAfterRegistration">Continue now →</button>
           </div>
         </div>
 
@@ -801,5 +813,18 @@ select:focus-visible {
   .section-heading h2 {
     font-size: 20px;
   }
+}
+
+.continue-link {
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #166534;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
 }
 </style>
