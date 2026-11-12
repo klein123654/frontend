@@ -21,7 +21,11 @@ const listings = ref<Property[]>([])
 
 async function search() {
   const searchQuery = query.value.trim()
-  if (!searchQuery || loading.value) return
+  if (loading.value) return
+  if (searchQuery.length < 2) {
+    message.value = 'Describe the space you need first, e.g. "office near the city center".'
+    return
+  }
 
   loading.value = true
   message.value = ''
@@ -55,10 +59,9 @@ async function search() {
   <section class="ai-search" aria-labelledby="ai-search-title">
     <div class="search-heading">
       <div>
-        <p class="eyebrow">Butuan commercial listings</p>
+        <p class="eyebrow">AI-assisted search <span class="ai-mark">Beta</span></p>
         <h2 id="ai-search-title">Describe the space your business needs</h2>
       </div>
-      <span class="ai-mark" aria-hidden="true">AI</span>
     </div>
 
     <form class="search-form" @submit.prevent="search">
@@ -72,7 +75,7 @@ async function search() {
         placeholder="For example: 200 sqm warehouse in Butuan under ₱80,000/month"
         :disabled="loading"
       />
-      <button type="submit" :disabled="loading || query.trim().length < 2">
+      <button type="submit" :disabled="loading">
         <LoaderCircle v-if="loading" :size="17" class="spin" aria-hidden="true" />
         <Search v-else :size="17" aria-hidden="true" />
         <span>{{ loading ? 'Searching' : 'Search with AI' }}</span>
@@ -107,7 +110,7 @@ async function search() {
 
 .eyebrow {
   margin: 0 0 6px;
-  color: #087e75;
+  color: #2563eb;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -121,16 +124,16 @@ h2 {
 }
 
 .ai-mark {
-  display: grid;
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border: 1px solid #9bd6cb;
-  border-radius: 6px;
-  color: #087e75;
-  font-size: 11px;
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 10px;
   font-weight: 800;
+  letter-spacing: 0;
+  vertical-align: 1px;
 }
 
 .search-form {
@@ -149,8 +152,8 @@ h2 {
 }
 
 .search-form input:focus {
-  border-color: #087e75;
-  outline: 2px solid #087e7526;
+  border-color: #2563eb;
+  outline: 2px solid #2563eb26;
 }
 
 .search-form button {
@@ -163,7 +166,7 @@ h2 {
   padding: 0 17px;
   border: 0;
   border-radius: 6px;
-  background: #087e75;
+  background: #2563eb;
   color: white;
   cursor: pointer;
   font: inherit;
@@ -171,9 +174,13 @@ h2 {
   font-weight: 700;
 }
 
+.search-form button:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
 .search-form button:disabled {
-  cursor: not-allowed;
-  opacity: .58;
+  cursor: progress;
+  opacity: .8;
 }
 
 .notice {

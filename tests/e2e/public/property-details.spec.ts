@@ -56,12 +56,14 @@ test('property detail shows validation and API failure feedback for inquiry subm
   await expect(page.getByRole('alert')).toBeVisible()
 })
 
-// See TESTING.md, App bugs found by tests: property detail server-error announcement.
-test.fixme('property details report not-found and server-error states', async ({ page }) => {
-  await installApiMocks(page, undefined, { 'GET properties/999': { scenario: 'error', status: 404, body: { message: 'Property not found.' } } })
+test('property details report not-found and server-error states', async ({ page }) => {
+  await installApiMocks(page, undefined, { 'GET properties/999': { scenario: 'error', status: 404, body: { message: 'No query results for model [App\\Models\\Property].' } } })
   await page.goto('/properties/999')
   await waitForRouteReady(page, 'Property Not Found')
   await expect(page.getByRole('heading', { name: /property not found/i })).toBeVisible()
+  // A missing listing is explained in plain words, never with internal error text.
+  await expect(page.getByText(/no query results/i)).toHaveCount(0)
+  await expect(page.getByRole('alert')).toHaveCount(0)
   await page.unrouteAll()
   await installApiMocks(page, undefined, { 'GET properties/101': 'error' })
   await page.goto('/properties/101')

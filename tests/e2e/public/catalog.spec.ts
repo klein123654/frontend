@@ -12,6 +12,8 @@ test('visitor can browse published property listings', async ({ page }) => {
   await waitForRouteReady(page, 'Explore Commercial Properties')
   await expect(page.getByRole('heading', { name: 'Explore Commercial Properties' })).toBeVisible()
   await expect(page.getByRole('link', { name: /Riverside Commercial Space/i })).toBeVisible()
+  // The empty state must not appear next to results (it used to on single-page results).
+  await expect(page.getByRole('heading', { name: /no properties found/i })).toHaveCount(0)
 })
 
 test('visitor can search from the home page and reach filtered results', async ({ page }) => {

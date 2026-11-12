@@ -158,12 +158,12 @@ onMounted(() => {
   place-items: center;
   border-radius: 7px;
   background: #e7f4f1;
-  color: #087e75;
+  color: #2563eb;
 }
 
 .eyebrow {
   margin: 0 0 3px;
-  color: #087e75;
+  color: #2563eb;
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
@@ -185,7 +185,7 @@ h2 {
   border: 1px solid #b7d6d0;
   border-radius: 6px;
   background: white;
-  color: #087e75;
+  color: #2563eb;
   cursor: pointer;
   font: inherit;
   font-size: 12px;
@@ -200,7 +200,7 @@ h2 {
 .summary {
   margin: 0 0 17px;
   padding: 12px 14px;
-  border-left: 3px solid #087e75;
+  border-left: 3px solid #2563eb;
   background: #edf7f4;
   color: #315d58;
   font-size: 13px;

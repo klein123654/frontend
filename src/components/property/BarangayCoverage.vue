@@ -51,7 +51,7 @@ onMounted(async () => {
 }
 
 .coverage__eyebrow {
-  color: #066b63;
+  color: #1d4ed8;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 1.3px;
@@ -94,14 +94,14 @@ h2 {
 }
 
 .coverage__chip:hover {
-  border-color: #066b63;
-  color: #066b63;
+  border-color: #1d4ed8;
+  color: #1d4ed8;
 }
 
 .coverage__count {
   padding: 2px 8px;
   border-radius: 999px;
-  background: #e6f5f2;
+  background: #eff6ff;
   color: #075e58;
   font-size: 12px;
   font-weight: 800;
