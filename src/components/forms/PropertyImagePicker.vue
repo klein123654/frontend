@@ -69,7 +69,7 @@ function onFilesSelected(event: Event) {
   <div class="info-note">
     <Info :size="17" />
     <span v-if="isEditMode">
-      Existing photos remain on the listing. New images are uploaded to the application storage.
+      New photos are added after your current ones. Photos marked for removal are deleted when you save.
     </span>
     <span v-else>
       Selected photos are uploaded when you save or submit the listing.
