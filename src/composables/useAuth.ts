@@ -5,6 +5,7 @@ import {
   getStoredUser,
   getToken,
   loginUser,
+  loginWithGoogleCredential,
   logoutUser,
   registerUser,
 } from '@/services/authService'
@@ -45,6 +46,16 @@ export function useAuth() {
     }
   }
 
+  async function loginWithGoogle(credential: string) {
+    loading.value = true
+    try {
+      user.value = await loginWithGoogleCredential(credential)
+      return user.value
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function refreshUser() {
     if (!getToken()) {
       user.value = null
@@ -74,6 +85,7 @@ export function useAuth() {
     loading,
     isAuthenticated,
     login,
+    loginWithGoogle,
     register,
     refreshUser,
     logout,

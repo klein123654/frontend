@@ -4,6 +4,8 @@ import { reactive, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { useFormDraft } from '@/composables/useFormDraft'
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton.vue'
+import type { AuthUser } from '@/types/user'
 
 const router = useRouter()
 const route = useRoute()
@@ -22,6 +24,19 @@ const errors = reactive({
 
 const showPassword = ref(false)
 const loginError = ref('')
+
+async function goToHome(user: AuthUser) {
+  const roleHome = {
+    owner: '/owner/dashboard',
+    broker: '/broker/dashboard',
+    developer: '/developer/dashboard',
+    admin: '/admin/dashboard',
+    buyer: '/',
+  }[user.role] || '/'
+  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
+  const destination = redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : roleHome
+  await router.push(destination)
+}
 
 async function handleLogin() {
   errors.email = ''
@@ -46,18 +61,7 @@ async function handleLogin() {
   try {
     const user = await login(form.email.trim(), form.password)
     formDraft.clear()
-
-    const roleHome = {
-      owner: '/owner/dashboard',
-      broker: '/broker/dashboard',
-      developer: '/developer/dashboard',
-      admin: '/admin/dashboard',
-      buyer: '/',
-    }[user.role] || '/'
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
-    const destination = redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : roleHome
-
-    await router.push(destination)
+    await goToHome(user)
   } catch (error) {
     loginError.value = error instanceof Error
       ? error.message
@@ -206,6 +210,8 @@ async function handleLogin() {
             </button>
 
           </form>
+
+          <GoogleSignInButton text="signin_with" @signed-in="goToHome" />
 
           <div class="register-section">
             Don't have an account?

@@ -124,6 +124,7 @@ function becomePublisher() {
         <!-- ACCOUNT ACTIONS -->
         <div class="nav-actions">
           <template v-if="user">
+            <RouterLink to="/account" class="nav-account" @click="closeMenu">Account</RouterLink>
             <template v-if="user.role === 'buyer'">
               <button type="button" class="nav-btn" @click="becomePublisher">Become a Publisher</button>
               <button type="button" class="nav-btn" @click="signOut">Sign Out</button>

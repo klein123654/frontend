@@ -57,6 +57,16 @@ export async function registerUser(input: {
   return saveSession(response)
 }
 
+/** Sign in (or sign up) with the ID token from Google Identity Services. */
+export async function loginWithGoogleCredential(credential: string): Promise<AuthUser> {
+  const response = await apiRequest<AuthResponse>('auth/google', {
+    method: 'POST',
+    body: JSON.stringify({ credential }),
+  })
+
+  return saveSession(response)
+}
+
 export async function fetchCurrentUser(): Promise<AuthUser> {
   const response = await apiRequest<{ user: AuthUser }>('user')
   const user = response.user
