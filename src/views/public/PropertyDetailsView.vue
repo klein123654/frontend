@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatPeso } from '@/utils/format'
+import { formatPeso, formatPricePerSqm } from '@/utils/format'
 import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useRoute } from 'vue-router'
@@ -121,6 +121,9 @@ watch(() => route.params.id, loadProperty, { immediate: true })
         <div class="price">
           {{ formatPrice(property.price) }}
           <small v-if="property.listingType === 'For Rent'">/ month</small>
+          <span v-if="formatPricePerSqm(property.price, property.area)" class="per-sqm">
+            {{ formatPricePerSqm(property.price, property.area) }}<template v-if="property.listingType === 'For Rent'"> per month</template>
+          </span>
         </div>
       </div>
 
@@ -310,6 +313,13 @@ watch(() => route.params.id, loadProperty, { immediate: true })
   color: #5e6d82;
   font-size: 13px;
   font-weight: 400;
+}
+
+.price .per-sqm {
+  display: block;
+  color: #5e6d82;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 /* CONTENT LAYOUT */

@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { fetchSavedProperties, removeSavedProperty } from '@/services/savedPropertyService'
 import type { OwnerProperty } from '@/data/owner/ownerProperties'
+import SavedSearchList from '@/components/property/SavedSearchList.vue'
 
 const properties = ref<OwnerProperty[]>([])
 const loading = ref(true)
@@ -48,6 +49,7 @@ onMounted(load)
       </article>
     </section>
     <section v-else class="empty"><h2>No saved properties yet</h2><p>Save a property from its detail page and it will appear here.</p><RouterLink to="/properties">Browse properties</RouterLink></section>
+    <SavedSearchList />
   </main>
 </template>
 

@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProperties } from '@/composables/useProperties'
 import AiSearchBar from '@/components/property/AiSearchBar.vue'
 import PropertyCard from '@/components/property/PropertyCard.vue'
+import SaveSearchButton from '@/components/property/SaveSearchButton.vue'
+
+// Leaflet is large, so the results map loads only when someone opens it.
+const ResultsMap = defineAsyncComponent(() => import('@/components/property/ResultsMap.vue'))
 import { BUTUAN_BARANGAYS } from '@/data/butuanLocation'
 import {
   ALL_LISTINGS,
@@ -17,6 +21,7 @@ import {
 } from '@/utils/propertyQuery'
 
 const PAGE_SIZE = 12
+const VIEW_KEY = 'butuanspaces_results_view'
 
 const route = useRoute()
 const router = useRouter()
@@ -40,6 +45,23 @@ const types = [
 ]
 
 const { properties, loading, error, total, currentPage, lastPage, load } = useProperties()
+
+function readSavedView(): 'grid' | 'map' {
+  try {
+    return localStorage.getItem(VIEW_KEY) === 'map' ? 'map' : 'grid'
+  } catch {
+    return 'grid'
+  }
+}
+const resultsView = ref<'grid' | 'map'>(readSavedView())
+watch(resultsView, (view) => {
+  try {
+    localStorage.setItem(VIEW_KEY, view)
+  } catch {
+    // Remembering the choice is optional.
+  }
+})
+const pinnedCount = computed(() => properties.value.filter((property) => property.latitude != null && property.longitude != null).length)
 const suggestedTags = [
   'near port',
   'high-ceiling',
@@ -269,6 +291,10 @@ onBeforeUnmount(() => {
             <h2>Available Spaces</h2>
             <span>{{ total }} {{ total === 1 ? 'property' : 'properties' }}</span>
           </div>
+          <div class="view-toggle" role="group" aria-label="Show results as">
+            <button type="button" :aria-pressed="resultsView === 'grid'" @click="resultsView = 'grid'">Grid</button>
+            <button type="button" :aria-pressed="resultsView === 'map'" @click="resultsView = 'map'">Map</button>
+          </div>
           <div class="sort-control">
             <label for="property-sort">Sort by</label>
             <select id="property-sort" v-model="sort">
@@ -279,6 +305,8 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
+        <SaveSearchButton />
+
         <p v-if="loading" class="status-message" role="status">
           Loading properties...
         </p>
@@ -288,6 +316,13 @@ onBeforeUnmount(() => {
           <button type="button" @click="loadFromRoute">
             Try Again
           </button>
+        </div>
+
+        <div v-else-if="properties.length && resultsView === 'map'" class="map-results">
+          <ResultsMap :properties="properties" />
+          <p class="map-note">
+            Showing {{ pinnedCount }} of {{ properties.length }} listings on this page<template v-if="pinnedCount < properties.length"> (the rest have no map pin yet)</template>.
+          </p>
         </div>
 
         <div v-else-if="properties.length" class="property-grid">
@@ -432,6 +467,40 @@ input, select {
 .results-heading h2 { margin: 0 0 4px; }
 
 .sort-control { display: flex; align-items: center; gap: 10px; }
+
+.view-toggle {
+  display: inline-flex;
+  margin-left: auto;
+  overflow: hidden;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+}
+
+.view-toggle button {
+  padding: 9px 14px;
+  border: 0;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.view-toggle button + button {
+  border-left: 1px solid #dbe2ea;
+}
+
+.view-toggle button[aria-pressed='true'] {
+  background: #142d4e;
+  color: #fff;
+}
+
+.map-note {
+  margin: 10px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
 .sort-control label { margin: 0; white-space: nowrap; }
 .sort-control select { width: auto; padding: 10px 12px; }
 

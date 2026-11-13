@@ -1,7 +1,7 @@
 
 <script setup lang="ts">
 import VerifiedBadge from '@/components/publisher/VerifiedBadge.vue'
-import { formatPeso } from '@/utils/format'
+import { formatPeso, formatPricePerSqm } from '@/utils/format'
 import type { Property } from '@/types/property'
 
 defineProps<{
@@ -34,6 +34,7 @@ const formatPrice = formatPeso
         <div>
           <strong>{{ formatPrice(property.price) }}</strong>
           <small v-if="property.listingType === 'For Rent'"> / month</small>
+          <span v-if="formatPricePerSqm(property.price, property.area)" class="per-sqm">{{ formatPricePerSqm(property.price, property.area) }}</span>
         </div>
         <span class="view">View Details →</span>
       </div>
@@ -42,6 +43,14 @@ const formatPrice = formatPeso
 </template>
 
 <style scoped>
+.per-sqm {
+  display: block;
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .property-card {
   display: block;
   background: white;
