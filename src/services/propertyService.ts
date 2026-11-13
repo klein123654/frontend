@@ -2,9 +2,11 @@ import { API_ORIGIN, apiRequest } from './api'
 import { compressImage } from '@/utils/imageCompression'
 import type { ListingAvailability, ListingType, Property, PropertyType, Publisher } from '@/types/property'
 import type { OwnerProperty } from '@/data/owner/ownerProperties'
+import type { ListingPhoto, PhotoChanges } from '@/types/listingPhotos'
 import { BUTUAN_CITY, BUTUAN_PROVINCE, canonicalButuanBarangay } from '@/data/butuanLocation'
 
 interface BackendImage {
+  id?: number
   path: string
   alt_text?: string | null
   sort_order?: number
@@ -33,6 +35,7 @@ export interface BackendProperty {
   status?: string
   created_at?: string
   inquiries_count?: number
+  views_count?: number
   review_notes?: string | null
   owner?: { name: string }
   broker?: { name: string } | null
@@ -89,6 +92,16 @@ export interface ListingInput {
   description: string
   images: File[]
   status: 'Draft' | 'Pending'
+  /** Remove / reorder / cover changes to photos already on the listing. */
+  photoChanges?: PhotoChanges | null
+}
+
+/** Existing photos with their ids, cover first then in display order. */
+export function mapListingPhotos(record: BackendProperty): ListingPhoto[] {
+  return [...(record.images ?? [])]
+    .filter((image): image is BackendImage & { id: number } => typeof image.id === 'number')
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.id - b.id)
+    .map((image) => ({ id: image.id, url: resolveImageUrl(image.path), isPrimary: Boolean(image.is_primary) }))
 }
 
 export function mapListing(record: BackendProperty): OwnerProperty {
@@ -108,6 +121,8 @@ export function mapListing(record: BackendProperty): OwnerProperty {
     status: (({ draft: 'Draft', pending: 'Pending', published: 'Approved', rejected: 'Rejected' } as Record<string, OwnerProperty['status']>)[record.status ?? 'draft'] ?? 'Draft'),
     images: mapped.images,
     inquiries: record.inquiries_count ?? 0,
+    views: record.views_count ?? 0,
+    photos: mapListingPhotos(record),
     dateCreated: record.created_at?.slice(0, 10) ?? '',
     reviewNotes: record.review_notes ?? null,
     availability: record.availability ?? 'available',
@@ -134,6 +149,13 @@ async function listingFormData(input: ListingInput): Promise<FormData> {
   data.set('submit_for_review', input.status === 'Pending' ? '1' : '0')
   const images = await Promise.all(input.images.map((file) => compressImage(file)))
   images.forEach((file) => data.append('images[]', file))
+  if (input.photoChanges) {
+    input.photoChanges.removeImageIds.forEach((id) => data.append('remove_image_ids[]', String(id)))
+    input.photoChanges.imageOrder
+      .filter((id) => !input.photoChanges?.removeImageIds.includes(id))
+      .forEach((id) => data.append('image_order[]', String(id)))
+    if (input.photoChanges.primaryImageId !== null) data.set('primary_image_id', String(input.photoChanges.primaryImageId))
+  }
   return data
 }
 
@@ -217,7 +239,7 @@ function normalizeListingType(value: string): ListingType {
   return value as ListingType
 }
 
-function listingTypeToApiValue(value: ListingType): string {
+export function listingTypeToApiValue(value: ListingType): string {
   if (value === 'For Rent') return 'rent'
   if (value === 'For Lease') return 'lease'
   return 'sale'

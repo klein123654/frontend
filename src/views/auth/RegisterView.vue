@@ -4,6 +4,7 @@ import { onBeforeUnmount, reactive, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { useFormDraft } from '@/composables/useFormDraft'
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton.vue'
 
 type AccountType = 'customer'
 
@@ -371,7 +372,11 @@ async function handleRegister() {
               />
 
               <span>
-                I agree to the account terms and confirm that the information provided is accurate.
+                I agree to the
+                <a href="/terms" target="_blank" rel="noopener">Terms of Use</a>
+                and
+                <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>,
+                and confirm that the information provided is accurate.
               </span>
             </label>
 
@@ -386,9 +391,11 @@ async function handleRegister() {
           </button>
 
           <p class="demo-notice">
-            Your account information will be stored securely in the application database.
+            We'll email you a link to confirm your address.
           </p>
         </form>
+
+        <GoogleSignInButton text="signup_with" @signed-in="continueAfterRegistration" />
 
         <div class="login-link">
           Already have an account?
@@ -694,6 +701,11 @@ async function handleRegister() {
   color: #5e6d82;
   font-size: 12px;
   line-height: 1.8;
+}
+
+.checkbox-label a {
+  color: #1d4ed8;
+  font-weight: 600;
 }
 
 /* SUBMIT */

@@ -1,5 +1,6 @@
 import { formatPeso } from '@/utils/format'
 import type { ListingAvailability } from '@/types/property'
+import type { ListingPhoto } from '@/types/listingPhotos'
 
 export type OwnerListingStatus =
   | 'Approved'
@@ -27,7 +28,11 @@ export interface OwnerProperty {
   description: string
   status: OwnerListingStatus
   images: string[]
+  /** Uploaded photos with ids, for managing them in the edit form. */
+  photos?: ListingPhoto[]
   inquiries: number
+  /** Public page views (counted once per visitor per hour). */
+  views?: number
   dateCreated: string
   availability: ListingAvailability
   availabilityConfirmedAt: string | null

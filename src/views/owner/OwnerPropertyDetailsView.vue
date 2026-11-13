@@ -12,6 +12,7 @@ import {
   CalendarDays,
   FileText,
   MessageSquare,
+  Eye,
   Pencil,
   Info,
   ImageOff,
@@ -362,6 +363,18 @@ function handleImageError() {
 
                   <strong>
                     {{ property.inquiries }}
+                  </strong>
+                </div>
+              </div>
+
+              <div class="activity-row">
+                <Eye :size="18" />
+
+                <div>
+                  <span>Page Views</span>
+
+                  <strong>
+                    {{ (property.views ?? 0).toLocaleString('en-PH') }}
                   </strong>
                 </div>
               </div>

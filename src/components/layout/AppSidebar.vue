@@ -1,9 +1,10 @@
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { useBrokerVerification } from '@/composables/useBrokerVerification'
+import { useUnansweredInquiries } from '@/composables/useUnansweredInquiries'
 
 type DashboardRole = 'buyer' | 'owner' | 'broker' | 'developer' | 'admin'
 
@@ -36,6 +37,16 @@ const router = useRouter()
 const { user, logout } = useAuth()
 const { canManageListings } = useBrokerVerification(props.role === 'broker')
 const mobileOpen = ref(false)
+const { count: unansweredInquiries, refresh: refreshInquiryBadge } = useUnansweredInquiries()
+const showsInquiryBadge = computed(() => props.role !== 'admin' && props.role !== 'buyer')
+
+onMounted(() => {
+  if (showsInquiryBadge.value) void refreshInquiryBadge()
+})
+// Re-check after leaving the inquiries page, where statuses may have changed.
+watch(() => route.path, (_to, from) => {
+  if (showsInquiryBadge.value && from?.endsWith('/inquiries')) void refreshInquiryBadge(true)
+})
 const initials = computed(() => user.value?.name?.trim().charAt(0).toUpperCase() || '?')
 async function signOut() {
   await logout()
@@ -286,6 +297,11 @@ function closeMobile() {
           </span>
 
           <span>{{ item.label }}</span>
+          <span
+            v-if="item.icon === 'inquiries' && showsInquiryBadge && unansweredInquiries > 0"
+            class="nav-badge"
+            :aria-label="`${unansweredInquiries} awaiting reply`"
+          >{{ unansweredInquiries > 99 ? '99+' : unansweredInquiries }}</span>
         </RouterLink>
       </nav>
 
@@ -301,6 +317,10 @@ function closeMobile() {
             <span>{{ roleTitle }}</span>
           </div>
         </div>
+
+        <RouterLink to="/account" class="account-link" :class="{ active: route.path === '/account' }" @click="closeMobile">
+          Account settings
+        </RouterLink>
 
         <button class="sign-out" type="button" @click="signOut">Sign out</button>
 
@@ -498,6 +518,39 @@ function closeMobile() {
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+}
+
+.nav-badge {
+  min-width: 20px;
+  margin-left: auto;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+}
+
+.account-link {
+  display: block;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #142d4e;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.account-link:hover,
+.account-link.active {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
 }
 
 .sign-out {

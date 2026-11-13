@@ -58,4 +58,8 @@ export const ROUTES: RouteCase[] = [
   { path: '/admin/publisher-applications', guard: 'admin', roles: ['admin'], landmark: 'Publisher Applications' },
   { path: '/admin/inquiries', guard: 'admin', roles: ['admin'], landmark: 'Inquiries Management' },
   { path: '/admin/reports', guard: 'admin', roles: ['admin'], landmark: 'Issue Reports' },
+  { path: '/account', guard: 'buyer', roles: ['buyer', 'owner', 'broker', 'admin'], landmark: 'Account settings' },
+  { path: '/privacy', guard: null, roles: [], landmark: 'Privacy Policy' },
+  { path: '/terms', guard: null, roles: [], landmark: 'Terms of Use' },
+  { path: '/about', guard: null, roles: [], landmark: 'About ButuanSpaces' },
 ]

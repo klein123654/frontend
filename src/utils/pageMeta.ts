@@ -1,10 +1,10 @@
 export const SITE_NAME = 'ButuanSpaces'
 export const DEFAULT_DESCRIPTION =
-  'Browse houses, lots, condos and commercial spaces for sale and rent in Butuan City. Save listings, message owners and verified brokers on ButuanSpaces.'
+  'Find offices, retail spaces, warehouses and commercial lots for rent, lease or sale in Butuan City. Contact owners and PRC-licensed brokers directly on ButuanSpaces.'
 
 /** Browser tab titles for each named route. Routes not listed use the site name alone. */
 export const ROUTE_TITLES: Record<string, string> = {
-  home: 'Property Marketplace in Butuan City',
+  home: 'Commercial Property in Butuan City',
   properties: 'Browse Properties',
   'property-details': 'Property Details',
   'report-issue': 'Report an Issue',
@@ -45,6 +45,10 @@ export const ROUTE_TITLES: Record<string, string> = {
   'admin-inquiries': 'All Inquiries',
   'admin-reports': 'Issue Reports',
   'not-found': 'Page Not Found',
+  account: 'Account Settings',
+  privacy: 'Privacy Policy',
+  terms: 'Terms of Use',
+  about: 'About & FAQ',
 }
 
 export function formatPageTitle(pageTitle?: string | null): string {
@@ -69,7 +73,7 @@ export function setPageMeta(pageTitle: string, description: string = DEFAULT_DES
 }
 
 /** Pages that search engines should index; everything else is an app screen. */
-const INDEXABLE_ROUTES = new Set(['home', 'properties', 'property-details', 'publisher-profile', 'report-issue'])
+const INDEXABLE_ROUTES = new Set(['home', 'properties', 'property-details', 'publisher-profile', 'report-issue', 'about', 'privacy', 'terms'])
 
 /**
  * Point the canonical link and og:url at the current page (without its query

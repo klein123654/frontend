@@ -47,6 +47,7 @@ const stats = computed(() => {
     { label: 'Approved Listings', value: properties.filter((property) => property.status === 'Approved').length, note: 'Listings marked as approved' },
     { label: 'Pending Approval', value: properties.filter((property) => property.status === 'Pending').length, note: 'Listings marked as pending' },
     { label: 'Total Inquiries', value: allOwnerInquiries.value.length, note: `${inquiryCounts.value.New} new inquiries awaiting attention` },
+    { label: 'Listing Views', value: properties.reduce((sum, property) => sum + (property.views ?? 0), 0), note: 'Visits to your public listing pages' },
   ]
 })
 
@@ -273,7 +274,7 @@ function navigateTo(path: string) {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 18px;
   margin-bottom: 22px;
 }

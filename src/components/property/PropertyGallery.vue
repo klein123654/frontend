@@ -1,6 +1,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { Expand, X } from '@lucide/vue'
 
 const props = defineProps<{
   images: string[]
@@ -42,6 +43,42 @@ watch(
     activeIndex.value = 0
   }
 )
+
+// FULL-SCREEN VIEWER (native <dialog>: focus trap and Esc come for free)
+
+const viewer = ref<HTMLDialogElement | null>(null)
+let touchStartX: number | null = null
+
+function openViewer() {
+  viewer.value?.showModal()
+}
+
+function closeViewer() {
+  viewer.value?.close()
+}
+
+function onViewerKey(event: KeyboardEvent) {
+  if (event.key === 'ArrowRight') nextImage()
+  else if (event.key === 'ArrowLeft') previousImage()
+}
+
+function onViewerClick(event: MouseEvent) {
+  // Clicking the dark backdrop (the dialog itself) closes it.
+  if (event.target === viewer.value) closeViewer()
+}
+
+function onTouchStart(event: TouchEvent) {
+  touchStartX = event.touches[0]?.clientX ?? null
+}
+
+function onTouchEnd(event: TouchEvent) {
+  if (touchStartX === null) return
+  const distance = (event.changedTouches[0]?.clientX ?? touchStartX) - touchStartX
+  touchStartX = null
+  if (Math.abs(distance) < 40) return
+  if (distance < 0) nextImage()
+  else previousImage()
+}
 </script>
 
 <template>
@@ -50,10 +87,13 @@ watch(
     <!-- MAIN IMAGE -->
     <div v-if="images.length" class="main-image">
 
-      <img decoding="async"
-        :src="currentImage"
-        :alt="`${title} - Photo ${activeIndex + 1}`"
-      />
+      <button type="button" class="open-viewer" aria-label="View photo full screen" @click="openViewer">
+        <img decoding="async"
+          :src="currentImage"
+          :alt="`${title} - Photo ${activeIndex + 1}`"
+        />
+        <span class="expand-hint" aria-hidden="true"><Expand :size="16" /> Full screen</span>
+      </button>
 
       <!-- IMAGE COUNTER -->
       <div class="image-counter">
@@ -115,12 +155,136 @@ watch(
 
     </div>
 
+    <dialog
+      ref="viewer"
+      class="viewer"
+      :aria-label="`${title} photos`"
+      @keydown="onViewerKey"
+      @click="onViewerClick"
+      @touchstart.passive="onTouchStart"
+      @touchend="onTouchEnd"
+    >
+      <button type="button" class="viewer-close" aria-label="Close full-screen photos" @click="closeViewer">
+        <X :size="26" aria-hidden="true" />
+      </button>
+      <img v-if="currentImage" :src="currentImage" :alt="`${title} - Photo ${activeIndex + 1}`" class="viewer-image" />
+      <div class="viewer-counter" aria-live="polite">{{ activeIndex + 1 }} / {{ images.length }}</div>
+      <template v-if="hasMultipleImages">
+        <button type="button" class="viewer-arrow previous" aria-label="Previous image" @click="previousImage">&#10094;</button>
+        <button type="button" class="viewer-arrow next" aria-label="Next image" @click="nextImage">&#10095;</button>
+      </template>
+    </dialog>
   </section>
 </template>
 
 <style scoped>
 .property-gallery {
   width: 100%;
+}
+
+.open-viewer {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.expand-hint {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgb(15 23 42 / 70%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.viewer {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgb(2 6 23 / 94%);
+  overscroll-behavior: contain;
+}
+
+.viewer::backdrop {
+  background: rgb(2 6 23 / 70%);
+}
+
+.viewer[open] {
+  display: grid;
+  place-items: center;
+}
+
+.viewer-image {
+  max-width: min(96vw, 1600px);
+  max-height: 86dvh;
+  object-fit: contain;
+  user-select: none;
+}
+
+.viewer-close,
+.viewer-arrow {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 14%);
+  color: #fff;
+  cursor: pointer;
+}
+
+.viewer-close {
+  top: 16px;
+  right: 16px;
+  width: 46px;
+  height: 46px;
+}
+
+.viewer-arrow {
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  font-size: 22px;
+  transform: translateY(-50%);
+}
+
+.viewer-arrow.previous { left: 16px; }
+.viewer-arrow.next { right: 16px; }
+
+.viewer-close:hover,
+.viewer-arrow:hover {
+  background: rgb(255 255 255 / 26%);
+}
+
+.viewer-counter {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  color: #e2e8f0;
+  font-size: 14px;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 640px) {
+  .viewer-arrow {
+    top: auto;
+    bottom: 10px;
+    transform: none;
+  }
 }
 
 .main-image {
@@ -132,7 +296,7 @@ watch(
   background: #f1f5f9;
 }
 
-.main-image > img {
+.open-viewer > img {
   width: 100%;
   height: 100%;
   object-fit: cover;

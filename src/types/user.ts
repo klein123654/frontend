@@ -8,6 +8,8 @@ export interface AuthUser {
   role: UserRole
   account_status: string
   created_at?: string
+  /** False until the person opens the confirmation link sent at sign-up. */
+  email_verified?: boolean
   /** Public contact details shown on a publisher's listings and profile. */
   contact_phone?: string | null
   contact_email?: string | null

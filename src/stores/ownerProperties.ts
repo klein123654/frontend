@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import { createMyListing, deleteMyListing, fetchMyListings, updateListingAvailability, updateMyListing } from '@/services/propertyService'
 import type { ListingAvailability, ListingType, PropertyType } from '@/types/property'
 import type { OwnerProperty } from '@/data/owner/ownerProperties'
+import type { PhotoChanges } from '@/types/listingPhotos'
 
 export interface NewOwnerPropertyInput {
   title: string
@@ -18,6 +19,7 @@ export interface NewOwnerPropertyInput {
   description: string
   status: 'Draft' | 'Pending'
   images?: File[]
+  photoChanges?: PhotoChanges | null
 }
 
 export const allOwnerProperties = ref<OwnerProperty[]>([])

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, reactive, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { RouterLink } from 'vue-router'
 import type { BrokerListing, BrokerListingInput } from '@/data/broker/brokerListings'
@@ -8,6 +8,8 @@ import { useFormDraft } from '@/composables/useFormDraft'
 import { BUTUAN_BARANGAYS, BUTUAN_CITY, BUTUAN_PROVINCE, canonicalButuanBarangay, isButuanBarangay } from '@/data/butuanLocation'
 
 import { validatePropertyImages } from '@/utils/propertyImages'
+import ListingPhotoManager from '@/components/forms/ListingPhotoManager.vue'
+import { hasPhotoChanges, initialPhotoChanges, remainingPhotoCount, type PhotoChanges } from '@/types/listingPhotos'
 
 // Leaflet is large, so the map loads only when the form renders it.
 const LocationMap = defineAsyncComponent(() => import('@/components/property/LocationMap.vue'))
@@ -18,6 +20,9 @@ const propertyTypes: PropertyType[] = ['Office Spaces', 'Retail Spaces', 'Wareho
 const listingTypes: ListingType[] = ['For Rent', 'For Lease', 'For Sale']
 const validationMessage = ref('')
 const images = ref<File[]>([])
+const existingPhotos = computed(() => (props.edit ? props.initial?.photos ?? [] : []))
+const photoChanges = ref<PhotoChanges>(initialPhotoChanges([]))
+watch(existingPhotos, (photos) => { photoChanges.value = initialPhotoChanges(photos) }, { immediate: true })
 const form = reactive({
   title: '', location: '', barangay: '',
   propertyType: 'Office Spaces' as PropertyType,
@@ -51,6 +56,10 @@ function submit(status: 'Draft' | 'Pending') {
     validationMessage.value = 'Choose the property location on the map before submitting for review.'
     return
   }
+  if (existingPhotos.value.length && images.value.length === 0 && remainingPhotoCount(existingPhotos.value, photoChanges.value) === 0) {
+    validationMessage.value = 'Keep at least one photo, or select a new one.'
+    return
+  }
   validationMessage.value = ''
   emit('save', {
     title: form.title.trim(), location: form.location.trim(), barangay: canonicalButuanBarangay(form.barangay) ?? '', city: BUTUAN_CITY, province: BUTUAN_PROVINCE,
@@ -58,7 +67,8 @@ function submit(status: 'Draft' | 'Pending') {
     price: Number(form.price) || 0, area: Number(form.area) || 0,
     latitude: form.latitude, longitude: form.longitude,
     description: form.description.trim(), status,
-    images: images.value
+    images: images.value,
+    photoChanges: hasPhotoChanges(existingPhotos.value, photoChanges.value) ? { ...photoChanges.value } : null
   })
 }
 
@@ -93,7 +103,8 @@ function selectImages(event: Event) {
     <p class="location-scope">Location coverage: <strong>Butuan City, Agusan del Norte</strong></p>
     <div class="field"><label for="broker-price">Price (PHP)</label><input id="broker-price" v-model.number="form.price" type="number" min="0" step="0.01" /></div>
     <div class="field"><label for="broker-area">Area (sq. m.)</label><input id="broker-area" v-model.number="form.area" type="number" min="0" step="0.01" /></div>
-    <div class="field full"><label for="broker-images">Property Images</label><input id="broker-images" type="file" accept="image/png,image/jpeg,image/webp" multiple @change="selectImages"/><small>Up to five JPG, PNG, or WebP images. Each file may be up to 5 MB.</small><small v-if="props.initial?.images.length">Existing photos remain when you do not select replacements.</small></div>
+    <div v-if="existingPhotos.length" class="field full"><span class="photos-label">Current photos</span><ListingPhotoManager v-model="photoChanges" :photos="existingPhotos" /></div>
+    <div class="field full"><label for="broker-images">{{ existingPhotos.length ? 'Add more photos' : 'Property Images' }}</label><input id="broker-images" type="file" accept="image/png,image/jpeg,image/webp" multiple @change="selectImages"/><small>Up to five JPG, PNG, or WebP images. Each file may be up to 5 MB.</small></div>
     <div class="field full"><label for="broker-description">Description</label><textarea id="broker-description" v-model="form.description" rows="6" placeholder="Describe the property" /></div>
     <p v-if="validationMessage" class="validation" role="alert">{{ validationMessage }}</p>
     <div class="actions"><RouterLink class="cancel" to="/broker/listings">Cancel</RouterLink><button type="submit">{{ edit ? 'Save Changes' : 'Save Draft' }}</button><button type="button" class="secondary-action" @click="submit('Pending')">Submit for Review</button></div>
@@ -104,7 +115,7 @@ function selectImages(event: Event) {
 .listing-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; padding:26px; background:#fff; border:1px solid #e2e8f0; border-radius:13px; }
 .field { display:flex; flex-direction:column; gap:8px; min-width:0; }
 .field.full,.actions,.validation,.form-note { grid-column:1/-1; }
-label { font-size:12px; font-weight:700; color:#334155; }
+label, .photos-label { font-size:12px; font-weight:700; color:#334155; }
 input,select,textarea { width:100%; min-height:44px; padding:11px 12px; border:1px solid #cbd5e1; border-radius:8px; color:#142d4e; background:white; font:inherit; font-size:13px; }
 textarea { resize:vertical; }
 input:focus,select:focus,textarea:focus { outline:2px solid #93c5fd; outline-offset:1px; }

@@ -31,6 +31,8 @@ import { useFormDraft } from '@/composables/useFormDraft'
 import { generateListingDescription } from '@/services/propertyService'
 import FormSection from '@/components/forms/FormSection.vue'
 import PropertyImagePicker from '@/components/forms/PropertyImagePicker.vue'
+import ListingPhotoManager from '@/components/forms/ListingPhotoManager.vue'
+import { hasPhotoChanges, initialPhotoChanges, remainingPhotoCount, type PhotoChanges } from '@/types/listingPhotos'
 import { BUTUAN_BARANGAYS, BUTUAN_CITY, BUTUAN_PROVINCE, canonicalButuanBarangay, isButuanBarangay } from '@/data/butuanLocation'
 
 // Leaflet is large, so the map loads only when the form renders it.
@@ -53,6 +55,7 @@ interface PropertyFormPayload {
   description: string
   images: File[]
   status: SaveStatus
+  photoChanges: PhotoChanges | null
 }
 
 type FieldName =
@@ -103,6 +106,9 @@ const formDraft = useFormDraft(`property-${route.fullPath}`, {
   title, propertyType, listingType, barangay, location, latitude, longitude, price, area, description,
 })
 const images = ref<File[]>([])
+const existingPhotos = computed(() => (isEditMode.value ? props.initialValues?.photos ?? [] : []))
+const photoChanges = ref<PhotoChanges>(initialPhotoChanges([]))
+watch(existingPhotos, (photos) => { photoChanges.value = initialPhotoChanges(photos) }, { immediate: true })
 
 // VALIDATION STATE
 
@@ -178,7 +184,10 @@ const fieldErrors = computed(() => ({
   // Editing an existing draft does not require
   // selecting photos again.
   images:
-    images.value.length === 0 && (props.initialValues?.images.length ?? 0) === 0
+    images.value.length === 0 &&
+    (existingPhotos.value.length
+      ? remainingPhotoCount(existingPhotos.value, photoChanges.value) === 0
+      : (props.initialValues?.images.length ?? 0) === 0)
 }))
 
 function isInvalid(field: FieldName): boolean {
@@ -234,7 +243,8 @@ function buildPayload(
     area: area.value,
     description: description.value.trim(),
     images: [...images.value],
-    status
+    status,
+    photoChanges: hasPhotoChanges(existingPhotos.value, photoChanges.value) ? { ...photoChanges.value } : null
   }
 }
 
@@ -598,8 +608,10 @@ function submitForReview() {
     <FormSection
       :icon="ImagePlus"
       title="Property Images"
-      :description="isEditMode ? 'Keep the existing photos or upload additional property images.' : 'Select clear photos of your commercial property.'"
+      :description="isEditMode ? 'Choose the cover photo, reorder or remove photos, or upload more.' : 'Select clear photos of your commercial property.'"
     >
+
+      <ListingPhotoManager v-if="existingPhotos.length" v-model="photoChanges" :photos="existingPhotos" />
 
       <PropertyImagePicker
         v-model:files="images"

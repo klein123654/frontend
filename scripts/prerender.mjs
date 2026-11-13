@@ -21,7 +21,7 @@ const API_ORIGIN = API_BASE_URL.replace(/\/api$/, '')
 const REQUEST_TIMEOUT_MS = 90_000
 const MAX_PAGES = 40
 
-const STATIC_PATHS = ['/', '/properties', '/report-issue', '/login', '/register']
+const STATIC_PATHS = ['/', '/properties', '/about', '/report-issue', '/privacy', '/terms', '/login', '/register']
 const LISTING_LABELS = { rent: 'For Rent', lease: 'For Lease', sale: 'For Sale' }
 
 export function escapeHtml(value) {
