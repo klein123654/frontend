@@ -16,6 +16,7 @@ const currentYear = new Date().getFullYear()
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/properties">Browse Properties</RouterLink>
         <RouterLink :to="{ path: '/', hash: '#categories' }">Categories</RouterLink>
+        <RouterLink to="/about">About &amp; FAQ</RouterLink>
       </div>
 
       <div>
@@ -27,7 +28,11 @@ const currentYear = new Date().getFullYear()
     </div>
 
     <div class="copyright">
-      © {{ currentYear }} ButuanSpaces · Commercial property listings in Butuan City.
+      <span>© {{ currentYear }} ButuanSpaces · Commercial property listings in Butuan City.</span>
+      <span class="legal-links">
+        <RouterLink to="/privacy">Privacy Policy</RouterLink>
+        <RouterLink to="/terms">Terms of Use</RouterLink>
+      </span>
     </div>
   </footer>
 </template>
@@ -72,6 +77,20 @@ a:hover { color: white; }
   padding-top: 20px;
   color: #94a3b8;
   font-size: 12px;
+}
+
+.copyright,
+.legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  justify-content: space-between;
+}
+
+.legal-links a {
+  color: #cbd5e1;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 @media (max-width: 650px) {

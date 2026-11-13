@@ -3,7 +3,7 @@ import { reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { submitIssueReport } from '@/services/verificationService'
 import { useFormDraft } from '@/composables/useFormDraft'
-const categories = ['General Bug', 'Display / Layout', 'Login / Registration', 'Property Listings', 'Messages / Inquiries', 'Other']
+const categories = ['General Bug', 'Display / Layout', 'Login / Registration', 'Property Listings', 'Messages / Inquiries', 'Privacy / Data Request', 'Other']
 const form = reactive({ name: '', email: '', category: 'General Bug', title: '', description: '' })
 const formDraft = useFormDraft('report-issue', form)
 const feedback = ref('')

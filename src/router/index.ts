@@ -40,6 +40,10 @@ const AdminPublisherApplicationsView = () => import('@/views/admin/AdminPublishe
 const NotFoundView = () => import('@/views/public/NotFoundView.vue')
 const PublisherProfileView = () => import('@/views/public/PublisherProfileView.vue')
 const PublisherSettingsView = () => import('@/views/owner/PublisherSettingsView.vue')
+const AccountSettingsView = () => import('@/views/account/AccountSettingsView.vue')
+const PrivacyView = () => import('@/views/public/PrivacyView.vue')
+const TermsView = () => import('@/views/public/TermsView.vue')
+const AboutView = () => import('@/views/public/AboutView.vue')
 
 let hasCompletedInitialNavigation = false
 const scrollStoragePrefix = 'butuanspaces_scroll:'
@@ -247,6 +251,10 @@ const router = createRouter({
       component: AdminReportsView,
     },
 
+    { path: '/account', name: 'account', component: AccountSettingsView },
+    { path: '/privacy', name: 'privacy', component: PrivacyView },
+    { path: '/terms', name: 'terms', component: TermsView },
+    { path: '/about', name: 'about', component: AboutView },
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
@@ -327,7 +335,9 @@ router.beforeEach(async (to) => {
   const token = getToken()
 
   // Determine which role is allowed to access each workspace.
-  const requiredRole = to.path.startsWith('/buyer/') || to.path.startsWith('/publisher/')
+  const requiredRole = to.path === '/account'
+    ? 'any'
+    : to.path.startsWith('/buyer/') || to.path.startsWith('/publisher/')
     ? 'member'
     : to.path.startsWith('/owner/')
       ? 'owner'
@@ -391,7 +401,7 @@ router.beforeEach(async (to) => {
     return homeForRole(user.role)
   }
 
-  if (requiredRole && requiredRole !== 'member' && user && user.role !== requiredRole) {
+  if (requiredRole && requiredRole !== 'member' && requiredRole !== 'any' && user && user.role !== requiredRole) {
     return homeForRole(user.role)
   }
 
