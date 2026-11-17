@@ -257,8 +257,14 @@ h2 {
 }
 
 .aggregate-row span {
+  flex: 1 1 auto;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.aggregate-row small {
+  min-width: 44px;
+  text-align: right;
 }
 
 .aggregate-row strong {
