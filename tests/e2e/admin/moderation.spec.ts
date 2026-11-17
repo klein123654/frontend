@@ -82,6 +82,34 @@ test('admin can suspend a user from the filtered user directory', async ({ page 
   await expect(page.getByRole('status')).toContainText(/user status saved/i)
 })
 
+test('admin can delete a test account after confirming with their password', async ({ page }) => {
+  await openAdmin(page, '/admin/users')
+  await page.getByRole('button', { name: `Delete ${users.buyer.name}` }).click()
+  const dialog = page.getByRole('dialog', { name: `Delete ${users.buyer.name}?` })
+  await expect(dialog).toBeVisible()
+  const confirm = dialog.getByRole('button', { name: 'Delete account' })
+  await expect(confirm).toBeDisabled()
+
+  await dialog.getByLabel(/reason/i).fill('Test account')
+  await dialog.getByLabel(/your password/i).fill('AdminPass123')
+  const request = page.waitForRequest((req) => req.method() === 'DELETE' && req.url().endsWith(`/api/admin/users/${users.buyer.id}`))
+  await confirm.click()
+  expect((await request).postDataJSON()).toEqual({ password: 'AdminPass123', reason: 'Test account', notify_user: false })
+
+  await expect(dialog).toBeHidden()
+  await expect(page.getByRole('status')).toContainText(`The account for ${users.buyer.name} was deleted.`)
+  await expect(page.getByRole('button', { name: `Delete ${users.buyer.name}` })).toHaveCount(0)
+})
+
+test('admin accounts are protected and role filters match', async ({ page }) => {
+  await openAdmin(page, '/admin/users')
+  await expect(page.getByRole('button', { name: `Delete ${users.admin.name}` })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: `Suspend ${users.admin.name}` })).toHaveCount(0)
+  await page.getByLabel('Filter users by role').selectOption('Owner')
+  await expect(page.getByText(users.owner.name)).toBeVisible()
+  await expect(page.getByText(users.buyer.name)).toHaveCount(0)
+})
+
 test('admin can review and verify broker credentials', async ({ page }) => {
   await openAdmin(page, '/admin/verifications')
   const queue = new AdminVerificationsPage(page)

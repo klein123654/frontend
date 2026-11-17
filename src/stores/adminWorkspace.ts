@@ -4,8 +4,7 @@ import { updateInquiryStatus } from '@/services/inquiryService'
 import {
   fetchAdminInquiries, fetchAdminProperties, fetchAdminReports, fetchAdminSummary,
   fetchAdminUsers, fetchAdminVerifications, resolveAdminImageUrl, reviewBroker, reviewProperty,
-  setReportStatus, setUserAccountStatus, unpublishAdminProperty, deleteAdminProperty,
-} from '@/services/adminService'
+  setReportStatus, setUserAccountStatus, unpublishAdminProperty, deleteAdminProperty, deleteUserAccount, type DeleteUserInput } from '@/services/adminService'
 
 const properties = ref<AdminListing[]>([])
 const verifications = ref<VerificationRequest[]>([])
@@ -18,6 +17,7 @@ export const adminError = ref('')
 
 const statuses: Record<string, string> = { draft: 'Draft', pending: 'Pending', published: 'Approved', rejected: 'Rejected', active: 'Active', suspended: 'Suspended', verified: 'Verified', developer: 'Developer', new: 'New', open: 'New', in_progress: 'In Progress', resolved: 'Resolved' }
 const titleCase = (value: string) => statuses[value] ?? value
+const roleLabels: Record<string, ManagedUser['role']> = { buyer: 'Client', owner: 'Owner', broker: 'Broker', developer: 'Developer', admin: 'Admin' }
 
 export const adminListings = computed(() => properties.value)
 export const pendingAdminListings = computed(() => properties.value.filter((item) => item.status === 'Pending'))
@@ -53,7 +53,7 @@ export async function loadAdminWorkspace(): Promise<void> {
     }))
     users.value = userRows.map((item) => ({
       id: item.id, name: item.name, email: item.email,
-      role: (item.role === 'buyer' ? 'Client' : titleCase(item.role)) as ManagedUser['role'],
+      role: roleLabels[item.role] ?? 'Client',
       status: titleCase(item.account_status) as ManagedUser['status'], joinedAt: item.created_at.slice(0, 10),
     }))
     inquiries.value = inquiryRows.map((item) => ({
@@ -131,6 +131,13 @@ export async function setAdminUserStatus(id: number, status: 'Active' | 'Suspend
   if (!users.value.some((item) => item.id === id && item.role !== 'Admin')) return false
   try { await setUserAccountStatus(id, status.toLowerCase() as 'active' | 'suspended'); const item = users.value.find((row) => row.id === id); if (item) item.status = status; return true }
   catch (error) { adminError.value = error instanceof Error ? error.message : 'Unable to update account.'; return false }
+}
+
+/** Permanently delete a non-admin account. Throws with a readable message on failure. */
+export async function deleteAdminUser(id: number, input: DeleteUserInput): Promise<string> {
+  const { message } = await deleteUserAccount(id, input)
+  users.value = users.value.filter((row) => row.id !== id)
+  return message
 }
 
 export async function setAdminInquiryStatus(id: number, status: 'New' | 'In Progress' | 'Resolved'): Promise<boolean> {
