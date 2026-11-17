@@ -104,7 +104,8 @@ export async function apiRequest<T>(
       throw new ApiRequestError('Too many requests. Please wait a moment and try again.', response.status, normalizedType)
     }
 
-    if (response.status >= 500) {
+    // AI outages carry their own plain message; other 5xx errors get a generic one.
+    if (response.status >= 500 && !(normalizedType === 'ai_unavailable' && normalizedMessage)) {
       throw new ApiRequestError('The server is temporarily unavailable. Please try again shortly.', response.status, normalizedType)
     }
 

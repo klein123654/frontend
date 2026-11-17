@@ -34,8 +34,15 @@ export interface InquiryThreadMessage {
   inquiry_id: number
   sender_id: number | null
   body: string
+  /** Set when the message looks like a request for money before a viewing. */
+  safety_warning?: string | null
   created_at: string
   sender: { id: number; name: string } | null
+}
+
+/** AI-drafted reply for the publisher to review. Nothing is sent. */
+export async function suggestInquiryReply(inquiryId: number) {
+  return apiRequest<{ reply: string }>(`inquiries/${inquiryId}/suggest-reply`, { method: 'POST' })
 }
 
 export async function fetchInquiryMessages(inquiryId: number) {

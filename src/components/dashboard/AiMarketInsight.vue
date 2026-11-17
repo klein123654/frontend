@@ -4,38 +4,45 @@ import { onMounted, ref } from 'vue'
 import { RefreshCw, TrendingUp } from '@lucide/vue'
 import { apiRequest } from '@/services/api'
 
+interface PriceStats {
+  listing_type: 'rent' | 'lease' | 'sale'
+  label: string
+  listing_count: number
+  median_price: number
+  median_price_per_sqm: number | null
+  price_unit: string
+}
+
 interface MarketAggregates {
-  average_price_by_type: Array<{
-    property_type: string
-    average_price: number
-    listing_count: number
-  }>
-  count_by_location: Array<{
-    city: string
-    province: string
-    listing_count: number
-  }>
+  total_listings: number
+  by_type: Array<{ property_type: string; listing_count: number; prices: PriceStats[] }>
+  top_barangays: Array<{ barangay: string; listing_count: number }>
 }
 
 interface MarketInsightResponse {
   success: boolean
   message?: string
   summary: string | null
+  ai_written?: boolean
   aggregates: MarketAggregates
 }
 
-const defaultAggregates: MarketAggregates = {
-  average_price_by_type: [],
-  count_by_location: [],
-}
+const defaultAggregates: MarketAggregates = { total_listings: 0, by_type: [], top_barangays: [] }
 
 const aggregates = ref<MarketAggregates>(defaultAggregates)
 const summary = ref('')
+const aiWritten = ref(false)
 const message = ref('')
 const loading = ref(false)
 const loadError = ref('')
 
 const formatPrice = formatPeso
+
+function priceLine(stats: PriceStats): string {
+  const unit = stats.listing_type === 'rent' ? ' / month' : ''
+  const perSqm = stats.median_price_per_sqm ? ` · ${formatPrice(stats.median_price_per_sqm)}/sq m${unit}` : ''
+  return `${formatPrice(stats.median_price)}${unit}${perSqm}`
+}
 
 async function refresh() {
   if (loading.value) return
@@ -49,6 +56,7 @@ async function refresh() {
 
     aggregates.value = payload.aggregates ?? defaultAggregates
     summary.value = payload.summary ?? ''
+    aiWritten.value = Boolean(payload.ai_written)
     message.value = payload.message ?? ''
   } catch (cause) {
     loadError.value = cause instanceof Error
@@ -90,29 +98,37 @@ onMounted(() => {
     <p v-if="loadError" class="notice notice-error" role="alert">{{ loadError }}</p>
     <p v-else-if="message" class="notice" role="status">{{ message }}</p>
     <p v-if="summary" class="summary">{{ summary }}</p>
+    <p v-if="summary" class="summary-source">
+      {{ aiWritten ? 'Summary written by AI from the figures below.' : 'Summary written from the figures below.' }}
+    </p>
 
-    <div v-if="loading && !aggregates.average_price_by_type?.length" class="loading" role="status">
-      Loading aggregate listing data…
+    <div v-if="loading && !aggregates.by_type?.length" class="loading" role="status">
+      Loading listing data…
     </div>
 
     <div v-else class="aggregate-grid">
       <section class="aggregate-section">
-        <h3>Average asking price by type</h3>
-        <div v-if="aggregates.average_price_by_type?.length" class="aggregate-list">
-          <div v-for="row in aggregates.average_price_by_type" :key="row.property_type" class="aggregate-row">
-            <span>{{ row.property_type }}</span>
-            <strong>{{ formatPrice(row.average_price) }}</strong>
-            <small>{{ row.listing_count }} listings</small>
+        <h3>Median asking price by type</h3>
+        <div v-if="aggregates.by_type?.length" class="aggregate-list">
+          <div v-for="row in aggregates.by_type" :key="row.property_type" class="type-block">
+            <div class="aggregate-row">
+              <span>{{ row.property_type }}</span>
+              <small>{{ row.listing_count }} {{ row.listing_count === 1 ? 'listing' : 'listings' }}</small>
+            </div>
+            <div v-for="stats in row.prices" :key="stats.listing_type" class="price-row">
+              <span>{{ stats.label }} ({{ stats.listing_count }})</span>
+              <strong>{{ priceLine(stats) }}</strong>
+            </div>
           </div>
         </div>
         <p v-else class="empty">No published listing data yet.</p>
       </section>
 
       <section class="aggregate-section">
-        <h3>Published listings by location</h3>
-        <div v-if="aggregates.count_by_location?.length" class="aggregate-list">
-          <div v-for="row in aggregates.count_by_location" :key="`${row.city}-${row.province}`" class="aggregate-row">
-            <span>{{ row.city }}, {{ row.province }}</span>
+        <h3>Barangays with the most listings</h3>
+        <div v-if="aggregates.top_barangays?.length" class="aggregate-list">
+          <div v-for="row in aggregates.top_barangays" :key="row.barangay" class="aggregate-row">
+            <span>{{ row.barangay }}</span>
             <strong>{{ row.listing_count }}</strong>
             <small>{{ row.listing_count === 1 ? 'listing' : 'listings' }}</small>
           </div>
@@ -272,5 +288,35 @@ h2 {
 @media (max-width: 700px) {
   .market-panel { padding: 18px 16px; }
   .aggregate-grid { grid-template-columns: 1fr; gap: 18px; }
+}
+.summary-source {
+  margin: -6px 0 14px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.type-block {
+  display: grid;
+  gap: 4px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5eeec;
+}
+
+.type-block:last-child {
+  border-bottom: 0;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding-left: 10px;
+  color: #475569;
+  font-size: 12px;
+}
+
+.price-row strong {
+  color: #142d4e;
+  text-align: right;
 }
 </style>
