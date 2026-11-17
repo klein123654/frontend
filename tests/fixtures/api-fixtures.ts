@@ -35,6 +35,10 @@ export function defaultApiResponse(path: string, method: string, role?: AppRole)
   if (key === 'GET admin/properties') return { data: adminProperties }
   if (key === 'GET admin/verifications') return { data: [verification] }
   if (key === 'GET admin/users') return { data: Object.values(users).map((user) => ({ id: user.id, name: user.name, email: user.email, role: user.role, account_status: user.account_status, created_at: '2026-10-01T10:00:00.000000Z' })) }
+  if (key.startsWith('DELETE admin/users/')) {
+    const deleted = Object.values(users).find((user) => key === `DELETE admin/users/${user.id}`)
+    return { message: `The account for ${deleted?.name ?? 'this user'} was deleted.` }
+  }
   if (key === 'GET admin/inquiries') return { data: [inquiry] }
   if (key === 'GET admin/reports') return { data: [report] }
   if (key === 'GET admin/publisher-applications') return { data: [application] }

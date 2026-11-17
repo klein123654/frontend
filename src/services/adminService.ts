@@ -80,6 +80,17 @@ export function deleteAdminProperty(id: number, reason: string) {
     body: JSON.stringify({ reason: reason || null }),
   })
 }
+export interface DeleteUserInput {
+  /** The administrator's own password, to confirm. */
+  password: string
+  reason?: string
+  notify_user?: boolean
+}
+
+export function deleteUserAccount(id: number, input: DeleteUserInput) {
+  return apiRequest<{ message: string }>(`admin/users/${id}`, { method: 'DELETE', body: JSON.stringify(input) })
+}
+
 export function setUserAccountStatus(id: number, account_status: 'active' | 'suspended') {
   return apiRequest(`admin/users/${id}`, { method: 'PATCH', body: JSON.stringify({ account_status }) })
 }
