@@ -349,7 +349,7 @@ router.beforeEach(async (to) => {
           ? 'admin'
           : null
 
-  // Validate an existing session with the Laravel API.
+  // Validate an existing session with the API.
   if (token) {
     try {
       await auth.refreshUser()

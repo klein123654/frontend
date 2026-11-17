@@ -28,7 +28,6 @@ const actions = computed(() => [
   <AppSidebar role="broker"><main class="broker-page">
     <header class="page-header"><div><span class="eyebrow">BROKER WORKSPACE</span><h1>Dashboard Overview</h1><p>Manage represented properties, inquiries, and your broker verification.</p></div><RouterLink v-if="canManageListings" to="/broker/listings/create" class="primary-link"><Plus :size="18"/> Add Listing</RouterLink></header>
     <div v-if="!verificationLoading && !canManageListings" class="verification-warning" role="status">{{ brokerVerificationRequiredMessage }}</div>
-    <div class="demo-notice">Your listings, inquiries, and verification status are stored in the application database.</div>
     <section class="stats-grid"><article v-for="item in counts" :key="item.label" class="stat-card"><div class="stat-header"><span>{{ item.label }}</span><component :is="item.icon" :size="21"/></div><strong>{{ item.count }}</strong></article></section>
     <section class="verification"><ShieldCheck :size="25"/><div><h2>Broker Verification</h2><p>Submit your license details and wait for administrator review.</p></div><RouterLink to="/broker/profile">Manage verification</RouterLink></section>
     <div class="content-grid"><section class="panel"><div class="panel-heading"><div><h2>Recent Listings</h2><p>Your latest broker-managed properties</p></div><RouterLink to="/broker/listings">View All →</RouterLink></div>

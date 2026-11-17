@@ -1,5 +1,6 @@
 
 <script setup lang="ts">
+import { PASSWORD_HINT, passwordProblem } from '@/utils/password'
 import { onBeforeUnmount, reactive, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
@@ -75,26 +76,13 @@ function validateForm() {
     errors.email = 'Please enter a valid email address.'
   }
 
-  if (!phonePattern.test(form.phone.trim())) {
+  if (form.phone.trim() && !phonePattern.test(form.phone.trim())) {
     errors.phone = 'Enter a valid Philippine mobile number.'
   }
 
-  if (form.password.length < 8) {
-    errors.password = 'Password must contain at least 8 characters.'
-  }
-
-  if (
-    form.password &&
-    !/[A-Za-z]/.test(form.password)
-  ) {
-    errors.password = 'Password must include a letter.'
-  }
-
-  if (
-    form.password &&
-    !/[0-9]/.test(form.password)
-  ) {
-    errors.password = 'Password must include a number.'
+  const problem = passwordProblem(form.password)
+  if (problem) {
+    errors.password = problem
   }
 
   if (!form.confirmPassword) {
@@ -104,7 +92,7 @@ function validateForm() {
   }
 
   if (!form.acceptTerms) {
-    errors.acceptTerms = 'Please accept the account terms.'
+    errors.acceptTerms = 'Please agree to the Terms of Use and Privacy Policy to create an account.'
   }
 
   return Object.keys(errors).length === 0
@@ -132,9 +120,10 @@ async function handleRegister() {
     await register({
       name: form.fullName.trim(),
       email: form.email.trim(),
-      phone: form.phone.trim(),
+      phone: form.phone.trim() || null,
       password: form.password,
       password_confirmation: form.confirmPassword,
+      accept_terms: form.acceptTerms,
       role: 'buyer',
     })
     formDraft.clear()
@@ -278,7 +267,7 @@ async function handleRegister() {
 
             <div class="form-group">
               <label for="register-phone">
-                Mobile Number <span>*</span>
+                Mobile Number <span class="optional">(optional)</span>
               </label>
 
               <input
@@ -326,6 +315,7 @@ async function handleRegister() {
               <small v-if="errors.password" class="error">
                 {{ errors.password }}
               </small>
+              <small v-else class="field-hint">{{ PASSWORD_HINT }}</small>
             </div>
 
             <div class="form-group">
@@ -631,6 +621,16 @@ async function handleRegister() {
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.field-hint {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.optional {
+  color: #64748b !important;
+  font-weight: 500;
 }
 
 .error {

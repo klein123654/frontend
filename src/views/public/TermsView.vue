@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import '@/assets/static-page.css'
+import { LEGAL_LAST_UPDATED } from '@/data/legal'
 </script>
 
 <template>
   <main class="static-page">
     <span class="eyebrow">LEGAL</span>
     <h1>Terms of Use</h1>
-    <p class="updated">Last updated 13 November 2026</p>
+    <p class="updated">Last updated {{ LEGAL_LAST_UPDATED }}</p>
 
     <p>
-      These terms apply when you use ButuanSpaces. By creating an account or using the site, you agree to them.
-      Please also read our <RouterLink to="/privacy">Privacy Policy</RouterLink>.
+      These terms apply when you use ButuanSpaces. You agree to them when you tick the agreement box while creating an
+      account, or when you continue with Google. Browsing without an account is also covered by these terms. Please also
+      read our <RouterLink to="/privacy">Privacy Policy</RouterLink>. We keep a record of the date and version of the
+      terms each account agreed to.
     </p>
 
     <h2>1. What ButuanSpaces is</h2>
@@ -77,8 +80,15 @@ import '@/assets/static-page.css'
 
     <h2>10. Changes and governing law</h2>
     <p>
-      We may update these terms; the date above shows the latest version. These terms are governed by the laws of the
-      Republic of the Philippines.
+      We may update these terms; the date above shows the latest version. If a change significantly affects your rights,
+      we'll announce it on the site before it takes effect. Continuing to use your account after that means you accept the
+      updated terms. These terms are governed by the laws of the Republic of the Philippines, including the Data Privacy
+      Act of 2012 (RA 10173) and the Electronic Commerce Act of 2000 (RA 8792).
+    </p>
+    <h2>11. Contact us</h2>
+    <p>
+      For questions about these terms, send us a message through the
+      <RouterLink to="/report-issue">Report an Issue</RouterLink> page.
     </p>
   </main>
 </template>

@@ -70,9 +70,13 @@ test.describe('registration', () => {
     await register.submitButton.click()
     await expect(page.getByText('Please enter your full name.')).toBeVisible()
     await expect(page.getByText('Please enter a valid email address.')).toBeVisible()
-    await expect(page.getByText('Enter a valid Philippine mobile number.')).toBeVisible()
     await expect(page.getByText('Password must contain at least 8 characters.')).toBeVisible()
-    await expect(page.getByText('Please accept the account terms.')).toBeVisible()
+    await expect(page.getByText('Please agree to the Terms of Use and Privacy Policy to create an account.')).toBeVisible()
+    // The mobile number is optional, but checked when one is entered.
+    await expect(page.getByText('Enter a valid Philippine mobile number.')).toHaveCount(0)
+    await register.phone.fill('12345')
+    await register.submitButton.click()
+    await expect(page.getByText('Enter a valid Philippine mobile number.')).toBeVisible()
   })
 
   test('registration validates password composition and confirmation', async ({ page }) => {
@@ -104,7 +108,9 @@ test.describe('registration', () => {
     await register.password.fill('Password123')
     await register.confirmation.fill('Password123')
     await register.terms.check()
+    const request = page.waitForRequest((req) => req.url().endsWith('/api/register') && req.method() === 'POST')
     await register.submitButton.click()
+    expect((await request).postDataJSON()).toMatchObject({ accept_terms: true, phone: '09171234567' })
     await expect(page.getByRole('status')).toContainText(/account created/i)
     await page.getByRole('button', { name: /continue now/i }).click()
     await expect(page).toHaveURL(/\/$/)
@@ -160,16 +166,31 @@ test.describe('password recovery', () => {
     await expect(page).toHaveURL(/\/login\?reset=success/)
   })
 
-  test('reset password reports confirmation validation', async ({ page }) => {
-    await installApiMocks(page, undefined, {
-      'POST reset-password': { scenario: 'validation', body: { message: 'The given data was invalid.', type: 'validation_error', errors: { password: ['The password field confirmation does not match.'] } }, delayMs: 500 },
-    })
+  test('reset password checks the new password before sending it', async ({ page }) => {
+    await installApiMocks(page)
     const reset = new ResetPasswordPage(page)
     await reset.open('/reset-password?token=reset-token&email=buyer%40example.test')
     await reset.password.fill('Password123')
     await reset.confirmation.fill('Different123')
     await reset.submitButton.click()
-    await expect(page.getByRole('alert')).toContainText(/confirmation does not match/i)
+    await expect(page.getByRole('alert')).toContainText("The passwords don't match.")
+
+    await reset.password.fill('onlyletters')
+    await reset.confirmation.fill('onlyletters')
+    await reset.submitButton.click()
+    await expect(page.getByRole('alert')).toContainText('Password must include a number.')
+  })
+
+  test('reset password shows the server message for an expired link', async ({ page }) => {
+    await installApiMocks(page, undefined, {
+      'POST reset-password': { scenario: 'validation', body: { message: 'Please review the form.', type: 'validation_error', errors: { email: ['This password reset token is invalid.'] } }, delayMs: 300 },
+    })
+    const reset = new ResetPasswordPage(page)
+    await reset.open('/reset-password?token=reset-token&email=buyer%40example.test')
+    await reset.password.fill('Password123')
+    await reset.confirmation.fill('Password123')
+    await reset.submitButton.click()
+    await expect(page.getByRole('alert')).toContainText(/token is invalid/i)
   })
 
   test('password recovery page has no axe violations', async ({ page }) => {

@@ -618,6 +618,7 @@ function submitForReview() {
         v-model:error="imageError"
         :required="isInvalid('images')"
         :is-edit-mode="isEditMode"
+        :existing-count="remainingPhotoCount(existingPhotos, photoChanges)"
       />
     </FormSection>
 

@@ -53,16 +53,8 @@ async function handleSave(property: OwnerFormPayload) {
   } catch (error) {
     noticeType.value = 'warning'
 
-    const message = error instanceof Error ? error.message : 'Unable to save the property.'
-    const lower = message.toLowerCase()
-
-    confirmation.value = lower.includes('image upload failed') || lower.includes('storage') || lower.includes('bucket')
-      ? 'The listing could not be saved because the image upload failed. Please check the storage bucket and credentials.'
-      : lower.includes('sign in') || lower.includes('unauthenticated')
-        ? 'Your session expired. Please sign in again and try submitting the property.'
-        : lower.includes('please review') || lower.includes('validation')
-          ? 'Please review the listing details and fix the highlighted fields.'
-          : message
+    // The API client already turns server errors into plain-language messages.
+    confirmation.value = error instanceof Error && error.message ? error.message : 'Unable to save the property.'
   } finally {
     isSubmitting.value = false
   }
@@ -106,10 +98,10 @@ async function handleSave(property: OwnerFormPayload) {
         <Info :size="19" />
 
         <div>
-          <strong>Property information</strong>
+          <strong>Before it goes live</strong>
 
           <p>
-            Your listing and photos are sent to the application server. Submitted listings are reviewed before publication.
+            An administrator reviews every new listing before it appears in public search results. We'll email you when it's approved, or tell you what to fix.
           </p>
         </div>
       </div>

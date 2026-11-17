@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { CircleAlert, ImagePlus, Info } from '@lucide/vue'
-import { ALLOWED_IMAGE_TYPES, MAX_PROPERTY_IMAGES, validatePropertyImages } from '@/utils/propertyImages'
+import { ALLOWED_IMAGE_TYPES, MAX_PROPERTY_IMAGES, photoRoom, validatePropertyImages } from '@/utils/propertyImages'
 
 const props = defineProps<{
   /** Show the "at least one image" error (set after a submit attempt). */
   required: boolean
   isEditMode: boolean
+  /** Photos already on the listing (after any marked for removal). */
+  existingCount?: number
 }>()
+
+const room = computed(() => photoRoom(props.existingCount ?? 0))
 
 const files = defineModel<File[]>('files', { required: true })
 const error = defineModel<string>('error', { required: true })
@@ -17,7 +21,7 @@ const hasError = computed(() => props.required || Boolean(error.value))
 function onFilesSelected(event: Event) {
   const input = event.target as HTMLInputElement
   const selected = Array.from(input.files ?? [])
-  const message = validatePropertyImages(selected)
+  const message = validatePropertyImages(selected, props.existingCount ?? 0)
 
   error.value = message
   if (message) {
@@ -37,8 +41,9 @@ function onFilesSelected(event: Event) {
     <strong>Select Property Photos</strong>
 
     <p>
-      Select up to {{ MAX_PROPERTY_IMAGES }} JPG, PNG, or WebP photos (5 MB each). Large photos are resized
-      automatically before they are uploaded.
+      <template v-if="existingCount">You can add {{ room }} more (up to {{ MAX_PROPERTY_IMAGES }} per listing).</template>
+      <template v-else>Add up to {{ MAX_PROPERTY_IMAGES }} photos.</template>
+      JPG, PNG or WebP, 5 MB each. Large photos are resized automatically before upload.
     </p>
 
     <input

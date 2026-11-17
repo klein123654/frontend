@@ -117,7 +117,7 @@ function onStatusSelected(inquiryId: number, value: InquiryStatus | null) {
           @update:model-value="(value) => onStatusSelected(inquiry!.id, value as InquiryStatus | null)"
         />
 
-        <p class="status-help">Status changes are saved to the application database.</p>
+        <p class="status-help">The status helps you keep track of your inquiries. The customer can see it on their Inquiries page.</p>
 
         <div
           v-if="feedbackMessage"

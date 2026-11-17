@@ -82,7 +82,7 @@ onMounted(load)
         <label for="business-name">Registered business or development company</label><input id="business-name" v-model="form.businessName" required maxlength="255" autocomplete="organization"/>
       </template>
 
-      <p class="review-note">An administrator reviews publisher requests. Do not submit confidential documents here; document upload is not available yet.</p>
+      <p class="review-note">An administrator reviews each request. We'll email you the decision, and you can also check it on this page.</p>
       <button class="primary" type="submit" :disabled="submitting">{{ submitting ? 'Submitting…' : 'Submit for review' }}</button>
     </form>
   </main>

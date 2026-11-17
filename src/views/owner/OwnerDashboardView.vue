@@ -87,14 +87,6 @@ function navigateTo(path: string) {
         </button>
       </div>
 
-      <div class="demo-notice">
-        <strong>Owner workspace</strong>
-
-        <span>
-          Your property listings and customer inquiries are loaded from the application database.
-        </span>
-      </div>
-
       <div class="stats-grid">
         <DashboardStatCard
           v-for="(stat, index) in stats"

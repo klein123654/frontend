@@ -13,5 +13,3 @@ export interface BrokerInquiry {
   dateReceived: string
 }
 
-// Future Laravel API data will replace this empty frontend source.
-export const brokerInquiries: BrokerInquiry[] = []

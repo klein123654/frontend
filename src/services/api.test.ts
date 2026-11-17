@@ -10,7 +10,7 @@ describe('login API requests', () => {
     localStorage.clear()
   })
 
-  it('sends email and password as JSON and logs backend 422 details', async () => {
+  it('sends email and password as JSON and shows the backend message without logging it', async () => {
     const responseBody = {
       message: 'The provided credentials are incorrect.',
     }
@@ -33,11 +33,35 @@ describe('login API requests', () => {
       email: 'agent@example.test',
       password: 'wrong-password',
     })
-    expect(logSpy).toHaveBeenCalledWith('[API] Request rejected with 422', {
-      path: 'login',
-      message: 'The provided credentials are incorrect.',
-      errors: undefined,
-    })
+    expect(logSpy).not.toHaveBeenCalled()
+  })
+})
+
+describe('API error messages', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  function respond(status: number, body: unknown) {
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify(body), {
+      status,
+      headers: { 'Content-Type': 'application/json' },
+    })))
+  }
+
+  it('never shows storage configuration details', async () => {
+    respond(500, { message: 'Check the Supabase bucket', type: 'storage_error' })
+    await expect(apiRequest('my/properties')).rejects.toThrow('Your photos could not be uploaded right now. Please try again in a few minutes.')
+  })
+
+  it('shows the first field error for validation problems', async () => {
+    respond(422, { message: 'Please review the form.', type: 'validation_error', errors: { images: ['A listing can have up to 10 photos. You can add 1 more.'] } })
+    await expect(apiRequest('my/properties/1')).rejects.toThrow('A listing can have up to 10 photos. You can add 1 more.')
+  })
+
+  it('falls back to a plain message instead of a status code', async () => {
+    respond(409, {})
+    await expect(apiRequest('anything')).rejects.toThrow('Something went wrong. Please try again.')
   })
 })
 

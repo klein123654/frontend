@@ -7,7 +7,7 @@ import type { ListingType, PropertyType } from '@/types/property'
 import { useFormDraft } from '@/composables/useFormDraft'
 import { BUTUAN_BARANGAYS, BUTUAN_CITY, BUTUAN_PROVINCE, canonicalButuanBarangay, isButuanBarangay } from '@/data/butuanLocation'
 
-import { validatePropertyImages } from '@/utils/propertyImages'
+import { MAX_PROPERTY_IMAGES, photoRoom, validatePropertyImages } from '@/utils/propertyImages'
 import ListingPhotoManager from '@/components/forms/ListingPhotoManager.vue'
 import { hasPhotoChanges, initialPhotoChanges, remainingPhotoCount, type PhotoChanges } from '@/types/listingPhotos'
 
@@ -80,7 +80,7 @@ function setCoordinates(coordinates: { latitude: number; longitude: number }) {
 function selectImages(event: Event) {
   const input = event.target as HTMLInputElement
   const files = Array.from(input.files ?? [])
-  const imageError = validatePropertyImages(files)
+  const imageError = validatePropertyImages(files, remainingPhotoCount(existingPhotos.value, photoChanges.value))
   if (imageError) {
     validationMessage.value = imageError
     input.value = ''
@@ -104,7 +104,7 @@ function selectImages(event: Event) {
     <div class="field"><label for="broker-price">Price (PHP)</label><input id="broker-price" v-model.number="form.price" type="number" min="0" step="0.01" /></div>
     <div class="field"><label for="broker-area">Area (sq. m.)</label><input id="broker-area" v-model.number="form.area" type="number" min="0" step="0.01" /></div>
     <div v-if="existingPhotos.length" class="field full"><span class="photos-label">Current photos</span><ListingPhotoManager v-model="photoChanges" :photos="existingPhotos" /></div>
-    <div class="field full"><label for="broker-images">{{ existingPhotos.length ? 'Add more photos' : 'Property Images' }}</label><input id="broker-images" type="file" accept="image/png,image/jpeg,image/webp" multiple @change="selectImages"/><small>Up to five JPG, PNG, or WebP images. Each file may be up to 5 MB.</small></div>
+    <div class="field full"><label for="broker-images">{{ existingPhotos.length ? 'Add more photos' : 'Property Images' }}</label><input id="broker-images" type="file" accept="image/png,image/jpeg,image/webp" multiple @change="selectImages"/><small>{{ existingPhotos.length ? `You can add ${photoRoom(remainingPhotoCount(existingPhotos, photoChanges))} more (up to ${MAX_PROPERTY_IMAGES} per listing).` : `Add up to ${MAX_PROPERTY_IMAGES} photos.` }} JPG, PNG or WebP, 5 MB each.</small></div>
     <div class="field full"><label for="broker-description">Description</label><textarea id="broker-description" v-model="form.description" rows="6" placeholder="Describe the property" /></div>
     <p v-if="validationMessage" class="validation" role="alert">{{ validationMessage }}</p>
     <div class="actions"><RouterLink class="cancel" to="/broker/listings">Cancel</RouterLink><button type="submit">{{ edit ? 'Save Changes' : 'Save Draft' }}</button><button type="button" class="secondary-action" @click="submit('Pending')">Submit for Review</button></div>

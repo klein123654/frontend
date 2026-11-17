@@ -42,9 +42,10 @@ export async function loginUser(
 export async function registerUser(input: {
   name: string
   email: string
-  phone: string
+  phone: string | null
   password: string
   password_confirmation: string
+  accept_terms: boolean
   role?: 'buyer' | 'owner' | 'broker'
   license_number?: string
   agency_name?: string
