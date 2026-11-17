@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import '@/assets/static-page.css'
+import { LEGAL_LAST_UPDATED } from '@/data/legal'
 </script>
 
 <template>
   <main class="static-page">
     <span class="eyebrow">LEGAL</span>
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated 13 November 2026</p>
+    <p class="updated">Last updated {{ LEGAL_LAST_UPDATED }}</p>
 
     <p>
       ButuanSpaces is an online directory of commercial properties in Butuan City. This policy explains what personal
@@ -26,6 +27,7 @@ import '@/assets/static-page.css'
     <ul>
       <li>Your name, email address, password (stored only as a secure hash) and, if you choose, a mobile number.</li>
       <li>If you sign in with Google: your name and verified email address from your Google account.</li>
+      <li>The date you agreed to the Terms of Use and this Privacy Policy, and which version you agreed to.</li>
     </ul>
     <h3>When you contact a publisher</h3>
     <ul>

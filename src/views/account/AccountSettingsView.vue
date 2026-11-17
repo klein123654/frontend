@@ -11,6 +11,7 @@ import {
   resendVerificationEmail,
   updateProfile,
 } from '@/services/accountService'
+import { PASSWORD_HINT, passwordProblem } from '@/utils/password'
 
 type Feedback = { text: string; error: boolean } | null
 
@@ -99,6 +100,11 @@ const passwordMismatch = computed(() => password.confirm !== '' && password.next
 
 function savePassword() {
   if (passwordMismatch.value) return
+  const problem = passwordProblem(password.next)
+  if (problem) {
+    feedback.password = { text: problem, error: true }
+    return
+  }
   return run('password', async () => {
     const message = await changePassword({
       current_password: password.current,
@@ -186,7 +192,8 @@ async function removeAccount() {
             <label for="current-password">Current password</label>
             <input id="current-password" v-model="password.current" type="password" required autocomplete="current-password" />
             <label for="new-password">New password</label>
-            <input id="new-password" v-model="password.next" type="password" required minlength="8" autocomplete="new-password" />
+            <input id="new-password" v-model="password.next" type="password" required minlength="8" autocomplete="new-password" aria-describedby="new-password-hint" />
+            <span id="new-password-hint" class="field-hint">{{ PASSWORD_HINT }}</span>
             <label for="confirm-password">Confirm new password</label>
             <input
               id="confirm-password"
@@ -302,8 +309,13 @@ p.error,
   color: #b91c1c;
 }
 
-.field-error {
+.field-error,
+.field-hint {
   font-size: 12px;
+}
+
+.field-hint {
+  color: #64748b;
 }
 
 .hint {

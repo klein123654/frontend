@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_IMAGE_BYTES, validatePropertyImages } from '../propertyImages'
+import { MAX_IMAGE_BYTES, photoRoom, validatePropertyImages } from '../propertyImages'
 
 const photo = (type = 'image/jpeg', size = 1024) => ({ type, size })
 
@@ -8,8 +8,12 @@ describe('validatePropertyImages', () => {
     expect(validatePropertyImages([photo(), photo('image/png'), photo('image/webp')])).toBe('')
   })
 
-  it('rejects more than five images', () => {
-    expect(validatePropertyImages(Array.from({ length: 6 }, () => photo()))).toMatch(/maximum of 5/)
+  it('limits a listing to ten photos in total', () => {
+    expect(validatePropertyImages(Array.from({ length: 11 }, () => photo()))).toMatch(/up to 10 photos/)
+    expect(validatePropertyImages(Array.from({ length: 10 }, () => photo()))).toBe('')
+    expect(validatePropertyImages([photo(), photo()], 9)).toBe('A listing can have up to 10 photos. You can add 1 more.')
+    expect(validatePropertyImages([photo()], 10)).toMatch(/Remove a photo/)
+    expect(photoRoom(4)).toBe(6)
   })
 
   it('rejects unsupported file types such as GIF', () => {

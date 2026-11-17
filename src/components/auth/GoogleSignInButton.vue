@@ -76,6 +76,11 @@ onMounted(async () => {
   <div v-if="clientId" class="google-signin">
     <div class="divider" aria-hidden="true"><span>or</span></div>
     <div ref="container" class="button-slot" :aria-busy="busy" />
+    <p class="terms">
+      By continuing with Google, you agree to the
+      <a href="/terms" target="_blank" rel="noopener">Terms of Use</a> and
+      <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>.
+    </p>
     <p v-if="busy" class="status" role="status">Signing you in…</p>
     <p v-if="error" class="error" role="alert">{{ error }}</p>
   </div>
@@ -120,6 +125,18 @@ onMounted(async () => {
 
 .status {
   color: #475569;
+}
+
+.terms {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.terms a {
+  color: #1d4ed8;
 }
 
 .error {

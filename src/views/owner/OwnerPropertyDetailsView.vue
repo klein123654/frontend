@@ -204,8 +204,7 @@ function handleImageError() {
                   <strong>No Photo Available</strong>
 
                   <p>
-                    Property photos will be managed
-                    through the Laravel backend.
+                    Edit this listing to add photos.
                   </p>
                 </div>
               </div>
@@ -384,7 +383,7 @@ function handleImageError() {
               <Info :size="18" />
 
               <p>
-                Listing data and status changes are stored in the application database. Pending submissions are reviewed by an administrator.
+                Pending listings appear in public search results after an administrator approves them.
               </p>
             </div>
 

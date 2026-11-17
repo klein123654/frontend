@@ -81,14 +81,6 @@ export async function apiRequest<T>(
   if (!response.ok) {
     const body = payload as ApiErrorBody | null
 
-    if (response.status === 422) {
-      console.log('[API] Request rejected with 422', {
-        path: normalizedPath,
-        message: body?.message,
-        errors: body?.errors,
-      })
-    }
-
     const firstValidationError = body?.errors
       ? Object.values(body.errors).flat()[0]
       : undefined
@@ -105,7 +97,7 @@ export async function apiRequest<T>(
     }
 
     if (normalizedType === 'storage_error') {
-      throw new Error('Image upload failed. Please check the storage bucket, credentials, and permissions.')
+      throw new Error('Your photos could not be uploaded right now. Please try again in a few minutes.')
     }
 
     if (response.status === 429) {
@@ -116,8 +108,12 @@ export async function apiRequest<T>(
       throw new ApiRequestError('The server is temporarily unavailable. Please try again shortly.', response.status, normalizedType)
     }
 
+    if (response.status === 403 && !normalizedMessage) {
+      throw new ApiRequestError("You don't have permission to do that.", response.status, normalizedType)
+    }
+
     throw new ApiRequestError(
-      firstValidationError || normalizedMessage || body?.details || `Request failed with status ${response.status}.`,
+      firstValidationError || normalizedMessage || 'Something went wrong. Please try again.',
       response.status,
       normalizedType,
       body?.errors,

@@ -166,7 +166,7 @@ function clearFilters() {
         <Info :size="18" />
 
         <p>
-          Inquiry records are submitted by customers and stored with the related property.
+          Messages from people interested in your listings appear here. When you reply, they get an email with your message.
         </p>
       </div>
 

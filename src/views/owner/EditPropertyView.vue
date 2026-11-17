@@ -133,10 +133,10 @@ async function handleSave(values: OwnerFormPayload) {
           <Info :size="19" />
 
           <div>
-            <strong>Editing a Listing</strong>
+            <strong>Editing a listing</strong>
 
             <p>
-              Changes are saved to this listing in the application database. You can submit the draft for review when it is ready.
+              Saving changes to a published listing sends it back for review, and it is hidden from search results until an administrator approves it. Removing or reordering photos and changing the cover photo don't need review.
             </p>
           </div>
         </div>
