@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useAuth } from '@/composables/useAuth'
+import MessageSafetyWarning from '@/components/inquiries/MessageSafetyWarning.vue'
 import { nextTick, onMounted, ref } from 'vue'
 import {
   fetchInquiryMessages,
@@ -8,6 +10,7 @@ import {
   type InquiryThreadMessage,
 } from '@/services/inquiryService'
 
+const { user } = useAuth()
 const inquiries = ref<BackendInquiry[]>([])
 const loading = ref(true)
 const error = ref('')
@@ -91,6 +94,7 @@ onMounted(async () => {
           <article v-for="message in conversationMessages" :key="message.id" class="conversation-message">
             <header><strong>{{ message.sender?.name || 'Former account' }}</strong><time :datetime="message.created_at">{{ new Date(message.created_at).toLocaleString() }}</time></header>
             <p>{{ message.body }}</p>
+            <MessageSafetyWarning v-if="message.safety_warning && message.sender_id !== user?.id" :reason="message.safety_warning" />
           </article>
           <p v-if="!conversationMessages.length && !conversationError" class="conversation-empty">No messages in this conversation yet.</p>
         </div>
