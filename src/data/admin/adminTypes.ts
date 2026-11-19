@@ -1,7 +1,7 @@
 export type AdminDecision = 'Approved' | 'Rejected'
 export type ReviewState = 'Pending' | AdminDecision
 export type VerificationState = 'Pending' | 'Verified' | 'Rejected'
-export type UserRole = 'Client' | 'Owner' | 'Broker' | 'Developer' | 'Admin'
+export type UserRole = 'Client' | 'Owner' | 'Broker' | 'Admin'
 export type UserState = 'Active' | 'Suspended'
 export type CaseState = 'New' | 'In Progress' | 'Resolved'
 
@@ -24,6 +24,8 @@ export interface AdminListing {
   sourceStatus: string
   status: string
   reviewNote: string
+  availability: 'available' | 'reserved' | 'rented' | 'sold'
+  availabilityConfirmedAt: string | null
   images: { url: string; alt: string }[]
 }
 
@@ -36,6 +38,8 @@ export interface VerificationRequest {
   submittedAt: string
   status: VerificationState
   note: string
+  /** All credential fields as submitted, for checking against PRC and DHSUD records. */
+  record: import('@/services/brokerCredentials').BrokerVerificationRecord
 }
 
 export interface ManagedUser {

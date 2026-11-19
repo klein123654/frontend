@@ -42,7 +42,6 @@ function dashboardPath() {
     buyer: '/buyer/dashboard',
     owner: '/owner/dashboard',
     broker: '/broker/dashboard',
-    developer: '/developer/dashboard',
     admin: '/admin/dashboard',
   }
 

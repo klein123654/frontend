@@ -5,6 +5,8 @@ import { useProperties } from '@/composables/useProperties'
 import AiSearchBar from '@/components/property/AiSearchBar.vue'
 import PropertyCard from '@/components/property/PropertyCard.vue'
 import SaveSearchButton from '@/components/property/SaveSearchButton.vue'
+import StatusLegend from '@/components/common/StatusLegend.vue'
+import { AVAILABILITY_META, AVAILABILITY_ORDER, legendItems } from '@/utils/availability'
 
 // Leaflet is large, so the results map loads only when someone opens it.
 const ResultsMap = defineAsyncComponent(() => import('@/components/property/ResultsMap.vue'))
@@ -12,7 +14,9 @@ import { BUTUAN_BARANGAYS } from '@/data/butuanLocation'
 import {
   ALL_LISTINGS,
   ALL_TYPES,
+  AVAILABILITY_FILTERS,
   SORT_OPTIONS,
+  type AvailabilityFilter,
   isSameQuery,
   parseBrowseQuery,
   toBrowseQuery,
@@ -35,6 +39,8 @@ const selectedTags = ref<string[]>(initialState.tags)
 const minPrice = ref<number | null>(initialState.minPrice)
 const maxPrice = ref<number | null>(initialState.maxPrice)
 const sort = ref<PropertySort>(initialState.sort)
+const availability = ref<AvailabilityFilter>(initialState.availability ?? '')
+const availabilityLegend = legendItems(AVAILABILITY_META, AVAILABILITY_ORDER)
 
 const types = [
   ALL_TYPES,
@@ -96,6 +102,7 @@ function currentFormState(page: number): PropertyBrowseState {
     maxPrice: maxPrice.value,
     sort: sort.value,
     page,
+    availability: availability.value,
   }
 }
 
@@ -110,6 +117,7 @@ function loadFromRoute() {
     minPrice: state.minPrice,
     maxPrice: state.maxPrice,
     sort: state.sort,
+    availability: state.availability,
     page: state.page,
     perPage: PAGE_SIZE,
   })
@@ -128,6 +136,7 @@ watch(
     minPrice.value = state.minPrice
     maxPrice.value = state.maxPrice
     sort.value = state.sort
+    availability.value = state.availability ?? ''
     loadFromRoute()
   },
   { immediate: true },
@@ -135,7 +144,7 @@ watch(
 
 /** Form edits update the URL (and reset to page 1) after a short pause. */
 watch(
-  [search, propertyType, listingType, barangay, selectedTags, minPrice, maxPrice, sort],
+  [search, propertyType, listingType, barangay, selectedTags, minPrice, maxPrice, sort, availability],
   () => {
     if (debounceTimer) clearTimeout(debounceTimer)
     debounceTimer = setTimeout(() => {
@@ -163,6 +172,7 @@ function resetFilters() {
   minPrice.value = null
   maxPrice.value = null
   sort.value = 'newest'
+  availability.value = ''
 }
 
 function toggleTag(tag: string) {
@@ -221,6 +231,11 @@ onBeforeUnmount(() => {
           <option>For Rent</option>
           <option>For Lease</option>
           <option>For Sale</option>
+        </select>
+
+        <label for="availability-filter">Availability</label>
+        <select id="availability-filter" v-model="availability">
+          <option v-for="option in AVAILABILITY_FILTERS" :key="option.value" :value="option.value">{{ option.label }}</option>
         </select>
 
         <label for="barangay-filter">Barangay</label>
@@ -305,6 +320,8 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
+        <StatusLegend title="Availability:" :items="availabilityLegend" class="results-legend" data-testid="availability-legend" />
+
         <SaveSearchButton />
 
         <p v-if="loading" class="status-message" role="status">
@@ -355,6 +372,14 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.results-legend {
+  margin: 4px 0 14px;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
 .container {
   max-width: 1200px;
   margin: auto;

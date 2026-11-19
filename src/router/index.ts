@@ -166,14 +166,8 @@ const router = createRouter({
       component: PublisherSettingsView,
     },
 
-    // Developers share the publisher tools and dashboard layout.
-    { path: '/developer/dashboard', name: 'developer-dashboard', component: OwnerDashboardView },
-    { path: '/developer/properties', name: 'developer-properties', component: MyPropertiesView },
-    { path: '/developer/properties/create', name: 'developer-create-property', component: CreatePropertyView },
-    { path: '/developer/properties/:id/edit', name: 'developer-edit-property', component: EditPropertyView, props: true },
-    { path: '/developer/properties/:id', name: 'developer-property-details', component: OwnerPropertyDetailsView, props: true },
-    { path: '/developer/inquiries', name: 'developer-inquiries', component: OwnerInquiriesView },
-    { path: '/developer/profile', name: 'developer-profile', component: PublisherSettingsView },
+    // The Developer role was merged into Owner; keep old links working.
+    { path: '/developer/:rest(.*)*', redirect: (to) => `/owner/${([] as string[]).concat(to.params.rest ?? []).join('/') || 'dashboard'}` },
 
     // BROKER WORKSPACE ROUTES
     {
@@ -321,8 +315,6 @@ function homeForRole(role: string): string {
       return '/owner/dashboard'
     case 'broker':
       return '/broker/dashboard'
-    case 'developer':
-      return '/developer/dashboard'
     case 'admin':
       return '/admin/dashboard'
     default:
@@ -343,8 +335,6 @@ router.beforeEach(async (to) => {
       ? 'owner'
       : to.path.startsWith('/broker/')
         ? 'broker'
-        : to.path.startsWith('/developer/')
-          ? 'developer'
         : to.path.startsWith('/admin/')
           ? 'admin'
           : null

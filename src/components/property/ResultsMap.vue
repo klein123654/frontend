@@ -4,7 +4,11 @@ import { useRouter } from 'vue-router'
 import * as L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { formatPeso } from '@/utils/format'
+import { AVAILABILITY_META, AVAILABILITY_ORDER, TONE_COLORS, legendItems } from '@/utils/availability'
+import StatusLegend from '@/components/common/StatusLegend.vue'
 import type { Property } from '@/types/property'
+
+const legend = legendItems(AVAILABILITY_META, AVAILABILITY_ORDER)
 
 const BUTUAN_CENTER: L.LatLngExpression = [8.9475, 125.5406]
 
@@ -31,7 +35,10 @@ function render() {
 
     const popup = document.createElement('div')
     popup.className = 'map-popup'
+    const status = AVAILABILITY_META[property.availability] ?? AVAILABILITY_META.available
+    const tone = TONE_COLORS[status.tone]
     popup.innerHTML = `
+      <em style="color:${tone.text};background:${tone.background}">${escapeHtml(status.label)}</em>
       <strong>${escapeHtml(property.title)}</strong>
       <span>${escapeHtml(property.type)} · ${escapeHtml(property.barangay || 'Butuan City')}</span>
       <b>${escapeHtml(formatPeso(property.price))}${property.listingType === 'For Rent' ? ' / month' : ''}</b>
@@ -41,9 +48,9 @@ function render() {
       void router.push(`/properties/${property.id}`)
     })
 
-    L.circleMarker(point, { radius: 10, color: '#ffffff', weight: 2, fillColor: '#2563eb', fillOpacity: 0.95 })
+    L.circleMarker(point, { radius: 10, color: '#ffffff', weight: 2, fillColor: tone.solid, fillOpacity: 0.95, className: `pin pin--${property.availability}` })
       .bindPopup(popup)
-      .bindTooltip(escapeHtml(property.title))
+      .bindTooltip(`${escapeHtml(property.title)} (${escapeHtml(status.label)})`)
       .addTo(layer)
   }
 
@@ -73,10 +80,45 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="mapElement" class="results-map" role="region" aria-label="Map of listings on this page" />
+  <div class="results-map-wrap">
+    <div ref="mapElement" class="results-map" role="region" aria-label="Map of listings on this page" />
+    <StatusLegend title="Pin colours" :items="legend" class="map-legend" data-testid="map-legend" />
+  </div>
 </template>
 
 <style scoped>
+.results-map-wrap {
+  position: relative;
+}
+
+.map-legend {
+  position: absolute;
+  right: 12px;
+  bottom: 24px;
+  z-index: 500;
+  display: grid;
+  max-width: calc(100% - 24px);
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffffee;
+  box-shadow: 0 4px 14px #0f172a1f;
+}
+
+:deep(.map-legend ul) {
+  display: grid;
+  gap: 4px;
+}
+
+:deep(.map-popup em) {
+  width: max-content;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+}
+
 .results-map {
   height: min(620px, 70vh);
   min-height: 380px;

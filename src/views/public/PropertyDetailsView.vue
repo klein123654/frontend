@@ -10,6 +10,8 @@ import PropertyGallery from '@/components/property/PropertyGallery.vue'
 import InquiryForm from '@/components/forms/InquiryForm.vue'
 import PublisherContactCard from '@/components/publisher/PublisherContactCard.vue'
 import VerifiedBadge from '@/components/publisher/VerifiedBadge.vue'
+import AvailabilityBadge from '@/components/common/AvailabilityBadge.vue'
+import { AVAILABILITY_META, acceptsInquiries } from '@/utils/availability'
 import ShareListing from '@/components/property/ShareListing.vue'
 import ReportListing from '@/components/property/ReportListing.vue'
 import { saveProperty } from '@/services/savedPropertyService'
@@ -44,6 +46,14 @@ async function toggleSaved() {
 }
 
 const formatPrice = formatPeso
+const canInquire = computed(() => acceptsInquiries(property.value?.availability))
+const similarListingsLink = computed(() => ({
+  path: propertiesPath,
+  query: {
+    ...(property.value?.type ? { type: property.value.type } : {}),
+    ...(property.value?.barangay ? { barangay: property.value.barangay } : {}),
+  },
+}))
 const shareUrl = computed(() =>
   property.value && typeof window !== 'undefined' ? `${window.location.origin}/properties/${property.value.id}` : '',
 )
@@ -107,6 +117,7 @@ watch(() => route.params.id, loadProperty, { immediate: true })
           <h1>{{ property.title }}</h1>
           <p class="location">{{ property.location }}</p>
           <div class="trust-row">
+            <AvailabilityBadge :availability="property.availability" size="md" />
             <span class="listing-badge">{{ property.listingType }}</span>
             <VerifiedBadge v-if="property.publisher" :publisher="property.publisher" />
           </div>
@@ -197,7 +208,18 @@ watch(() => route.params.id, loadProperty, { immediate: true })
             :property-title="property.title"
             class="publisher-card"
           />
-          <div class="inquiry-panel">
+          <div v-if="!canInquire" class="inquiry-panel unavailable-panel" role="status" data-testid="listing-unavailable">
+            <h2>No longer available</h2>
+            <p>
+              This property is marked <strong>{{ AVAILABILITY_META[property.availability].label.toLowerCase() }}</strong>,
+              so it no longer accepts inquiries. It stays visible for a short time so you know it was taken.
+            </p>
+            <RouterLink :to="similarListingsLink" class="similar-link">Browse similar listings →</RouterLink>
+          </div>
+          <div v-else class="inquiry-panel">
+            <p v-if="property.availability === 'reserved'" class="reserved-note" role="note">
+              This property is reserved while an offer is being negotiated. You can still inquire in case it becomes available again.
+            </p>
             <InquiryForm
               :key="property.id"
               :property-id="property.id"
@@ -213,6 +235,35 @@ watch(() => route.params.id, loadProperty, { immediate: true })
 </template>
 
 <style scoped>
+.unavailable-panel h2 {
+  margin: 0 0 8px;
+  color: #142d4e;
+  font-size: 19px;
+}
+
+.unavailable-panel p {
+  margin: 0 0 14px;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.similar-link {
+  color: #1d4ed8;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.reserved-note {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .trust-row {
   display: flex;
   flex-wrap: wrap;

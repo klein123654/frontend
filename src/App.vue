@@ -15,7 +15,7 @@ const { user } = useAuth()
 // Publisher and admin workspaces use their own sidebar navigation.
 // Buyers keep the storefront navigation while using their account pages.
 const isDashboardRoute = computed(() =>
-  ['/owner', '/broker', '/developer', '/admin'].some(
+  ['/owner', '/broker', '/admin'].some(
     (prefix) =>
       route.path === prefix ||
       route.path.startsWith(`${prefix}/`)

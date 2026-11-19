@@ -4,6 +4,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import { CalendarDays, Mail, MessageCircle, Phone } from '@lucide/vue'
 import PropertyCard from '@/components/property/PropertyCard.vue'
 import VerifiedBadge from '@/components/publisher/VerifiedBadge.vue'
+import BrokerCredentialsSummary from '@/components/publisher/BrokerCredentialsSummary.vue'
 import ShareListing from '@/components/property/ShareListing.vue'
 import { fetchPublicProperties, fetchPublisher } from '@/services/propertyService'
 import { setPageMeta } from '@/utils/pageMeta'
@@ -33,7 +34,7 @@ async function load() {
   try {
     const [profile, results] = await Promise.all([
       fetchPublisher(id),
-      fetchPublicProperties({ publisherId: Number(id), perPage: 50 }),
+      fetchPublicProperties({ publisherId: Number(id), perPage: 50, availability: 'available' }),
     ])
     publisher.value = profile
     listings.value = results.properties
@@ -69,12 +70,17 @@ watch(() => route.params.id, load, { immediate: true })
         <div class="identity">
           <h1>{{ publisher.name }}</h1>
           <VerifiedBadge :publisher="publisher" />
-          <p v-if="publisher.agencyName" class="agency">{{ publisher.agencyName }}</p>
+          <p v-if="publisher.role === 'owner'" class="agency">Property owner listing directly, without a broker.</p>
           <p v-if="memberSince" class="since">
             <CalendarDays :size="15" aria-hidden="true" /> On ButuanSpaces since {{ memberSince }}
           </p>
         </div>
       </header>
+
+      <section v-if="publisher.role === 'broker' && publisher.broker" class="contact" aria-labelledby="credentials-heading">
+        <h2 id="credentials-heading">Firm and credentials</h2>
+        <BrokerCredentialsSummary :broker="publisher.broker" />
+      </section>
 
       <section class="contact" aria-labelledby="contact-heading">
         <h2 id="contact-heading">Contact</h2>

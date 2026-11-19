@@ -1,30 +1,27 @@
 import { apiRequest } from './api'
+import type { BrokerCredentialMeta, BrokerCredentialRecord } from './brokerCredentials'
 
-export type PublisherRole = 'owner' | 'broker' | 'developer'
+export type PublisherRole = 'owner' | 'broker'
 export type PublisherApplicationStatus = 'pending' | 'approved' | 'rejected'
 
-export interface PublisherApplication {
+export interface PublisherApplication extends BrokerCredentialRecord {
   id: number
   requested_role: PublisherRole
   ownership_type: string | null
   business_name: string | null
-  license_number: string | null
-  agency_name: string | null
   status: PublisherApplicationStatus
   review_notes: string | null
   created_at: string
 }
 
-export interface PublisherApplicationInput {
+export interface PublisherApplicationInput extends Partial<BrokerCredentialRecord> {
   requested_role: PublisherRole
   ownership_type?: string
-  business_name?: string
-  license_number?: string
-  agency_name?: string
+  business_name?: string | null
 }
 
 export function fetchPublisherApplication() {
-  return apiRequest<{ data: PublisherApplication | null }>('my/publisher-application')
+  return apiRequest<{ data: PublisherApplication | null; meta?: BrokerCredentialMeta }>('my/publisher-application')
 }
 
 export function submitPublisherApplication(input: PublisherApplicationInput) {

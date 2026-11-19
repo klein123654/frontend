@@ -29,9 +29,15 @@ describe('availabilityState', () => {
     expect(availabilityState({ status: 'Approved', availability: 'available', availabilityConfirmedAt: daysAgo(61) }, now)).toBe('hidden-unconfirmed')
   })
 
-  it('reports rented and sold listings regardless of age', () => {
+  it('reports rented and sold listings, hidden after 30 days', () => {
     expect(availabilityState({ status: 'Approved', availability: 'rented', availabilityConfirmedAt: daysAgo(1) }, now)).toBe('rented')
     expect(availabilityState({ status: 'Draft', availability: 'sold', availabilityConfirmedAt: null }, now)).toBe('sold')
+    expect(availabilityState({ status: 'Approved', availability: 'sold', availabilityConfirmedAt: daysAgo(31) }, now)).toBe('closed-hidden')
+  })
+
+  it('reports reserved listings until they need confirmation', () => {
+    expect(availabilityState({ status: 'Approved', availability: 'reserved', availabilityConfirmedAt: daysAgo(3) }, now)).toBe('reserved')
+    expect(availabilityState({ status: 'Approved', availability: 'reserved', availabilityConfirmedAt: daysAgo(46) }, now)).toBe('needs-confirmation')
   })
 
   it('does not apply to listings that are not approved yet', () => {

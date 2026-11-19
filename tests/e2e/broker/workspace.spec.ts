@@ -94,13 +94,31 @@ test('broker inquiry list supports empty and server-error states', async ({ page
   await expect(page.getByRole('heading', { name: /broker inquiries/i })).toBeVisible()
 })
 
-test('broker can submit verification details and see existing status', async ({ page }) => {
-  await openBroker(page, '/broker/profile', { 'GET broker/verification': { scenario: 'success', body: { data: null } } })
+test('broker can submit PRC, DHSUD and firm details and sees the DHSUD notice', async ({ page }) => {
+  let submitted: Record<string, unknown> | null = null
+  await openBroker(page, '/broker/profile', {
+    'GET broker/verification': { scenario: 'success', body: { data: null } },
+    'POST broker/verification': { scenario: 'success', body: { message: 'Sent.', data: { ...verification, status: 'pending' } } },
+  })
+  page.on('request', (request) => {
+    if (request.method() === 'POST' && request.url().endsWith('/broker/verification')) submitted = request.postDataJSON() as Record<string, unknown>
+  })
   const profile = new BrokerProfilePage(page)
-  await profile.license.fill('PRC-8765432')
-  await profile.agency.fill('Northstar Realty')
+  await expect(page.getByTestId('dhsud-notice')).toContainText(/checks with DHSUD every year/i)
+  await profile.fillCredentials()
+  await page.getByLabel('Butuan Realty Board').check()
   await profile.submitButton.click()
-  await expect(page.getByText(/verification details submitted for review/i)).toBeVisible()
+  await expect(page.getByText(/sent to an administrator for checking/i)).toBeVisible()
+  await expect(page.getByTestId('credential-status')).toContainText(/waiting for admin review/i)
+  expect(submitted).toMatchObject({ license_number: 'PRC-8765432', dhsud_registration_number: 'DHSUD-CRG-0101', firm_name: 'Northstar Realty', affiliations: ['Butuan Realty Board'] })
+})
+
+test('broker with expired credentials is told to renew before managing listings', async ({ page }) => {
+  await openBroker(page, '/broker/listings', {
+    'GET broker/verification': { scenario: 'success', body: { data: { ...verification, status: 'verified', credential_status: 'expired' } } },
+  })
+  await expect(page.getByRole('status').filter({ hasText: /expired/i })).toBeVisible()
+  await expect(page.getByRole('link', { name: /add listing/i })).toHaveCount(0)
 })
 
 test('broker verification shows load and submit errors', async ({ page }) => {
@@ -108,7 +126,8 @@ test('broker verification shows load and submit errors', async ({ page }) => {
   await expect(page.getByText(/server is temporarily unavailable/i)).toBeVisible()
   await page.unrouteAll()
   await openBroker(page, '/broker/profile', { 'POST broker/verification': 'error' })
-  await page.locator('#license-number').fill('PRC-8765432')
-  await page.getByRole('button', { name: /submit for review/i }).click()
+  const profile = new BrokerProfilePage(page)
+  await profile.fillCredentials()
+  await profile.submitButton.click()
   await expect(page.getByRole('status')).toContainText(/temporarily unavailable|unable to/i)
 })

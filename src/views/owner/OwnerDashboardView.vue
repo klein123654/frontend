@@ -9,14 +9,13 @@ import DashboardPanel from '@/components/dashboard/DashboardPanel.vue'
 import DashboardStatCard from '@/components/dashboard/DashboardStatCard.vue'
 import PublisherQuickActions from '@/components/dashboard/PublisherQuickActions.vue'
 import RecentPropertiesList from '@/components/dashboard/RecentPropertiesList.vue'
-import { usePublisherBasePath } from '@/composables/usePublisherBasePath'
 
 import { countInquiriesByStatus } from '@/data/owner/ownerInquiries'
 import { allOwnerProperties, loadOwnerProperties } from '@/stores/ownerProperties'
 import { allOwnerInquiries, loadOwnerInquiries } from '@/stores/ownerInquiries'
 
 const router = useRouter()
-const workspaceBase = usePublisherBasePath()
+const workspaceBase = '/owner'
 onMounted(() => Promise.all([loadOwnerProperties(), loadOwnerInquiries()]))
 
 // RECENT PROPERTIES
@@ -54,7 +53,7 @@ const stats = computed(() => {
 // NAVIGATION
 
 function navigateTo(path: string) {
-  void router.push(`${workspaceBase.value}${path}`)
+  void router.push(`${workspaceBase}${path}`)
 }
 </script>
 

@@ -1,9 +1,8 @@
-export type AppRole = 'buyer' | 'owner' | 'developer' | 'broker' | 'admin'
+export type AppRole = 'buyer' | 'owner' | 'broker' | 'admin'
 
 export const users: Record<AppRole, { id: number; name: string; email: string; role: AppRole; phone: string | null; account_status: string }> = {
   buyer: { id: 21, name: 'Dana Buyer', email: 'buyer@example.test', role: 'buyer', phone: '09171234567', account_status: 'active' },
   owner: { id: 22, name: 'Owen Owner', email: 'owner@example.test', role: 'owner', phone: null, account_status: 'active' },
-  developer: { id: 23, name: 'Dev Developer', email: 'developer@example.test', role: 'developer', phone: null, account_status: 'active' },
   broker: { id: 24, name: 'Brooke Broker', email: 'broker@example.test', role: 'broker', phone: null, account_status: 'active' },
   admin: { id: 25, name: 'Avery Admin', email: 'admin@example.test', role: 'admin', phone: null, account_status: 'active' },
 }
@@ -27,6 +26,8 @@ export const listing = {
   images: [{ path: '/storage/riverside.jpg', alt_text: 'Riverside Commercial Space', sort_order: 0, is_primary: true }],
   ai_tags: ['near port'],
   status: 'published',
+  availability: 'available',
+  availability_confirmed_at: new Date().toISOString(),
   created_at: '2026-10-01T10:00:00.000000Z',
   inquiries_count: 1,
   review_notes: null,
@@ -62,11 +63,27 @@ export const inquiryMessage = {
   sender: { id: users.buyer.id, name: users.buyer.name },
 }
 
+const inYears = (years: number) => new Date(Date.now() + years * 365 * 86_400_000).toISOString().slice(0, 10)
+
+export const brokerCredentials = {
+  license_number: 'PRC-1234567',
+  prc_valid_until: inYears(2),
+  dhsud_registration_number: 'DHSUD-CRG-0042',
+  dhsud_valid_until: inYears(0.7),
+  firm_name: 'Northstar Realty',
+  firm_position: 'Managing Broker',
+  firm_address: 'Montilla Blvd, Butuan City',
+  firm_registration_number: null,
+  affiliations: ['Butuan Realty Board'],
+}
+
 export const verification = {
   id: 301,
-  license_number: 'PRC-1234567',
-  agency_name: 'Northstar Realty',
+  ...brokerCredentials,
   status: 'pending',
+  credential_status: 'current',
+  dhsud_check_due: false,
+  dhsud_checked_at: null,
   review_notes: null,
   created_at: '2026-10-03T10:00:00.000000Z',
   broker: { id: users.broker.id, name: users.broker.name, email: users.broker.email },
@@ -78,7 +95,14 @@ export const application = {
   ownership_type: 'Individual owner',
   business_name: null,
   license_number: null,
-  agency_name: null,
+  prc_valid_until: null,
+  dhsud_registration_number: null,
+  dhsud_valid_until: null,
+  firm_name: null,
+  firm_position: null,
+  firm_address: null,
+  firm_registration_number: null,
+  affiliations: null,
   status: 'pending' as const,
   review_notes: null,
   created_at: '2026-10-04T10:00:00.000000Z',
@@ -104,3 +128,30 @@ export const brokerListing = {
   broker: { name: users.broker.name },
   status: 'draft',
 }
+
+/** A public listing posted by a verified broker, with their firm and credentials. */
+export const brokeredPublicListing = {
+  ...listing,
+  id: 105,
+  title: 'Northstar Corner Office',
+  broker_id: users.broker.id,
+  broker: { name: users.broker.name },
+  availability: 'reserved',
+  publisher: {
+    id: users.broker.id, name: users.broker.name, role: 'broker', role_label: 'Licensed broker', verified: true,
+    license_number: brokerCredentials.license_number, agency_name: brokerCredentials.firm_name, member_since: '2026-10-01',
+    broker: {
+      license_number: brokerCredentials.license_number,
+      prc_valid_until: brokerCredentials.prc_valid_until,
+      dhsud_registration_number: brokerCredentials.dhsud_registration_number,
+      dhsud_valid_until: brokerCredentials.dhsud_valid_until,
+      credential_status: 'current',
+      firm: { name: brokerCredentials.firm_name, position: brokerCredentials.firm_position, address: brokerCredentials.firm_address, registration_number: null },
+      affiliations: brokerCredentials.affiliations,
+    },
+    contact: { phone: '09171234567', email: null, messenger_url: null, viber_url: null },
+  },
+}
+
+/** A listing that was rented recently: still shown, but no longer accepts inquiries. */
+export const rentedPublicListing = { ...listing, id: 106, title: 'Rented Riverside Shop', availability: 'rented' }

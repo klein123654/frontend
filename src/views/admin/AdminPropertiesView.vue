@@ -4,6 +4,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import AdminShell from '@/components/admin/AdminShell.vue'
 import { adminListings, pendingAdminListings, reviewAdminListing, unpublishAdminListing, deleteAdminListing, loadAdminWorkspace, adminError } from '@/stores/adminWorkspace'
 import type { AdminDecision } from '@/data/admin/adminTypes'
+import ListingStatusCell from '@/components/property/ListingStatusCell.vue'
+import ListingStatusLegend from '@/components/property/ListingStatusLegend.vue'
 
 const query = ref('')
 const statusFilter = ref('All')
@@ -78,8 +80,9 @@ function currency(price: number) { return price > 0 ? formatPeso(price) : 'Not s
   <div class="admin-stats"><div class="admin-stat"><span>All Listings</span><strong>{{ adminListings.length }}</strong></div><div class="admin-stat"><span>Awaiting Review</span><strong>{{ pendingAdminListings.length }}</strong></div></div>
   <section class="admin-panel"><div class="admin-panel-head"><h2>Listing Review Queue</h2><span class="admin-count">{{ filtered.length }} records</span></div>
     <div class="admin-filters"><input v-model="query" aria-label="Search property approvals" placeholder="Search properties..."/><select v-model="statusFilter" aria-label="Filter property status"><option>All</option><option>Pending</option><option>Approved</option><option>Rejected</option><option>Draft</option></select></div>
+    <ListingStatusLegend />
     <div class="admin-table-wrap"><table><thead><tr><th>Listing</th><th>Submitted By</th><th>Price</th><th>Status</th><th>Action</th></tr></thead>
-    <tbody><tr v-for="item in filtered" :key="item.key"><td><strong>{{ item.title }}</strong><small>{{ item.location || 'Location not specified' }}</small></td><td>{{ item.source }}</td><td>{{ currency(item.price) }}</td><td><span class="admin-status" :class="item.status.toLowerCase()">{{ item.status }}</span></td><td><button type="button" class="admin-button-secondary" :aria-label="`Review ${item.title}`" @click="select(item.key, $event)">View Details</button></td></tr></tbody></table></div>
+    <tbody><tr v-for="item in filtered" :key="item.key"><td><strong>{{ item.title }}</strong><small>{{ item.location || 'Location not specified' }}</small></td><td>{{ item.source }}</td><td>{{ currency(item.price) }}</td><td><ListingStatusCell :listing="{ status: item.status as 'Draft' | 'Pending' | 'Approved' | 'Rejected', availability: item.availability, availabilityConfirmedAt: item.availabilityConfirmedAt }" /></td><td><button type="button" class="admin-button-secondary" :aria-label="`Review ${item.title}`" @click="select(item.key, $event)">View Details</button></td></tr></tbody></table></div>
     <div v-if="filtered.length===0" class="admin-empty">No listings match your filters.</div>
   </section>
   <Teleport to="body">

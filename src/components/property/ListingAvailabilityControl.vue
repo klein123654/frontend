@@ -3,6 +3,8 @@ import { computed, ref } from 'vue'
 import { CalendarCheck } from '@lucide/vue'
 import { AVAILABILITY_MESSAGES, availabilityState, type WorkspaceListingStatus } from '@/utils/listingRules'
 import type { ListingAvailability } from '@/types/property'
+import AvailabilityBadge from '@/components/common/AvailabilityBadge.vue'
+import { AVAILABILITY_META } from '@/utils/availability'
 
 const props = defineProps<{
   listing: {
@@ -33,9 +35,12 @@ async function update(availability: ListingAvailability) {
   message.value = ''
   const error = await props.save(availability)
   isError.value = Boolean(error)
-  message.value = error || (availability === 'available'
-    ? 'Thanks! The listing is confirmed as still available.'
-    : `Marked as ${availability}. It is now hidden from the public.`)
+  message.value = error || ({
+    available: 'Thanks! The listing is confirmed as still available.',
+    reserved: 'Marked as reserved. It stays public and can still receive inquiries.',
+    rented: 'Marked as rented. The public sees it as unavailable for 30 days.',
+    sold: 'Marked as sold. The public sees it as unavailable for 30 days.',
+  } as Record<ListingAvailability, string>)[availability]
   busy.value = false
 }
 </script>
@@ -45,16 +50,19 @@ async function update(availability: ListingAvailability) {
     <div class="availability__heading">
       <CalendarCheck :size="19" aria-hidden="true" />
       <h2 id="availability-heading">Availability</h2>
+      <AvailabilityBadge :availability="listing.availability" />
     </div>
 
     <p class="availability__state">{{ AVAILABILITY_MESSAGES[state] }}</p>
     <p v-if="confirmedOn && state !== 'not-published'" class="availability__date">Last confirmed {{ confirmedOn }}</p>
 
     <div v-if="state !== 'not-published'" class="availability__actions">
-      <button type="button" class="availability__primary" :disabled="busy" @click="update('available')">
-        {{ listing.availability === 'available' ? 'Still available' : 'Available again' }}
+      <button type="button" class="availability__primary" :disabled="busy" @click="update(listing.availability === 'reserved' ? 'reserved' : 'available')">
+        {{ listing.availability === 'available' ? 'Still available' : listing.availability === 'reserved' ? 'Still reserved' : 'Available again' }}
       </button>
-      <button v-if="listing.availability !== 'rented'" type="button" :disabled="busy" @click="update('rented')">Mark as rented</button>
+      <button v-if="listing.availability === 'reserved'" type="button" :disabled="busy" @click="update('available')">Available again</button>
+      <button v-if="listing.availability !== 'reserved'" type="button" :disabled="busy" @click="update('reserved')">Mark as {{ AVAILABILITY_META.reserved.label.toLowerCase() }}</button>
+      <button v-if="listing.availability !== 'rented'" type="button" :disabled="busy" @click="update('rented')">Mark as rented / leased</button>
       <button v-if="listing.availability !== 'sold'" type="button" :disabled="busy" @click="update('sold')">Mark as sold</button>
     </div>
 

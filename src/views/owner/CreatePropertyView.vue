@@ -12,7 +12,6 @@ import {
 } from '@lucide/vue'
 
 import AppSidebar from '@/components/layout/AppSidebar.vue'
-import { usePublisherBasePath } from '@/composables/usePublisherBasePath'
 import PropertyForm from '@/components/forms/PropertyForm.vue'
 import { clearFormDraft } from '@/composables/useFormDraft'
 
@@ -26,7 +25,7 @@ type OwnerFormPayload = Omit<NewOwnerPropertyInput, 'images'> & { images: File[]
 
 type NoticeType = 'success' | 'warning'
 
-const workspaceBase = usePublisherBasePath()
+const workspaceBase = '/owner'
 const route = useRoute()
 const confirmation = ref('')
 const noticeType = ref<NoticeType>('success')

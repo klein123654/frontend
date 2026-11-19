@@ -30,7 +30,7 @@ import '@/assets/static-page.css'
     </p>
     <h3>Listing a property</h3>
     <p>
-      Create an account, then <RouterLink to="/publisher/apply">apply as an owner, developer or broker</RouterLink>. Once
+      Create an account, then <RouterLink to="/publisher/apply">apply as an owner or broker</RouterLink>. Once
       approved, add your listings with photos. Each listing is reviewed before it goes live, and you'll get an email when
       buyers send inquiries.
     </p>

@@ -14,6 +14,12 @@ const publisher = {
   license_number: 'PRC-0012345',
   agency_name: 'Agusan Realty',
   member_since: '2026-09-01',
+  broker: {
+    license_number: 'PRC-0012345', prc_valid_until: '2028-09-30', dhsud_registration_number: 'DHSUD-CRG-0555', dhsud_valid_until: '2027-09-30',
+    credential_status: 'current',
+    firm: { name: 'Agusan Realty', position: 'Broker-Owner', address: 'Montilla Blvd, Butuan City', registration_number: null },
+    affiliations: ['Butuan Realty Board'],
+  },
   contact: { phone: '09171234567', email: 'brooke@example.test', messenger_url: 'https://m.me/brooke.broker', viber_url: null },
 }
 const verifiedListing = { ...listing, broker_id: users.broker.id, publisher }
@@ -23,8 +29,8 @@ test('property page shows the verified broker with direct contact and share opti
   await page.goto(`/properties/${listing.id}`)
   await waitForRouteReady(page)
 
-  await expect(page.getByText('PRC-licensed broker').first()).toBeVisible()
-  await expect(page.getByText('License PRC-0012345').first()).toBeVisible()
+  await expect(page.getByText('Verified broker').first()).toBeVisible()
+  await expect(page.getByText('PRC PRC-0012345').first()).toBeVisible()
   await expect(page.getByRole('link', { name: 'Call 09171234567' })).toHaveAttribute('href', 'tel:09171234567')
   await expect(page.getByRole('link', { name: 'Messenger', exact: true })).toHaveAttribute('href', 'https://m.me/brooke.broker')
   await expect(page.getByRole('group', { name: 'Share this listing' }).getByRole('link', { name: 'Facebook' }))
@@ -60,8 +66,9 @@ test('publisher profile shows credentials, contact and active listings', async (
   await waitForRouteReady(page)
 
   await expect(page.getByRole('heading', { level: 1, name: users.broker.name })).toBeVisible()
-  await expect(page.getByText('Agusan Realty')).toBeVisible()
-  await expect(page.getByText('License PRC-0012345')).toBeVisible()
+  await expect(page.getByTestId('broker-firm')).toContainText('Agusan Realty')
+  await expect(page.getByText('PRC PRC-0012345')).toBeVisible()
+  await expect(page.getByTestId('broker-credentials')).toContainText('DHSUD-CRG-0555')
   await expect(page.getByRole('link', { name: 'Call 09171234567' })).toBeVisible()
   await expect(page.getByRole('heading', { name: /active listings \(1\)/i })).toBeVisible()
   await expect(page.getByText(listing.title)).toBeVisible()

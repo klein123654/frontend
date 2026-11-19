@@ -4,7 +4,6 @@ import AppSidebar from '@/components/layout/AppSidebar.vue'
 import PublicContactSettings from '@/components/publisher/PublicContactSettings.vue'
 import { useAuth } from '@/composables/useAuth'
 
-// The owner sidebar adapts its links for developer accounts.
 const { user } = useAuth()
 </script>
 
@@ -21,7 +20,7 @@ const { user } = useAuth()
           <h2>Account</h2>
           <p><strong>Name:</strong> {{ user?.name }}</p>
           <p><strong>Login email:</strong> {{ user?.email }} <span class="hint">(not shown publicly)</span></p>
-          <p><strong>Verified as:</strong> {{ user?.role === 'developer' ? 'Developer' : 'Property owner' }}</p>
+          <p><strong>Verified as:</strong> Property owner</p>
         </section>
 
         <PublicContactSettings />
