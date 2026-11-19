@@ -6,7 +6,7 @@ import { useAuth } from '@/composables/useAuth'
 import { useBrokerVerification } from '@/composables/useBrokerVerification'
 import { useUnansweredInquiries } from '@/composables/useUnansweredInquiries'
 
-type DashboardRole = 'buyer' | 'owner' | 'broker' | 'developer' | 'admin'
+type DashboardRole = 'buyer' | 'owner' | 'broker' | 'admin'
 
 type NavigationIcon =
   | 'dashboard'
@@ -54,7 +54,6 @@ async function signOut() {
 }
 
 const roleTitle = computed(() => {
-  if (user.value?.role === 'developer') return 'Developer Workspace'
   switch (props.role) {
     case 'buyer':
       return 'Buyer Workspace'
@@ -69,8 +68,7 @@ const roleTitle = computed(() => {
 
 const navigation = computed<NavigationItem[]>(() => {
   if (props.role === 'owner') {
-    const base = user.value?.role === 'developer' ? '/developer' : '/owner'
-    const portfolioLabel = user.value?.role === 'developer' ? 'Portfolio' : 'My Properties'
+    const base = '/owner'
     return [
       {
         label: 'Dashboard',
@@ -78,7 +76,7 @@ const navigation = computed<NavigationItem[]>(() => {
         icon: 'dashboard'
       },
       {
-        label: portfolioLabel,
+        label: 'My Properties',
         path: `${base}/properties`,
         icon: 'properties'
       },
@@ -110,18 +108,6 @@ const navigation = computed<NavigationItem[]>(() => {
     ]
 
     return brokerNavigation.filter((item) => item.path !== '/broker/listings/create' || canManageListings.value)
-  }
-
-  if (props.role === 'developer') {
-    return [
-      { label: 'Dashboard', path: '/developer/dashboard', icon: 'dashboard' },
-      { label: 'Portfolio', path: '/developer/properties', icon: 'properties' },
-      { label: 'Add Property', path: '/developer/properties/create', icon: 'add' },
-      { label: 'Inquiries', path: '/developer/inquiries', icon: 'inquiries' },
-      { label: 'Public Profile', path: '/developer/profile', icon: 'users' },
-      { label: 'Browse Properties', path: '/properties', icon: 'properties' },
-      { label: 'Report an Issue', path: '/report-issue', icon: 'reports' },
-    ]
   }
 
   return [

@@ -4,8 +4,8 @@ import { seedAuthenticatedRole } from '../../helpers/auth'
 import { ROUTES, waitForRouteReady } from '../../helpers/route-smoke'
 
 test.describe('routed page smoke coverage', () => {
-  test('registry includes all 44 router entries', () => {
-    expect(ROUTES).toHaveLength(44)
+  test('registry includes all 38 router entries', () => {
+    expect(ROUTES).toHaveLength(38)
   })
 
   for (const routeCase of ROUTES) {

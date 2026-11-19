@@ -9,7 +9,8 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
-import Tag from 'primevue/tag'
+import ListingStatusCell from '@/components/property/ListingStatusCell.vue'
+import ListingStatusLegend from '@/components/property/ListingStatusLegend.vue'
 
 import {
   Building2,
@@ -22,7 +23,6 @@ import {
 } from '@lucide/vue'
 
 import AppSidebar from '@/components/layout/AppSidebar.vue'
-import { usePublisherBasePath } from '@/composables/usePublisherBasePath'
 
 import {
   formatOwnerPrice,
@@ -35,7 +35,7 @@ import {
   getEditableOwnerProperty,
   deleteOwnerProperty
 } from '@/stores/ownerProperties'
-const workspaceBase = usePublisherBasePath()
+const workspaceBase = '/owner'
 const actionMessage = ref('')
 onMounted(() => loadOwnerProperties().catch((error) => { actionMessage.value = error instanceof Error ? error.message : 'Unable to load listings.' }))
 
@@ -89,20 +89,6 @@ const pendingCount = computed(
       (property) => property.status === 'Pending'
     ).length
 )
-
-// STATUS BADGE COLORS
-function getSeverity(status: OwnerListingStatus) {
-  switch (status) {
-    case 'Approved':
-      return 'success'
-    case 'Pending':
-      return 'warn'
-    case 'Rejected':
-      return 'danger'
-    default:
-      return 'secondary'
-  }
-}
 
 // EDIT PERMISSIONS
 // Owners can edit or delete any of their own listings.
@@ -258,6 +244,8 @@ function clearFilters() {
 
         </div>
 
+        <ListingStatusLegend />
+
         <!-- PROPERTIES DATA TABLE -->
         <DataTable
           :value="filteredProperties"
@@ -363,11 +351,7 @@ function clearFilters() {
             sortable
           >
             <template #body="{ data }">
-              <Tag
-                :value="data.status"
-                :severity="getSeverity(data.status)"
-                rounded
-              />
+              <ListingStatusCell :listing="data" />
             </template>
           </Column>
 

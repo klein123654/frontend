@@ -23,7 +23,6 @@ const { user, refreshUser } = useAuth()
 const sidebarRole = computed(() => {
   switch (user.value?.role) {
     case 'owner':
-    case 'developer':
       return 'owner'
     case 'broker':
       return 'broker'

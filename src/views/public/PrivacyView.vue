@@ -33,7 +33,7 @@ import { LEGAL_LAST_UPDATED } from '@/data/legal'
     <ul>
       <li>The name, email, phone number and message you put in an inquiry, and later replies in that conversation.</li>
     </ul>
-    <h3>When you publish listings (owners, developers and brokers)</h3>
+    <h3>When you publish listings (owners and brokers)</h3>
     <ul>
       <li>Listing details and photos, and the public contact details you choose to show (phone, email, Messenger, Viber).</li>
       <li>For brokers: your PRC license number and agency name, used to verify you. For publisher applications: the details you submit.</li>

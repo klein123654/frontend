@@ -3,8 +3,8 @@ import type { AdminInquiry, AdminListing, BugReport, ManagedUser, VerificationRe
 import { updateInquiryStatus } from '@/services/inquiryService'
 import {
   fetchAdminInquiries, fetchAdminProperties, fetchAdminReports, fetchAdminSummary,
-  fetchAdminUsers, fetchAdminVerifications, resolveAdminImageUrl, reviewBroker, reviewProperty,
-  setReportStatus, setUserAccountStatus, unpublishAdminProperty, deleteAdminProperty, deleteUserAccount, type DeleteUserInput } from '@/services/adminService'
+  fetchAdminUsers, fetchAdminVerifications, recordDhsudCheck, resolveAdminImageUrl, reviewBroker, reviewProperty,
+  setReportStatus, setUserAccountStatus, unpublishAdminProperty, deleteAdminProperty, deleteUserAccount, type AdminVerificationRecord, type DeleteUserInput } from '@/services/adminService'
 
 const properties = ref<AdminListing[]>([])
 const verifications = ref<VerificationRequest[]>([])
@@ -15,9 +15,9 @@ export const adminSummary = ref<Record<string, number>>({})
 export const adminLoading = ref(false)
 export const adminError = ref('')
 
-const statuses: Record<string, string> = { draft: 'Draft', pending: 'Pending', published: 'Approved', rejected: 'Rejected', active: 'Active', suspended: 'Suspended', verified: 'Verified', developer: 'Developer', new: 'New', open: 'New', in_progress: 'In Progress', resolved: 'Resolved' }
+const statuses: Record<string, string> = { draft: 'Draft', pending: 'Pending', published: 'Approved', rejected: 'Rejected', active: 'Active', suspended: 'Suspended', verified: 'Verified', new: 'New', open: 'New', in_progress: 'In Progress', resolved: 'Resolved' }
 const titleCase = (value: string) => statuses[value] ?? value
-const roleLabels: Record<string, ManagedUser['role']> = { buyer: 'Client', owner: 'Owner', broker: 'Broker', developer: 'Developer', admin: 'Admin' }
+const roleLabels: Record<string, ManagedUser['role']> = { buyer: 'Client', owner: 'Owner', broker: 'Broker', admin: 'Admin' }
 
 export const adminListings = computed(() => properties.value)
 export const pendingAdminListings = computed(() => properties.value.filter((item) => item.status === 'Pending'))
@@ -41,16 +41,13 @@ export async function loadAdminWorkspace(): Promise<void> {
         title: item.title, location: [item.address_line, item.city, item.province].filter(Boolean).join(', '),
         barangay: item.barangay ?? '', price: Number(item.price), dateCreated: item.created_at.slice(0, 10),
         sourceStatus: titleCase(item.status), status: titleCase(item.status), reviewNote: item.review_notes ?? '',
+        availability: item.availability ?? 'available', availabilityConfirmedAt: item.availability_confirmed_at ?? null,
         images: [...(item.images ?? [])]
           .sort((left, right) => Number(Boolean(right.is_primary)) - Number(Boolean(left.is_primary)) || (left.sort_order ?? 0) - (right.sort_order ?? 0))
           .map((image) => ({ url: resolveAdminImageUrl(image.path), alt: image.alt_text || item.title })),
       }
     })
-    verifications.value = verificationRows.map((item) => ({
-      id: item.id, name: item.broker?.name ?? 'Broker', email: item.broker?.email ?? '',
-      affiliation: item.agency_name ?? '', licenseNumber: item.license_number ?? '', submittedAt: item.created_at.slice(0, 10),
-      status: titleCase(item.status) as VerificationRequest['status'], note: item.review_notes ?? '',
-    }))
+    verifications.value = verificationRows.map(mapVerification)
     users.value = userRows.map((item) => ({
       id: item.id, name: item.name, email: item.email,
       role: roleLabels[item.role] ?? 'Client',
@@ -118,13 +115,38 @@ export async function unpublishAdminListing(key: string, note: string): Promise<
   }
 }
 
+function mapVerification(item: AdminVerificationRecord): VerificationRequest {
+  return {
+    id: item.id, name: item.broker?.name ?? 'Broker', email: item.broker?.email ?? '',
+    affiliation: item.firm_name ?? '', licenseNumber: item.license_number ?? '',
+    submittedAt: (item.updated_at ?? item.created_at).slice(0, 10),
+    status: titleCase(item.status) as VerificationRequest['status'], note: item.review_notes ?? '',
+    record: item,
+  }
+}
+
+function replaceVerification(record: AdminVerificationRecord) {
+  const index = verifications.value.findIndex((row) => row.id === record.id)
+  if (index >= 0) verifications.value[index] = mapVerification(record)
+}
+
 export async function decideVerification(id: number, status: 'Verified' | 'Rejected', note: string): Promise<boolean> {
   const item = verifications.value.find((row) => row.id === id && row.status === 'Pending')
   if (!item) return false
   try {
-    await reviewBroker(id, status.toLowerCase() as 'verified' | 'rejected', note)
-    item.status = status; item.note = note; return true
+    const response = await reviewBroker(id, status.toLowerCase() as 'verified' | 'rejected', note)
+    replaceVerification(response.data)
+    return true
   } catch (error) { adminError.value = error instanceof Error ? error.message : 'Unable to review broker.'; return false }
+}
+
+/** Record the yearly check that a verified broker's DHSUD registration is still active. */
+export async function recordAdminDhsudCheck(id: number, result: 'active' | 'inactive', note: string): Promise<boolean> {
+  try {
+    const response = await recordDhsudCheck(id, result, note)
+    replaceVerification(response.data)
+    return true
+  } catch (error) { adminError.value = error instanceof Error ? error.message : 'Unable to record the DHSUD check.'; return false }
 }
 
 export async function setAdminUserStatus(id: number, status: 'Active' | 'Suspended'): Promise<boolean> {

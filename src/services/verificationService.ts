@@ -1,11 +1,12 @@
 import { apiRequest } from './api'
+import type { BrokerCredentialMeta, BrokerCredentialRecord, BrokerVerificationRecord } from './brokerCredentials'
 
-export async function submitBrokerVerification(input: { license_number: string; agency_name?: string }) {
-  return apiRequest('broker/verification', { method: 'POST', body: JSON.stringify(input) })
+export async function submitBrokerVerification(input: BrokerCredentialRecord) {
+  return apiRequest<{ message: string; data: BrokerVerificationRecord }>('broker/verification', { method: 'POST', body: JSON.stringify(input) })
 }
 
 export async function fetchBrokerVerification() {
-  return apiRequest<{ data: { status: string; license_number: string | null; agency_name: string | null; review_notes: string | null } | null }>('broker/verification')
+  return apiRequest<{ data: BrokerVerificationRecord | null; meta?: BrokerCredentialMeta }>('broker/verification')
 }
 
 export async function submitIssueReport(input: {

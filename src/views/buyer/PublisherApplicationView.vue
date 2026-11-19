@@ -2,30 +2,36 @@
 import { onMounted, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { fetchPublisherApplication, submitPublisherApplication, type PublisherApplication, type PublisherRole } from '@/services/publisherApplicationService'
+import { credentialFormFrom, credentialPayload, DEFAULT_AFFILIATIONS, DEFAULT_DHSUD_NOTICE, emptyCredentialForm } from '@/services/brokerCredentials'
+import BrokerCredentialsFields from '@/components/forms/BrokerCredentialsFields.vue'
 import { useFormDraft } from '@/composables/useFormDraft'
 
 const application = ref<PublisherApplication | null>(null)
 const loading = ref(true)
 const submitting = ref(false)
 const error = ref('')
+const dhsudNotice = ref(DEFAULT_DHSUD_NOTICE)
+const suggestedAffiliations = ref<string[]>(DEFAULT_AFFILIATIONS)
 const roleOptions: { value: PublisherRole; label: string }[] = [
-  { value: 'owner', label: 'Property Owner' },
+  { value: 'owner', label: 'Property Owner (including companies and developers)' },
   { value: 'broker', label: 'Licensed Broker' },
-  { value: 'developer', label: 'Property Developer' },
 ]
-const form = reactive({ role: 'owner' as PublisherRole, ownershipType: 'individual', businessName: '', licenseNumber: '', agencyName: '' })
+const form = reactive({ role: 'owner' as PublisherRole, ownershipType: 'individual', businessName: '', credentials: emptyCredentialForm() })
 const formDraft = useFormDraft('publisher-application', form)
 
 async function load() {
   try {
     const response = await fetchPublisherApplication()
     application.value = response.data
+    if (response.meta) {
+      dhsudNotice.value = response.meta.dhsud_notice
+      suggestedAffiliations.value = response.meta.suggested_affiliations
+    }
     if (response.data && !formDraft.hasDraft) {
       form.role = response.data.requested_role
       form.ownershipType = response.data.ownership_type || 'individual'
       form.businessName = response.data.business_name || ''
-      form.licenseNumber = response.data.license_number || ''
-      form.agencyName = response.data.agency_name || ''
+      form.credentials = credentialFormFrom(response.data)
     }
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : 'Unable to load your account request.'
@@ -40,9 +46,8 @@ async function submit() {
   try {
     const response = await submitPublisherApplication({
       requested_role: form.role,
-      ...(form.role === 'owner' ? { ownership_type: form.ownershipType } : {}),
-      ...(form.role === 'developer' ? { business_name: form.businessName.trim() } : {}),
-      ...(form.role === 'broker' ? { license_number: form.licenseNumber.trim(), agency_name: form.agencyName.trim() } : {}),
+      ...(form.role === 'owner' ? { ownership_type: form.ownershipType, business_name: form.businessName.trim() || null } : {}),
+      ...(form.role === 'broker' ? credentialPayload(form.credentials) : {}),
     })
     application.value = response.data
     formDraft.clear()
@@ -70,17 +75,17 @@ onMounted(load)
 
       <template v-if="form.role === 'owner'">
         <label for="ownership-type">Ownership type</label>
-        <select id="ownership-type" v-model="form.ownershipType"><option value="individual">Individual owner</option><option value="company">Company representative</option><option value="representative">Authorized representative</option></select>
+        <select id="ownership-type" v-model="form.ownershipType"><option value="individual">Individual owner</option><option value="company">Company or developer</option><option value="representative">Authorized representative</option></select>
+        <label for="business-name">Registered business name <span>(optional, if a company owns the property)</span></label><input id="business-name" v-model="form.businessName" maxlength="255" autocomplete="organization"/>
       </template>
 
-      <template v-if="form.role === 'broker'">
-        <label for="license-number">PRC license number</label><input id="license-number" v-model="form.licenseNumber" required maxlength="100" autocomplete="off"/>
-        <label for="agency-name">Agency or brokerage <span>(optional)</span></label><input id="agency-name" v-model="form.agencyName" maxlength="255" autocomplete="organization"/>
-      </template>
-
-      <template v-if="form.role === 'developer'">
-        <label for="business-name">Registered business or development company</label><input id="business-name" v-model="form.businessName" required maxlength="255" autocomplete="organization"/>
-      </template>
+      <BrokerCredentialsFields
+        v-if="form.role === 'broker'"
+        v-model="form.credentials"
+        id-prefix="apply"
+        :dhsud-notice="dhsudNotice"
+        :suggested-affiliations="suggestedAffiliations"
+      />
 
       <p class="review-note">An administrator reviews each request. We'll email you the decision, and you can also check it on this page.</p>
       <button class="primary" type="submit" :disabled="submitting">{{ submitting ? 'Submitting…' : 'Submit for review' }}</button>

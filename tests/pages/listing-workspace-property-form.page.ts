@@ -1,6 +1,6 @@
 import { BasePage } from './base.page'
 export class ListingWorkspacePropertyFormPage extends BasePage {
-  constructor(page: import('@playwright/test').Page, readonly basePath: '/owner' | '/developer' = '/owner') { super(page) }
+  constructor(page: import('@playwright/test').Page, readonly basePath: '/owner' = '/owner') { super(page) }
   get title() { return this.page.getByLabel(/property title/i) }
   get type() { return this.page.getByLabel(/property type/i) }
   get listingType() { return this.page.getByLabel(/listing type/i) }

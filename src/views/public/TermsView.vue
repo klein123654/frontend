@@ -18,8 +18,8 @@ import { LEGAL_LAST_UPDATED } from '@/data/legal'
 
     <h2>1. What ButuanSpaces is</h2>
     <p>
-      ButuanSpaces is a listing directory that helps businesses find commercial spaces in Butuan City and helps owners,
-      developers and brokers make their properties visible. <strong>We are not a party to any deal.</strong> We don't
+      ButuanSpaces is a listing directory that helps businesses find commercial spaces in Butuan City and helps owners
+      and brokers make their properties visible. <strong>We are not a party to any deal.</strong> We don't
       negotiate, sign contracts, collect payments or deposits, or act as a broker. Any agreement is strictly between you
       and the other person.
     </p>

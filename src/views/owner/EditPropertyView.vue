@@ -13,7 +13,6 @@ import {
 } from '@lucide/vue'
 
 import AppSidebar from '@/components/layout/AppSidebar.vue'
-import { usePublisherBasePath } from '@/composables/usePublisherBasePath'
 import PropertyForm from '@/components/forms/PropertyForm.vue'
 import { clearFormDraft } from '@/composables/useFormDraft'
 
@@ -28,7 +27,7 @@ type OwnerFormPayload = Omit<NewOwnerPropertyInput, 'images'> & { images: File[]
 
 const route = useRoute()
 const router = useRouter()
-const workspaceBase = usePublisherBasePath()
+const workspaceBase = '/owner'
 
 const propertyId = computed(() => {
   const id = Number(route.params.id)
@@ -62,7 +61,7 @@ async function handleSave(values: OwnerFormPayload) {
     const updated = await updateOwnerProperty(propertyId.value, values)
     clearFormDraft(`property-${route.fullPath}`)
     if (values.status === 'Pending' && !editRequiresReview(property.value?.status ?? 'Draft')) {
-      void router.push(`${workspaceBase.value}/properties/${propertyId.value}`)
+      void router.push(`${workspaceBase}/properties/${propertyId.value}`)
       return
     }
     confirmation.value = updated.status === 'Pending'

@@ -1,28 +1,45 @@
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import AvailabilityBadge from '@/components/common/AvailabilityBadge.vue'
 import VerifiedBadge from '@/components/publisher/VerifiedBadge.vue'
+import { acceptsInquiries } from '@/utils/availability'
 import { formatPeso, formatPricePerSqm } from '@/utils/format'
 import type { Property } from '@/types/property'
 
-defineProps<{
+const props = defineProps<{
   property: Property
 }>()
 
 const formatPrice = formatPeso
+const unavailable = computed(() => !acceptsInquiries(props.property.availability))
+
+/** "Broker: Maria Santos · Agusan Prime Realty" or "Listed directly by the owner". */
+const listedBy = computed(() => {
+  const publisher = props.property.publisher
+  if (!publisher) return ''
+  if (publisher.role === 'broker') {
+    const firm = publisher.broker?.firm?.name
+    return `Broker: ${publisher.name}${firm ? ` · ${firm}` : ''}`
+  }
+  return 'Listed directly by the owner'
+})
 </script>
 
 <template>
-  <RouterLink :to="`/properties/${property.id}`" class="property-card">
+  <RouterLink :to="`/properties/${property.id}`" class="property-card" :class="{ 'property-card--unavailable': unavailable }">
     <div class="image-wrapper">
       <img loading="lazy" decoding="async" v-if="property.images[0]" :src="property.images[0]" :alt="property.title" />
       <div v-else class="no-image" role="img" :aria-label="`No photo available for ${property.title}`">No Photo Available</div>
       <span class="status">{{ property.listingType }}</span>
+      <AvailabilityBadge class="availability" :availability="property.availability" />
     </div>
 
     <div class="details">
       <span class="type">{{ property.type }}</span>
       <h3>{{ property.title }}</h3>
       <p class="location">📍 {{ property.location }}</p>
+      <p v-if="listedBy" class="listed-by" data-testid="card-listed-by">{{ listedBy }}</p>
 
       <div class="meta">
         <span>{{ property.area }} sqm</span>
@@ -36,7 +53,7 @@ const formatPrice = formatPeso
           <small v-if="property.listingType === 'For Rent'"> / month</small>
           <span v-if="formatPricePerSqm(property.price, property.area)" class="per-sqm">{{ formatPricePerSqm(property.price, property.area) }}</span>
         </div>
-        <span class="view">View Details →</span>
+        <span class="view">{{ unavailable ? 'See details' : 'View Details →' }}</span>
       </div>
     </div>
   </RouterLink>
@@ -80,6 +97,24 @@ const formatPrice = formatPeso
   border-radius: 7px;
   font-size: 12px;
   font-weight: 700;
+}
+
+.availability {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  box-shadow: 0 2px 8px #0f172a26;
+}
+
+.property-card--unavailable .image-wrapper img { filter: grayscale(.65); opacity: .8; }
+.listed-by {
+  margin: 8px 0 0;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .details { padding: 22px; }

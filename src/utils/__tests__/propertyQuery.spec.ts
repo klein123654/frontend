@@ -13,7 +13,15 @@ describe('parseBrowseQuery', () => {
       maxPrice: null,
       sort: 'newest',
       page: 1,
+      availability: '',
     })
+  })
+
+  it('reads a valid availability filter and ignores unknown ones', () => {
+    expect(parseBrowseQuery({ availability: 'available' }).availability).toBe('available')
+    expect(parseBrowseQuery({ availability: 'unavailable' }).availability).toBe('unavailable')
+    expect(parseBrowseQuery({ availability: 'gone' }).availability).toBe('')
+    expect(toBrowseQuery(parseBrowseQuery({ availability: 'reserved' }))).toEqual({ availability: 'reserved' })
   })
 
   it('reads every filter from the URL', () => {

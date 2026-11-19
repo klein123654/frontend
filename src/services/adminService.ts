@@ -1,4 +1,5 @@
 import { API_ORIGIN, apiRequest } from './api'
+import type { BrokerCredentialRecord, BrokerVerificationRecord } from './brokerCredentials'
 
 export interface AdminPropertyImage {
   path: string
@@ -17,6 +18,8 @@ export interface AdminPropertyRecord {
   city: string
   province: string
   created_at: string
+  availability?: 'available' | 'reserved' | 'rented' | 'sold'
+  availability_confirmed_at?: string | null
   review_notes?: string | null
   images?: AdminPropertyImage[]
   owner?: { name: string; email: string }
@@ -25,8 +28,7 @@ export interface AdminPropertyRecord {
 export interface AdminUserRecord {
   id: number; name: string; email: string; role: string; account_status: string; created_at: string
 }
-export interface AdminVerificationRecord {
-  id: number; license_number: string | null; agency_name: string | null; status: string; review_notes: string | null; created_at: string
+export interface AdminVerificationRecord extends BrokerVerificationRecord {
   broker?: { id: number; name: string; email: string }
 }
 export interface AdminInquiryRecord {
@@ -35,13 +37,11 @@ export interface AdminInquiryRecord {
 export interface AdminReportRecord {
   id: number; reason: string; details: string | null; status: string; reporter_name: string | null; reporter_email: string | null; created_at: string
 }
-export interface AdminPublisherApplication {
+export interface AdminPublisherApplication extends BrokerCredentialRecord {
   id: number
-  requested_role: 'owner' | 'broker' | 'developer'
+  requested_role: 'owner' | 'broker'
   ownership_type: string | null
   business_name: string | null
-  license_number: string | null
-  agency_name: string | null
   status: 'pending' | 'approved' | 'rejected'
   review_notes: string | null
   created_at: string
@@ -95,7 +95,13 @@ export function setUserAccountStatus(id: number, account_status: 'active' | 'sus
   return apiRequest(`admin/users/${id}`, { method: 'PATCH', body: JSON.stringify({ account_status }) })
 }
 export function reviewBroker(id: number, status: 'verified' | 'rejected', review_notes = '') {
-  return apiRequest(`admin/verifications/${id}`, { method: 'PATCH', body: JSON.stringify({ status, review_notes }) })
+  return apiRequest<{ data: AdminVerificationRecord }>(`admin/verifications/${id}`, { method: 'PATCH', body: JSON.stringify({ status, review_notes }) })
+}
+export function recordDhsudCheck(id: number, result: 'active' | 'inactive', review_notes = '') {
+  return apiRequest<{ data: AdminVerificationRecord }>(`admin/verifications/${id}/dhsud-check`, {
+    method: 'POST',
+    body: JSON.stringify({ result, review_notes }),
+  })
 }
 export function reviewPublisherApplication(id: number, status: 'approved' | 'rejected', review_notes = '') {
   return apiRequest<{ data: AdminPublisherApplication }>(`admin/publisher-applications/${id}`, {

@@ -42,7 +42,7 @@ const otherProperties = computed(() => properties.value.slice(1, 5))
 const propertyCountLabel = computed(() => `${total.value} published ${total.value === 1 ? 'property' : 'properties'}`)
 
 onMounted(() => {
-  void load()
+  void load({ availability: 'available' })
 })
 
 function searchProperties() {
@@ -186,7 +186,7 @@ function formatPrice(price: number, listingType: ListingType): string {
             <strong>We couldn’t load current listings.</strong>
             <p>{{ error }}</p>
           </div>
-          <button type="button" class="retry-button" @click="load()">
+          <button type="button" class="retry-button" @click="load({ availability: 'available' })">
             <RefreshCw :size="16" /> Retry
           </button>
         </div>
@@ -239,7 +239,7 @@ function formatPrice(price: number, listingType: ListingType): string {
     <section class="publisher-band">
       <div class="container publisher-content">
         <div>
-          <span class="eyebrow">FOR OWNERS, DEVELOPERS & BROKERS</span>
+          <span class="eyebrow">FOR OWNERS & BROKERS</span>
           <h2>Put your commercial property in front of local businesses.</h2>
           <p>Create a listing, manage inquiries, and connect with prospective tenants and buyers.</p>
         </div>

@@ -6,19 +6,20 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
-import Tag from 'primevue/tag'
+import ListingStatusCell from '@/components/property/ListingStatusCell.vue'
+import ListingStatusLegend from '@/components/property/ListingStatusLegend.vue'
 import { Building2, Plus, Eye, Pencil, Search, Trash2 } from '@lucide/vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import { deleteListingConfirmation } from '@/utils/listingRules'
 import { allBrokerListings, getEditableBrokerListing, loadBrokerListings, deleteBrokerListing } from '@/stores/brokerListings'
 import { formatBrokerPrice, type BrokerListingStatus } from '@/data/broker/brokerListings'
-import { brokerVerificationRequiredMessage, useBrokerVerification } from '@/composables/useBrokerVerification'
+import { useBrokerVerification } from '@/composables/useBrokerVerification'
 
 const search = ref('')
 const statusFilter = ref<BrokerListingStatus | null>(null)
 const statuses = [{label:'All Statuses',value:null},{label:'Approved',value:'Approved'},{label:'Pending',value:'Pending'},{label:'Draft',value:'Draft'},{label:'Rejected',value:'Rejected'}]
 const message = ref('')
-const { canManageListings, verificationLoading } = useBrokerVerification()
+const { canManageListings, verificationLoading, blockedMessage } = useBrokerVerification()
 onMounted(() => loadBrokerListings().catch((error) => { message.value = error instanceof Error ? error.message : 'Unable to load listings.' }))
 async function remove(id: number, title: string) {
   const listing = getEditableBrokerListing(id)
@@ -30,20 +31,18 @@ const filtered = computed(() => allBrokerListings.value.filter(item =>
   (!statusFilter.value || item.status === statusFilter.value) &&
   (!search.value.trim() || [item.title,item.location,item.barangay,item.propertyType].some(v=>v.toLowerCase().includes(search.value.trim().toLowerCase())))
 ))
-function severity(status: BrokerListingStatus): 'success'|'warn'|'danger'|'secondary' {
-  return status==='Approved'?'success':status==='Pending'?'warn':status==='Rejected'?'danger':'secondary'
-}
 </script>
 <template>
   <AppSidebar role="broker"><main class="page"><header class="heading"><div><span class="eyebrow">BROKER WORKSPACE</span><h1>My Listings</h1><p>Organize and manage your commercial property listings.</p></div><RouterLink v-if="canManageListings" to="/broker/listings/create" class="button"><Plus :size="18"/> Add Listing</RouterLink></header><AvailabilityAttentionBanner :listings="allBrokerListings" details-base="/broker/listings"/>
-    <div v-if="!verificationLoading && !canManageListings" class="verification-warning" role="status">{{ brokerVerificationRequiredMessage }}</div>
-    <div class="notice">Your PRC license must be verified before you can submit listings for review.</div><p v-if="message" role="status">{{ message }}</p>
+    <div v-if="!verificationLoading && !canManageListings" class="verification-warning" role="status">{{ blockedMessage }}</div>
+    <div class="notice">Your PRC license and DHSUD registration must be verified and current before you can add or edit listings.</div><p v-if="message" role="status">{{ message }}</p>
     <section class="panel"><div class="panel-heading"><div><h2>Property Listings</h2><p>{{ filtered.length }} listings</p></div></div><div class="filters"><div class="search"><Search :size="17"/><InputText v-model="search" placeholder="Search listings..." aria-label="Search listings"/></div><Select v-model="statusFilter" :options="statuses" option-label="label" option-value="value" placeholder="All Statuses" class="filter"/><button class="reset" type="button" @click="search='';statusFilter=null">Reset</button></div>
+    <ListingStatusLegend/>
     <DataTable :value="filtered" data-key="id" paginator :rows="5" :rows-per-page-options="[5,10,20]" striped-rows sort-field="dateCreated" :sort-order="-1" table-style="min-width:780px" class="listing-table">
       <Column field="title" header="Listing" sortable><template #body="{data}"><div class="property"><span class="thumbnail"><img loading="lazy" decoding="async" v-if="data.images[0]" :src="data.images[0]" :alt="data.title"/><Building2 v-else :size="23"/></span><span><strong>{{ data.title }}</strong><small>{{ data.location || 'Location not specified' }}</small></span></div></template></Column>
       <Column field="listingType" header="Listing Type" sortable/>
       <Column field="price" header="Price" sortable><template #body="{data}">{{ data.price>0?formatBrokerPrice(data.price):'Not specified' }}</template></Column>
-      <Column field="status" header="Status" sortable><template #body="{data}"><Tag :value="data.status" :severity="severity(data.status)" rounded/></template></Column>
+      <Column field="status" header="Status" sortable><template #body="{data}"><ListingStatusCell :listing="data"/></template></Column>
       <Column field="dateCreated" header="Created" sortable/>
       <Column header="Actions"><template #body="{data}"><div class="actions"><RouterLink :to="`/broker/listings/${data.id}`" :title="`View ${data.title}`" :aria-label="`View ${data.title}`"><Eye :size="17"/></RouterLink><template v-if="canManageListings"><RouterLink v-if="getEditableBrokerListing(data.id)" :to="`/broker/listings/${data.id}/edit`" :aria-label="`Edit ${data.title}`" :title="`Edit ${data.title}`"><Pencil :size="17"/></RouterLink><button v-else disabled type="button" title="Only drafts or rejected listings can be edited"><Pencil :size="17"/></button><button v-if="getEditableBrokerListing(data.id)" type="button" :aria-label="`Delete ${data.title}`" :title="`Delete ${data.title}`" class="delete" @click="remove(data.id,data.title)"><Trash2 :size="17"/></button></template></div></template></Column>
       <template #empty><div class="empty"><Building2 :size="34"/><h3>No listings found</h3><p>Create your first listing or change the filters.</p><RouterLink v-if="canManageListings" to="/broker/listings/create" class="button"><Plus :size="16"/> Create Listing</RouterLink></div></template>

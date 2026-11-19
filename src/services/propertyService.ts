@@ -1,6 +1,6 @@
 import { API_ORIGIN, apiRequest } from './api'
 import { compressImage } from '@/utils/imageCompression'
-import type { ListingAvailability, ListingType, Property, PropertyType, Publisher } from '@/types/property'
+import type { CredentialStatus, ListingAvailability, ListingType, Property, PropertyType, Publisher } from '@/types/property'
 import type { OwnerProperty } from '@/data/owner/ownerProperties'
 import type { ListingPhoto, PhotoChanges } from '@/types/listingPhotos'
 import { BUTUAN_CITY, BUTUAN_PROVINCE, canonicalButuanBarangay } from '@/data/butuanLocation'
@@ -53,6 +53,15 @@ export interface BackendPublisher {
   license_number: string | null
   agency_name: string | null
   member_since: string | null
+  broker?: {
+    license_number: string | null
+    prc_valid_until: string | null
+    dhsud_registration_number: string | null
+    dhsud_valid_until: string | null
+    credential_status: CredentialStatus
+    firm: { name: string; position: string | null; address: string | null; registration_number: string | null } | null
+    affiliations: string[] | null
+  } | null
   active_listing_count?: number
   contact?: { phone: string | null; email: string | null; messenger_url: string | null; viber_url: string | null }
 }
@@ -67,6 +76,20 @@ export function mapPublisher(record: BackendPublisher): Publisher {
     licenseNumber: record.license_number,
     agencyName: record.agency_name,
     memberSince: record.member_since,
+    broker: record.broker ? {
+      licenseNumber: record.broker.license_number,
+      prcValidUntil: record.broker.prc_valid_until,
+      dhsudRegistrationNumber: record.broker.dhsud_registration_number,
+      dhsudValidUntil: record.broker.dhsud_valid_until,
+      credentialStatus: record.broker.credential_status,
+      firm: record.broker.firm ? {
+        name: record.broker.firm.name,
+        position: record.broker.firm.position,
+        address: record.broker.firm.address,
+        registrationNumber: record.broker.firm.registration_number,
+      } : null,
+      affiliations: record.broker.affiliations ?? [],
+    } : null,
     activeListingCount: record.active_listing_count,
     contact: {
       phone: record.contact?.phone ?? null,
@@ -207,6 +230,8 @@ export interface PropertySearchFilters {
   sort?: 'newest' | 'oldest' | 'price_asc' | 'price_desc'
   barangay?: string
   publisherId?: number
+  /** available: available or reserved; unavailable: recently rented or sold. */
+  availability?: '' | 'available' | 'reserved' | 'unavailable'
   page?: number
   perPage?: number
 }
@@ -288,6 +313,7 @@ export function mapProperty(record: BackendProperty): Property {
     latitude: record.latitude == null ? null : Number(record.latitude),
     longitude: record.longitude == null ? null : Number(record.longitude),
     publisher: record.publisher ? mapPublisher(record.publisher) : null,
+    availability: record.availability ?? 'available',
   }
 }
 
@@ -309,6 +335,7 @@ export function buildPropertySearchParams(filters: PropertySearchFilters = {}): 
 
   if (filters.barangay?.trim()) params.set('barangay', filters.barangay.trim())
   if (filters.publisherId) params.set('publisher', String(filters.publisherId))
+  if (filters.availability) params.set('availability', filters.availability)
   if (filters.minPrice != null) params.set('min_price', String(filters.minPrice))
   if (filters.maxPrice != null) params.set('max_price', String(filters.maxPrice))
   if (filters.sort && filters.sort !== 'newest') params.set('sort', filters.sort)

@@ -10,7 +10,7 @@ const dialog = ref<HTMLDialogElement | null>(null)
 const form = reactive({ password: '', reason: '', notify: false })
 const busy = ref(false)
 const error = ref('')
-const isPublisher = computed(() => ['Owner', 'Broker', 'Developer'].includes(props.user?.role ?? ''))
+const isPublisher = computed(() => ['Owner', 'Broker'].includes(props.user?.role ?? ''))
 
 watch(() => props.user, async (user) => {
   Object.assign(form, { password: '', reason: '', notify: false })

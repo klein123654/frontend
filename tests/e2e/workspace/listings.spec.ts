@@ -11,9 +11,8 @@ import { ListingWorkspacePropertyFormPage } from '../../pages/listing-workspace-
 import { ListingWorkspacePropertyDetailsPage } from '../../pages/listing-workspace-property-details.page'
 import { ListingWorkspaceInquiriesPage } from '../../pages/listing-workspace-inquiries.page'
 
-const workspaces: { role: 'owner' | 'developer'; basePath: '/owner' | '/developer' }[] = [
+const workspaces: { role: 'owner'; basePath: '/owner' }[] = [
   { role: 'owner', basePath: '/owner' },
-  { role: 'developer', basePath: '/developer' },
 ]
 
 async function openWorkspace(page: import('@playwright/test').Page, role: AppRole, path: string, overrides: ApiOverrides = {}) {
@@ -157,9 +156,18 @@ test('owner dashboard has no axe violations', async ({ page }) => {
   await expectNoAxeViolations(page)
 })
 
-test('developer dashboard has no axe violations', async ({ page }) => {
-  await openWorkspace(page, 'developer', '/developer/dashboard')
-  await expectNoAxeViolations(page)
+test('old developer links redirect to the owner workspace', async ({ page }) => {
+  await openWorkspace(page, 'owner', '/developer/properties/103')
+  await expect(page).toHaveURL(/\/owner\/properties\/103$/)
+})
+
+test('owner listings table shows review and availability colours with a legend', async ({ page }) => {
+  await openWorkspace(page, 'owner', '/owner/properties')
+  const legend = page.getByTestId('listing-status-legend')
+  await expect(legend).toContainText('Pending review')
+  await expect(legend).toContainText('Reserved')
+  await expect(page.getByTestId('review-status').first()).toBeVisible()
+  await expect(page.getByTestId('availability-badge').first()).toContainText('Available')
 })
 
 test('listing inquiry page supports empty and load-error states', async ({ page }) => {

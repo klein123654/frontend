@@ -23,7 +23,6 @@ import {
 } from '@lucide/vue'
 
 import AppSidebar from '@/components/layout/AppSidebar.vue'
-import { usePublisherBasePath } from '@/composables/usePublisherBasePath'
 
 import {
   formatOwnerPrice,
@@ -41,7 +40,7 @@ onMounted(() => loadOwnerProperties())
 
 // CURRENT PROPERTY ID
 const route = useRoute()
-const workspaceBase = usePublisherBasePath()
+const workspaceBase = '/owner'
 
 const propertyId = computed(() => {
   const rawId = route.params.id

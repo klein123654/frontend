@@ -12,6 +12,20 @@ export type PropertySort = (typeof SORT_OPTIONS)[number]['value']
 export const ALL_TYPES = 'All Types'
 export const ALL_LISTINGS = 'All Listings'
 
+/** '' shows every visible listing; available includes reserved; unavailable is recently rented or sold. */
+export const AVAILABILITY_FILTERS = [
+  { value: '', label: 'All listings' },
+  { value: 'available', label: 'Available & reserved' },
+  { value: 'reserved', label: 'Reserved only' },
+  { value: 'unavailable', label: 'Recently rented or sold' },
+] as const
+
+export type AvailabilityFilter = (typeof AVAILABILITY_FILTERS)[number]['value']
+
+function isAvailabilityFilter(value: string): value is AvailabilityFilter {
+  return AVAILABILITY_FILTERS.some((option) => option.value === value)
+}
+
 /** The browse-page filters, kept in the URL so searches can be shared and bookmarked. */
 export interface PropertyBrowseState {
   search: string
@@ -23,6 +37,7 @@ export interface PropertyBrowseState {
   maxPrice: number | null
   sort: PropertySort
   page: number
+  availability?: AvailabilityFilter
 }
 
 function firstString(value: LocationQuery[string] | undefined): string {
@@ -43,6 +58,7 @@ function isSort(value: string): value is PropertySort {
 export function parseBrowseQuery(query: LocationQuery): PropertyBrowseState {
   const sort = firstString(query.sort)
   const page = Number.parseInt(firstString(query.page), 10)
+  const availability = firstString(query.availability)
 
   return {
     search: firstString(query.search),
@@ -54,6 +70,7 @@ export function parseBrowseQuery(query: LocationQuery): PropertyBrowseState {
     maxPrice: parsePrice(firstString(query.max_price)),
     sort: isSort(sort) ? sort : 'newest',
     page: Number.isInteger(page) && page > 0 ? page : 1,
+    availability: isAvailabilityFilter(availability) ? availability : '',
   }
 }
 
@@ -67,6 +84,7 @@ export function toBrowseQuery(state: PropertyBrowseState): LocationQueryRaw {
   if (state.tags.length) query.tags = state.tags.join(',')
   if (state.minPrice !== null) query.min_price = String(state.minPrice)
   if (state.maxPrice !== null) query.max_price = String(state.maxPrice)
+  if (state.availability) query.availability = state.availability
   if (state.sort !== 'newest') query.sort = state.sort
   if (state.page > 1) query.page = String(state.page)
   return query

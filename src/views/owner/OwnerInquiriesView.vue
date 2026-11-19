@@ -18,7 +18,6 @@ import {
 } from '@lucide/vue'
 
 import AppSidebar from '@/components/layout/AppSidebar.vue'
-import { usePublisherBasePath } from '@/composables/usePublisherBasePath'
 
 import {
   type InquiryStatus,
@@ -33,7 +32,7 @@ import {
   updateInquiryStatus,
 } from '@/stores/ownerInquiries'
 
-const workspaceBase = usePublisherBasePath()
+const workspaceBase = '/owner'
 onMounted(() => Promise.all([loadOwnerProperties(), loadOwnerInquiries()]))
 
 // SEARCH AND FILTERS

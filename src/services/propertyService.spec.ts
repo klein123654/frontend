@@ -95,6 +95,33 @@ describe('mapProperty', () => {
     expect(property.publisher).toMatchObject({ id: 1, verified: true, roleLabel: 'Property owner', contact: { phone: '09171234567', email: null } })
   })
 
+  it('maps availability, defaulting to available', () => {
+    expect(mapProperty(backendProperty as never).availability).toBe('available')
+    expect(mapProperty({ ...backendProperty, availability: 'reserved' } as never).availability).toBe('reserved')
+  })
+
+  it('maps a broker’s credentials, firm and affiliations', () => {
+    const property = mapProperty({
+      ...backendProperty,
+      publisher: {
+        ...backendProperty.publisher, role: 'broker', role_label: 'Licensed broker', license_number: 'PRC-9',
+        broker: {
+          license_number: 'PRC-9', prc_valid_until: '2028-01-31', dhsud_registration_number: 'DHSUD-7', dhsud_valid_until: '2027-03-31',
+          credential_status: 'current',
+          firm: { name: 'Agusan Prime Realty', position: 'Associate Broker', address: null, registration_number: 'DTI-1' },
+          affiliations: ['PAREB'],
+        },
+      },
+    } as never)
+
+    expect(property.publisher?.broker).toEqual({
+      licenseNumber: 'PRC-9', prcValidUntil: '2028-01-31', dhsudRegistrationNumber: 'DHSUD-7', dhsudValidUntil: '2027-03-31',
+      credentialStatus: 'current',
+      firm: { name: 'Agusan Prime Realty', position: 'Associate Broker', address: null, registrationNumber: 'DTI-1' },
+      affiliations: ['PAREB'],
+    })
+  })
+
   it('puts the primary photo first and resolves relative paths', () => {
     const property = mapProperty(backendProperty as never)
 

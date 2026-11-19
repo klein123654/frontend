@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Mail, MessageCircle, Phone } from '@lucide/vue'
 import VerifiedBadge from './VerifiedBadge.vue'
+import BrokerCredentialsSummary from './BrokerCredentialsSummary.vue'
 import type { Publisher } from '@/types/property'
 
 const props = defineProps<{
@@ -13,6 +14,8 @@ const props = defineProps<{
 const hasDirectContact = computed(() =>
   Object.values(props.publisher.contact).some(Boolean),
 )
+
+const broker = computed(() => (props.publisher.role === 'broker' ? props.publisher.broker ?? null : null))
 
 const emailLink = computed(() => {
   const email = props.publisher.contact.email
@@ -27,7 +30,11 @@ const emailLink = computed(() => {
     <p class="contact-card__eyebrow">Listed by</p>
     <h2 id="publisher-contact-heading">{{ publisher.name }}</h2>
     <VerifiedBadge :publisher="publisher" />
-    <p v-if="publisher.agencyName" class="contact-card__agency">{{ publisher.agencyName }}</p>
+
+    <BrokerCredentialsSummary v-if="broker" :broker="broker" />
+    <p v-else-if="publisher.role === 'owner'" class="contact-card__agency" data-testid="owner-direct">
+      Listed directly by the owner. No broker is involved.
+    </p>
 
     <div v-if="hasDirectContact" class="contact-card__actions">
       <a v-if="publisher.contact.phone" :href="`tel:${publisher.contact.phone}`" class="contact-card__button contact-card__button--primary">

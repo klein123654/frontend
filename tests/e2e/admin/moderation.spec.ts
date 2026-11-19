@@ -111,15 +111,34 @@ test('admin accounts are protected and role filters match', async ({ page }) => 
 })
 
 test('admin can review and verify broker credentials', async ({ page }) => {
-  await openAdmin(page, '/admin/verifications')
+  await openAdmin(page, '/admin/verifications', {
+    [`PATCH admin/verifications/${verification.id}`]: { scenario: 'success', body: { data: { ...verification, status: 'verified', dhsud_checked_at: new Date().toISOString() } } },
+  })
   const queue = new AdminVerificationsPage(page)
   await queue.searchInput.fill(users.broker.name)
   await queue.statusFilter.selectOption('Pending')
   await queue.reviewButton.click()
   await expect(page.getByRole('heading', { name: /verification details/i })).toBeVisible()
+  const details = page.getByTestId('broker-credential-details')
+  await expect(details).toContainText(verification.dhsud_registration_number)
+  await expect(details).toContainText(verification.firm_name)
+  await expect(details).toContainText('Butuan Realty Board')
   await page.getByRole('button', { name: /mark verified/i }).click()
-  await expect(page.getByRole('status')).toContainText(/verification verified/i)
-  expect(verification.id).toBe(301)
+  await expect(page.getByRole('status').filter({ hasText: /verification verified/i })).toBeVisible()
+})
+
+test('admin records the yearly DHSUD check for a verified broker', async ({ page }) => {
+  const due = { ...verification, status: 'verified', dhsud_check_due: true }
+  await openAdmin(page, '/admin/verifications', {
+    'GET admin/verifications': { scenario: 'success', body: { data: [due] } },
+    [`POST admin/verifications/${verification.id}/dhsud-check`]: { scenario: 'success', body: { data: { ...due, dhsud_check_due: false, dhsud_checked_at: new Date().toISOString() } } },
+  })
+  await expect(page.getByText(/due for the yearly DHSUD check/i)).toBeVisible()
+  await new AdminVerificationsPage(page).reviewButton.click()
+  await page.getByRole('button', { name: /not active/i }).click()
+  await expect(page.getByText(/a note is required/i)).toBeVisible()
+  await page.getByRole('button', { name: /DHSUD registration active/i }).click()
+  await expect(page.getByText(/next check is due in a year/i)).toBeVisible()
 })
 
 test('admin requires a note to reject a publisher application', async ({ page }) => {

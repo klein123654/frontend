@@ -29,7 +29,6 @@ async function goToHome(user: AuthUser) {
   const roleHome = {
     owner: '/owner/dashboard',
     broker: '/broker/dashboard',
-    developer: '/developer/dashboard',
     admin: '/admin/dashboard',
     buyer: '/',
   }[user.role] || '/'

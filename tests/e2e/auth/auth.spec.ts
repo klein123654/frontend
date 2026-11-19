@@ -27,7 +27,7 @@ test.describe('authentication', () => {
     await expect(login.page.getByRole('alert')).toContainText(/sign in again|invalid/i)
   })
 
-  for (const role of ['buyer', 'owner', 'developer', 'broker', 'admin'] as AppRole[]) {
+  for (const role of ['buyer', 'owner', 'broker', 'admin'] as AppRole[]) {
     test(`login redirects ${role} to the correct workspace`, async ({ page }) => {
       await installApiMocks(page, role)
       await signInAs(page, role)
