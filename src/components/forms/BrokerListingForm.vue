@@ -15,6 +15,7 @@ import { hasPhotoChanges, initialPhotoChanges, remainingPhotoCount, type PhotoCh
 
 // Leaflet is large, so the map loads only when the form renders it.
 const LocationMap = defineAsyncComponent(() => import('@/components/property/LocationMap.vue'))
+import { useBarangayMapFocus } from '@/composables/useBarangayMapFocus'
 
 const props = defineProps<{ initial?: BrokerListing; edit?: boolean }>()
 const emit = defineEmits<{ save: [payload: BrokerListingInput] }>()
@@ -34,6 +35,7 @@ const form = reactive({
   aiFeatures: ''
 })
 const route = useRoute()
+const mapFocus = useBarangayMapFocus(() => form.barangay)
 /** Listing details the AI helpers write from. */
 const aiFacts = computed(() => ({
   title: form.title.trim(),
@@ -112,7 +114,7 @@ function selectImages(event: Event) {
     <div class="field"><label for="broker-listing-type">Listing Type</label><select id="broker-listing-type" v-model="form.listingType"><option v-for="type in listingTypes" :key="type" :value="type">{{ type }}</option></select></div>
     <div class="field"><label for="broker-barangay">Barangay</label><input id="broker-barangay" v-model="form.barangay" list="broker-butuan-barangays" placeholder="Start typing a barangay" /><datalist id="broker-butuan-barangays"><option v-for="name in BUTUAN_BARANGAYS" :key="name" :value="name" /></datalist><small>Type a few letters to see Butuan barangay suggestions.</small></div>
     <div class="field"><label for="broker-location">Property Location</label><input id="broker-location" v-model="form.location" placeholder="Street / city / nearby landmark" /></div>
-    <div class="field full"><label>Map Pin *</label><LocationMap :latitude="form.latitude" :longitude="form.longitude" selectable @select="setCoordinates" /></div>
+    <div class="field full"><label>Map Pin *</label><LocationMap :latitude="form.latitude" :longitude="form.longitude" :focus="mapFocus" selectable @select="setCoordinates" /></div>
     <p class="location-scope">Location coverage: <strong>Butuan City, Agusan del Norte</strong></p>
     <div class="field"><label for="broker-price">Price (PHP)</label><input id="broker-price" v-model.number="form.price" type="number" min="0" step="0.01" /></div>
     <div class="field"><label for="broker-area">Area (sq. m.)</label><input id="broker-area" v-model.number="form.area" type="number" min="0" step="0.01" /></div>

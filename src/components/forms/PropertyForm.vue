@@ -37,6 +37,7 @@ import { BUTUAN_BARANGAYS, BUTUAN_CITY, BUTUAN_PROVINCE, canonicalButuanBarangay
 
 // Leaflet is large, so the map loads only when the form renders it.
 const LocationMap = defineAsyncComponent(() => import('@/components/property/LocationMap.vue'))
+import { useBarangayMapFocus } from '@/composables/useBarangayMapFocus'
 
 type SaveStatus = 'Draft' | 'Pending'
 
@@ -95,6 +96,7 @@ const title = ref('')
 const propertyType = ref<PropertyType | null>(null)
 const listingType = ref<ListingType | null>(null)
 const barangay = ref('')
+const mapFocus = useBarangayMapFocus(barangay)
 const location = ref('')
 const latitude = ref<number | null>(null)
 const longitude = ref<number | null>(null)
@@ -453,6 +455,7 @@ function submitForReview() {
             id="property-map"
             :latitude="latitude"
             :longitude="longitude"
+            :focus="mapFocus"
             selectable
             @select="setCoordinates"
           />
