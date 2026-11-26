@@ -15,8 +15,7 @@ import {
   FileText,
   Save,
   Send,
-  CircleAlert,
-  Sparkles
+  CircleAlert
 } from '@lucide/vue'
 
 import type {
@@ -28,7 +27,8 @@ import type {
   OwnerProperty
 } from '@/data/owner/ownerProperties'
 import { useFormDraft } from '@/composables/useFormDraft'
-import { generateListingDescription } from '@/services/propertyService'
+import AiDescriptionAssistant from '@/components/forms/AiDescriptionAssistant.vue'
+import AiTitleSuggestions from '@/components/forms/AiTitleSuggestions.vue'
 import FormSection from '@/components/forms/FormSection.vue'
 import PropertyImagePicker from '@/components/forms/PropertyImagePicker.vue'
 import ListingPhotoManager from '@/components/forms/ListingPhotoManager.vue'
@@ -101,9 +101,11 @@ const longitude = ref<number | null>(null)
 const price = ref<number | null>(null)
 const area = ref<number | null>(null)
 const description = ref('')
+/** Publisher's notes for the AI helper; not saved with the listing. */
+const aiFeatures = ref('')
 const route = useRoute()
 const formDraft = useFormDraft(`property-${route.fullPath}`, {
-  title, propertyType, listingType, barangay, location, latitude, longitude, price, area, description,
+  title, propertyType, listingType, barangay, location, latitude, longitude, price, area, description, aiFeatures,
 })
 const images = ref<File[]>([])
 const existingPhotos = computed(() => (isEditMode.value ? props.initialValues?.photos ?? [] : []))
@@ -116,8 +118,6 @@ const attemptedSubmit = ref(false)
 const attemptedDraft = ref(false)
 const errorMessage = ref('')
 const imageError = ref('')
-const descriptionGenerationMessage = ref('')
-const isGeneratingDescription = ref(false)
 
 const propertyTypes: PropertyType[] = [
   'Office Spaces',
@@ -253,29 +253,15 @@ function setCoordinates(coordinates: { latitude: number; longitude: number }) {
   longitude.value = coordinates.longitude
 }
 
-async function generateDescription() {
-  if (isGeneratingDescription.value) return
-
-  isGeneratingDescription.value = true
-  descriptionGenerationMessage.value = ''
-
-  try {
-    description.value = await generateListingDescription({
-      title: title.value.trim(),
-      area: area.value,
-      location: [location.value.trim(), barangay.value.trim(), BUTUAN_CITY, BUTUAN_PROVINCE].filter(Boolean).join(', '),
-      price: price.value,
-      propertyType: propertyType.value ?? '',
-      listingType: listingType.value ?? '',
-    })
-  } catch (cause) {
-    descriptionGenerationMessage.value = cause instanceof Error
-      ? cause.message
-      : 'AI description generation is temporarily unavailable. Please try again.'
-  } finally {
-    isGeneratingDescription.value = false
-  }
-}
+/** Listing details the AI helpers write from. */
+const aiFacts = computed(() => ({
+  title: title.value.trim(),
+  area: area.value,
+  location: [location.value.trim(), barangay.value.trim(), BUTUAN_CITY, BUTUAN_PROVINCE].filter(Boolean).join(', '),
+  price: price.value,
+  propertyType: propertyType.value ?? '',
+  listingType: listingType.value ?? '',
+}))
 
 // SAVE DRAFT OR SAVE CHANGES
 
@@ -338,6 +324,7 @@ function submitForReview() {
             placeholder="e.g. Modern Commercial Office Space"
             fluid
           />
+          <AiTitleSuggestions :facts="{ ...aiFacts, features: aiFeatures }" @pick="title = $event" />
 
           <small
             v-if="isInvalid('title')"
@@ -565,24 +552,16 @@ function submitForReview() {
     >
 
       <div class="field">
-        <div class="description-controls">
-          <label for="property-description">
-            Description <span>*</span>
-          </label>
-          <button
-            type="button"
-            class="generate-description-button"
-            :disabled="isGeneratingDescription"
-            @click="generateDescription"
-          >
-            <Sparkles v-if="!isGeneratingDescription" :size="15" aria-hidden="true" />
-            <span>{{ isGeneratingDescription ? 'Generating…' : 'Generate Description' }}</span>
-          </button>
-        </div>
+        <AiDescriptionAssistant
+          v-model="description"
+          v-model:features="aiFeatures"
+          :facts="aiFacts"
+          id-prefix="property"
+        />
 
-        <small v-if="descriptionGenerationMessage" class="description-generation-message" role="status">
-          {{ descriptionGenerationMessage }}
-        </small>
+        <label for="property-description">
+          Description <span>*</span>
+        </label>
 
         <Textarea
           id="property-description"
@@ -725,40 +704,9 @@ function submitForReview() {
   color: #dc2626;
 }
 
-.description-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
 
-.generate-description-button {
-  display: inline-flex;
-  min-height: 34px;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 0 11px;
-  border: 1px solid #93c5fd;
-  border-radius: 6px;
-  background: #f0faf8;
-  color: #2563eb;
-  cursor: pointer;
-  font: inherit;
-  font-size: 11px;
-  font-weight: 700;
-}
 
-.generate-description-button:disabled {
-  cursor: wait;
-  opacity: .65;
-}
 
-.description-generation-message {
-  color: #a33b2b;
-  font-size: 12px;
-  line-height: 1.5;
-}
 
 /* PRIMEVUE FIELD SIZING */
 
@@ -902,11 +850,7 @@ function submitForReview() {
 /* RESPONSIVE DESIGN */
 
 @media (max-width: 650px) {
-  .description-controls {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
+  
   .fields-grid {
     grid-template-columns: 1fr;
     gap: 18px;

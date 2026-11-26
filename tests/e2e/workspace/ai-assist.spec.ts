@@ -99,3 +99,62 @@ test('market insight keeps rent and sale prices apart and labels the AI summary'
   await expect(widget).toContainText('For sale (1)')
   await expect(widget).toContainText('Libertad')
 })
+
+test.describe('AI help in the listing form', () => {
+  test('owner adds key features, generates a draft, sees a number warning, and picks a suggested title', async ({ page }) => {
+    let describeBody: Record<string, unknown> | null = null
+    await installApiMocks(page, 'owner', {
+      'POST ai/describe': { scenario: 'success', body: { success: true, description: 'A 120 sqm office with 2 parking slots, 5 minutes from the port.', unsupported_numbers: ['5'] } },
+      'POST ai/suggest-titles': { scenario: 'success', body: { success: true, titles: ['Office with Parking on J.C. Aquino Ave', 'Fiber-Ready Office in Imadejas'] } },
+    })
+    page.on('request', (request) => {
+      if (request.method() === 'POST' && request.url().endsWith('/ai/describe')) describeBody = request.postDataJSON() as Record<string, unknown>
+    })
+    await seedAuthenticatedRole(page, 'owner')
+    await page.goto('/owner/properties/create')
+    await waitForRouteReady(page)
+
+    await page.locator('#property-features').fill('2 parking slots, fiber internet ready')
+    await page.getByRole('button', { name: 'Generate Description' }).click()
+    await expect(page.locator('#property-description')).toHaveValue(/2 parking slots/)
+    await expect(page.getByTestId('ai-unsupported-numbers')).toContainText('5')
+    expect(describeBody).toMatchObject({ features: '2 parking slots, fiber internet ready', style: 'standard', language: 'en' })
+
+    await page.getByRole('button', { name: 'Suggest titles' }).click()
+    await page.getByRole('button', { name: 'Fiber-Ready Office in Imadejas' }).click()
+    await expect(page.locator('#property-title')).toHaveValue('Fiber-Ready Office in Imadejas')
+  })
+
+  test('owner is asked before the AI replaces their own description', async ({ page }) => {
+    let describeBody: Record<string, unknown> | null = null
+    await installApiMocks(page, 'owner', {
+      'POST ai/describe': { scenario: 'success', body: { success: true, description: 'A tidy, polished description.', unsupported_numbers: [] } },
+    })
+    page.on('request', (request) => {
+      if (request.method() === 'POST' && request.url().endsWith('/ai/describe')) describeBody = request.postDataJSON() as Record<string, unknown>
+    })
+    await seedAuthenticatedRole(page, 'owner')
+    await page.goto('/owner/properties/create')
+    await waitForRouteReady(page)
+
+    await page.locator('#property-description').fill('my rough notes, near city hall')
+    await page.getByRole('button', { name: 'Generate Description' }).click()
+    await expect(page.getByRole('group', { name: 'The description already has text' })).toBeVisible()
+    await expect(page.locator('#property-description')).toHaveValue('my rough notes, near city hall')
+    await page.getByRole('button', { name: 'Improve my text' }).click()
+    await expect(page.locator('#property-description')).toHaveValue('A tidy, polished description.')
+    expect(describeBody).toMatchObject({ current_description: 'my rough notes, near city hall' })
+  })
+
+  test('broker listing form has the AI helpers too', async ({ page }) => {
+    await installApiMocks(page, 'broker', {
+      'POST ai/describe': { scenario: 'success', body: { success: true, description: 'Broker draft.', unsupported_numbers: [] } },
+    })
+    await seedAuthenticatedRole(page, 'broker')
+    await page.goto('/broker/listings/create')
+    await waitForRouteReady(page)
+    await expect(page.getByTestId('ai-title-suggestions')).toBeVisible()
+    await page.getByRole('button', { name: 'Generate Description' }).click()
+    await expect(page.locator('#broker-description')).toHaveValue('Broker draft.')
+  })
+})
