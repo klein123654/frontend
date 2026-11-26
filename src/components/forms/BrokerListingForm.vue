@@ -9,6 +9,8 @@ import { BUTUAN_BARANGAYS, BUTUAN_CITY, BUTUAN_PROVINCE, canonicalButuanBarangay
 
 import { MAX_PROPERTY_IMAGES, photoRoom, validatePropertyImages } from '@/utils/propertyImages'
 import ListingPhotoManager from '@/components/forms/ListingPhotoManager.vue'
+import AiDescriptionAssistant from '@/components/forms/AiDescriptionAssistant.vue'
+import AiTitleSuggestions from '@/components/forms/AiTitleSuggestions.vue'
 import { hasPhotoChanges, initialPhotoChanges, remainingPhotoCount, type PhotoChanges } from '@/types/listingPhotos'
 
 // Leaflet is large, so the map loads only when the form renders it.
@@ -27,9 +29,20 @@ const form = reactive({
   title: '', location: '', barangay: '',
   propertyType: 'Office Spaces' as PropertyType,
   listingType: 'For Rent' as ListingType,
-  price: 0, area: 0, description: '', latitude: null as number | null, longitude: null as number | null
+  price: 0, area: 0, description: '', latitude: null as number | null, longitude: null as number | null,
+  /** Notes for the AI helper; not saved with the listing. */
+  aiFeatures: ''
 })
 const route = useRoute()
+/** Listing details the AI helpers write from. */
+const aiFacts = computed(() => ({
+  title: form.title.trim(),
+  area: Number(form.area) || null,
+  location: [form.location.trim(), form.barangay.trim(), BUTUAN_CITY, BUTUAN_PROVINCE].filter(Boolean).join(', '),
+  price: Number(form.price) || null,
+  propertyType: form.propertyType,
+  listingType: form.listingType,
+}))
 const formDraft = useFormDraft(`broker-listing-${route.fullPath}`, form)
 
 watch(() => props.initial, (value) => {
@@ -94,7 +107,7 @@ function selectImages(event: Event) {
 
 <template>
   <form class="listing-form" @submit.prevent="submit('Draft')">
-    <div class="field full"><label for="broker-title">Property Title *</label><input id="broker-title" v-model="form.title" maxlength="150" placeholder="Enter the property title" /></div>
+    <div class="field full"><label for="broker-title">Property Title *</label><input id="broker-title" v-model="form.title" maxlength="150" placeholder="Enter the property title" /><AiTitleSuggestions :facts="{ ...aiFacts, features: form.aiFeatures }" @pick="form.title = $event" /></div>
     <div class="field"><label for="broker-property-type">Property Type</label><select id="broker-property-type" v-model="form.propertyType"><option v-for="type in propertyTypes" :key="type" :value="type">{{ type }}</option></select></div>
     <div class="field"><label for="broker-listing-type">Listing Type</label><select id="broker-listing-type" v-model="form.listingType"><option v-for="type in listingTypes" :key="type" :value="type">{{ type }}</option></select></div>
     <div class="field"><label for="broker-barangay">Barangay</label><input id="broker-barangay" v-model="form.barangay" list="broker-butuan-barangays" placeholder="Start typing a barangay" /><datalist id="broker-butuan-barangays"><option v-for="name in BUTUAN_BARANGAYS" :key="name" :value="name" /></datalist><small>Type a few letters to see Butuan barangay suggestions.</small></div>
@@ -105,7 +118,7 @@ function selectImages(event: Event) {
     <div class="field"><label for="broker-area">Area (sq. m.)</label><input id="broker-area" v-model.number="form.area" type="number" min="0" step="0.01" /></div>
     <div v-if="existingPhotos.length" class="field full"><span class="photos-label">Current photos</span><ListingPhotoManager v-model="photoChanges" :photos="existingPhotos" /></div>
     <div class="field full"><label for="broker-images">{{ existingPhotos.length ? 'Add more photos' : 'Property Images' }}</label><input id="broker-images" type="file" accept="image/png,image/jpeg,image/webp" multiple @change="selectImages"/><small>{{ existingPhotos.length ? `You can add ${photoRoom(remainingPhotoCount(existingPhotos, photoChanges))} more (up to ${MAX_PROPERTY_IMAGES} per listing).` : `Add up to ${MAX_PROPERTY_IMAGES} photos.` }} JPG, PNG or WebP, 5 MB each.</small></div>
-    <div class="field full"><label for="broker-description">Description</label><textarea id="broker-description" v-model="form.description" rows="6" placeholder="Describe the property" /></div>
+    <div class="field full"><AiDescriptionAssistant v-model="form.description" v-model:features="form.aiFeatures" :facts="aiFacts" id-prefix="broker" /><label for="broker-description">Description</label><textarea id="broker-description" v-model="form.description" rows="6" placeholder="Describe the property" /></div>
     <p v-if="validationMessage" class="validation" role="alert">{{ validationMessage }}</p>
     <div class="actions"><RouterLink class="cancel" to="/broker/listings">Cancel</RouterLink><button type="submit">{{ edit ? 'Save Changes' : 'Save Draft' }}</button><button type="button" class="secondary-action" @click="submit('Pending')">Submit for Review</button></div>
   </form>

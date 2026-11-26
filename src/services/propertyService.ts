@@ -378,19 +378,44 @@ export interface DescriptionRequest {
   price: number | null
   propertyType: string
   listingType: string
+  /** Publisher's own notes on what makes the property stand out; not shown publicly. */
+  features?: string
+  /** The publisher's current text, to polish instead of replacing. */
+  currentDescription?: string
+  style?: DescriptionStyle
+  language?: DescriptionLanguage
 }
 
-/** Ask the AI service to draft a listing description. Throws with a user-facing message on failure. */
-export async function generateListingDescription(input: DescriptionRequest): Promise<string> {
-  const response = await apiRequest<{ success: boolean; description?: string; message?: string }>('ai/describe', {
+export type DescriptionStyle = 'standard' | 'shorter' | 'longer' | 'formal'
+export type DescriptionLanguage = 'en' | 'fil' | 'ceb'
+
+export interface DescriptionDraft {
+  description: string
+  /** Numbers in the draft that the publisher never entered, for checking. */
+  unsupportedNumbers: string[]
+}
+
+function listingFactsBody(input: DescriptionRequest) {
+  return {
+    title: input.title,
+    size: input.area,
+    location: input.location,
+    price: input.price,
+    type: input.propertyType,
+    listing_type: input.listingType,
+    features: input.features?.trim() || null,
+  }
+}
+
+/** Ask the AI service to draft or polish a listing description. Throws with a user-facing message on failure. */
+export async function generateListingDescription(input: DescriptionRequest): Promise<DescriptionDraft> {
+  const response = await apiRequest<{ success: boolean; description?: string; message?: string; unsupported_numbers?: string[] }>('ai/describe', {
     method: 'POST',
     body: JSON.stringify({
-      title: input.title,
-      size: input.area,
-      location: input.location,
-      price: input.price,
-      type: input.propertyType,
-      listing_type: input.listingType,
+      ...listingFactsBody(input),
+      current_description: input.currentDescription?.trim() || null,
+      style: input.style ?? 'standard',
+      language: input.language ?? 'en',
     }),
   })
 
@@ -398,12 +423,26 @@ export async function generateListingDescription(input: DescriptionRequest): Pro
     throw new Error(response.message || 'AI description generation is unavailable.')
   }
 
-  const description = response.description?.trim()
+  const description = response.description?.trim() ?? ''
   if (!description) {
     throw new Error('The AI returned an empty description. Please try again.')
   }
 
-  return description
+  return { description, unsupportedNumbers: response.unsupported_numbers ?? [] }
+}
+
+/** Ask the AI service for up to three listing titles. Throws with a user-facing message on failure. */
+export async function suggestListingTitles(input: DescriptionRequest): Promise<string[]> {
+  const response = await apiRequest<{ success: boolean; titles?: string[]; message?: string }>('ai/suggest-titles', {
+    method: 'POST',
+    body: JSON.stringify(listingFactsBody(input)),
+  })
+
+  if (!response.success || !response.titles?.length) {
+    throw new Error(response.message || 'AI title suggestions are unavailable.')
+  }
+
+  return response.titles
 }
 
 /** Public profile of a verified publisher. */

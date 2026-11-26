@@ -154,7 +154,17 @@ describe('generateListingDescription', () => {
   it('returns the trimmed description', async () => {
     vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({ success: true, description: '  Bright office.  ' })))
 
-    await expect(generateListingDescription(request)).resolves.toBe('Bright office.')
+    await expect(generateListingDescription(request)).resolves.toEqual({ description: 'Bright office.', unsupportedNumbers: [] })
+  })
+
+  it('sends the key features, style and language, and returns numbers to check', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({ success: true, description: 'Office.', unsupported_numbers: ['15'] }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(generateListingDescription({ ...request, features: ' corner unit ', currentDescription: 'my text', style: 'shorter', language: 'fil' }))
+      .resolves.toEqual({ description: 'Office.', unsupportedNumbers: ['15'] })
+    const body = JSON.parse(String(fetchMock.mock.calls[0]![1]!.body))
+    expect(body).toMatchObject({ features: 'corner unit', current_description: 'my text', style: 'shorter', language: 'fil', size: 120, type: 'Office Spaces' })
   })
 
   it('surfaces the service message when generation is unavailable', async () => {
