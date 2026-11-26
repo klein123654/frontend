@@ -131,3 +131,33 @@ test('broker verification shows load and submit errors', async ({ page }) => {
   await profile.submitButton.click()
   await expect(page.getByRole('status')).toContainText(/temporarily unavailable|unable to/i)
 })
+
+test('broker sees a success pop-up after adding a listing and can add another', async ({ page }) => {
+  await openBroker(page, '/broker/listings/create', {
+    'POST my/properties': { scenario: 'success', body: { data: { ...brokerListing, id: 990, title: 'Broker pop-up unit', status: 'draft' } } },
+  })
+  await page.locator('#broker-title').fill('Broker pop-up unit')
+  await page.locator('#broker-barangay').fill('Libertad')
+  await page.locator('#broker-location').fill('Montilla Boulevard')
+  await page.locator('#broker-price').fill('38000')
+  await page.locator('#broker-area').fill('85')
+  await page.locator('#broker-description').fill('Corner retail unit with glass storefront.')
+  await page.getByRole('button', { name: /save draft/i }).click()
+
+  const dialog = page.getByRole('dialog', { name: 'Draft saved' })
+  await expect(dialog).toContainText('Broker pop-up unit')
+  await expect(dialog.getByRole('link', { name: 'View my listings' })).toHaveAttribute('href', '/broker/listings')
+  await dialog.getByRole('button', { name: 'OK, add another property' }).click()
+  await expect(page.locator('#broker-title')).toHaveValue('')
+})
+
+test('broker edit failures show the real reason and keep the changes', async ({ page }) => {
+  await openBroker(page, `/broker/listings/${brokerListing.id}/edit`, {
+    [`POST my/properties/${brokerListing.id}`]: { scenario: 'error', status: 500, body: { message: 'Your photos could not be uploaded right now. Please try again in a few minutes.', type: 'storage_error' } },
+  })
+  await page.locator('#broker-title').fill('Edited broker title')
+  await page.getByRole('button', { name: /save changes/i }).click()
+  await expect(page.getByRole('alertdialog')).toContainText('could not be uploaded right now')
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Close' }).click()
+  await expect(page.locator('#broker-title')).toHaveValue('Edited broker title')
+})

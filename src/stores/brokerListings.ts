@@ -25,14 +25,11 @@ export async function addBrokerListing(input: BrokerListingInput): Promise<Broke
   return result
 }
 
-export async function updateBrokerListing(id: number, input: BrokerListingInput): Promise<boolean> {
-  try {
-    const updated = await updateMyListing(id, { ...input, images: input.images ?? [] })
-    allBrokerListings.value = allBrokerListings.value.map((item) => item.id === id ? updated as BrokerListing : item)
-    return true
-  } catch {
-    return false
-  }
+/** Saves changes to a broker listing; throws with a user-facing message on failure. */
+export async function updateBrokerListing(id: number, input: BrokerListingInput): Promise<BrokerListing> {
+  const updated = await updateMyListing(id, { ...input, images: input.images ?? [] }) as BrokerListing
+  allBrokerListings.value = allBrokerListings.value.map((item) => item.id === id ? updated : item)
+  return updated
 }
 
 export async function deleteBrokerListing(id: number): Promise<boolean> {
