@@ -220,10 +220,11 @@ test.describe('live local DeepSeek features', () => {
     }
   })
 
-  test('AI market insight loads and refreshes a two to four sentence summary', async ({ page }) => {
+  test('AI market insight loads a two to four sentence summary', async ({ page }) => {
     await login(page, ownerEmail, '/owner/dashboard')
-    const widget = page.locator('.market-insight-widget')
-    const summary = widget.locator('.summary')
+    await page.getByRole('button', { name: /Market insights/ }).click()
+    const widget = page.locator('.market__ai')
+    const summary = widget.locator('p').first()
 
     try {
       await expect(summary).toBeVisible({ timeout: 30_000 })
@@ -233,19 +234,10 @@ test.describe('live local DeepSeek features', () => {
       expect(sentenceCount, `Market insight sentence count ${sentenceCount}: ${initialText}`).toBeGreaterThanOrEqual(2)
       expect(sentenceCount).toBeLessThanOrEqual(4)
       expect(initialText).toMatch(/listing|price|PHP|₱|office|warehouse|retail|commercial/i)
-      await capture(page, 'ai-market-insight-initial.png', '.market-insight-widget')
+      await capture(page, 'ai-market-insight-initial.png', '.market__ai')
       console.info(`[AI MARKET INSIGHT] ${initialText.slice(0, 500)}`)
-
-      const refresh = widget.getByRole('button', { name: 'Refresh market insights' })
-      await refresh.click()
-      await expect(refresh).toBeEnabled({ timeout: 30_000 })
-      await expect(summary).toBeVisible()
-      const refreshedText = (await summary.innerText()).trim()
-      expect(refreshedText).not.toMatch(/not configured|AI service error/i)
-      await capture(page, 'ai-market-insight-refreshed.png', '.market-insight-widget')
-      console.info(`[AI MARKET INSIGHT REFRESH] ${refreshedText.slice(0, 500)}`)
     } catch (error) {
-      await capture(page, 'ai-market-insight-failure.png', '.market-insight-widget').catch(async () => capture(page, 'ai-market-insight-failure.png'))
+      await capture(page, 'ai-market-insight-failure.png', '.market__ai').catch(async () => capture(page, 'ai-market-insight-failure.png'))
       throw error
     }
   })

@@ -66,38 +66,29 @@ test.describe('AI assistance in conversations', () => {
   })
 })
 
-test('market insight keeps rent and sale prices apart and labels the AI summary', async ({ page }) => {
+test('market insights label the summary by who wrote it', async ({ page }) => {
   await installApiMocks(page, 'owner', {
-    'GET ai/market-insight': {
-      scenario: 'success',
-      body: {
-        success: true,
-        summary: 'Retail spaces and offices each have 3 listings.',
-        ai_written: true,
-        aggregates: {
-          total_listings: 6,
-          by_type: [{
-            property_type: 'Retail Spaces',
-            listing_count: 3,
-            prices: [
-              { listing_type: 'rent', label: 'For rent', listing_count: 2, median_price: 25000, median_price_per_sqm: 350, price_unit: 'per month' },
-              { listing_type: 'sale', label: 'For sale', listing_count: 1, median_price: 5000000, median_price_per_sqm: 25000, price_unit: 'total asking price' },
-            ],
-          }],
-          top_barangays: [{ barangay: 'Libertad', listing_count: 3 }],
-        },
-      },
-    },
+    'GET ai/market-insight': { scenario: 'success', body: { success: true, summary: 'Retail spaces and offices each have 3 listings.', ai_written: true, aggregates: {} } },
   })
   await seedAuthenticatedRole(page, 'owner')
   await page.goto('/owner/dashboard')
   await waitForRouteReady(page)
-  const widget = page.locator('.market-insight-widget')
-  await expect(widget).toContainText('Summary written by AI from the figures below.')
-  await expect(widget).toContainText('For rent (2)')
-  await expect(widget).toContainText('/ month')
-  await expect(widget).toContainText('For sale (1)')
-  await expect(widget).toContainText('Libertad')
+  await page.getByRole('button', { name: /Market insights/ }).click()
+  await expect(page.getByText('AI market insight')).toBeVisible()
+  await expect(page.getByText('Retail spaces and offices each have 3 listings.')).toBeVisible()
+  await expect(page.getByText('Your price vs the market')).toBeVisible()
+})
+
+test('market summary written without AI is not labelled as AI', async ({ page }) => {
+  await installApiMocks(page, 'owner', {
+    'GET ai/market-insight': { scenario: 'success', body: { success: true, summary: 'There are 6 live listings.', ai_written: false, aggregates: {} } },
+  })
+  await seedAuthenticatedRole(page, 'owner')
+  await page.goto('/owner/dashboard')
+  await waitForRouteReady(page)
+  await page.getByRole('button', { name: /Market insights/ }).click()
+  await expect(page.getByText('Market summary', { exact: true })).toBeVisible()
+  await expect(page.getByText('AI market insight')).toHaveCount(0)
 })
 
 test.describe('AI help in the listing form', () => {
