@@ -1,68 +1,26 @@
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { RouterLink } from 'vue-router'
-
-import {
-  ArrowLeft,
-  CheckCircle2,
-  AlertTriangle,
-  Info
-} from '@lucide/vue'
-
+import { ArrowLeft, Info } from '@lucide/vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import PropertyForm from '@/components/forms/PropertyForm.vue'
+import SaveResultDialog from '@/components/common/SaveResultDialog.vue'
 import { clearFormDraft } from '@/composables/useFormDraft'
+import { useListingSaveDialog } from '@/composables/useListingSaveDialog'
+import { addOwnerProperty, type NewOwnerPropertyInput } from '@/stores/ownerProperties'
 
-import {
-  addOwnerProperty,
-  type NewOwnerPropertyInput
-} from '@/stores/ownerProperties'
-
-type OwnerFormPayload = Omit<NewOwnerPropertyInput, 'images'> & { images: File[] }
-
-
-type NoticeType = 'success' | 'warning'
+type OwnerFormPayload = Omit<NewOwnerPropertyInput, 'images'> & { images: File[]; title: string; status: 'Draft' | 'Pending' }
 
 const workspaceBase = '/owner'
 const route = useRoute()
-const confirmation = ref('')
-const noticeType = ref<NoticeType>('success')
-const lastAction = ref<'Draft' | 'Pending' | null>(null)
-const savedPropertyId = ref<number | null>(null)
-const isSubmitting = ref(false)
 
-async function handleSave(property: OwnerFormPayload) {
-  if (isSubmitting.value) {
-    return
-  }
-
-  isSubmitting.value = true
-
-  try {
-    const saved = await addOwnerProperty(property)
-    clearFormDraft(`property-${route.fullPath}`)
-    lastAction.value = property.status
-    savedPropertyId.value = saved.id
-    noticeType.value = 'success'
-    confirmation.value = property.status === 'Draft'
-      ? `Your draft "${property.title}" was saved.`
-      : `"${property.title}" was submitted for review.`
-  } catch (error) {
-    noticeType.value = 'warning'
-
-    // The API client already turns server errors into plain-language messages.
-    confirmation.value = error instanceof Error && error.message ? error.message : 'Unable to save the property.'
-  } finally {
-    isSubmitting.value = false
-  }
-
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  })
-}
+const { dialog, busy, formKey, primaryLabel, submit, primary, close } = useListingSaveDialog<OwnerFormPayload>({
+  mode: 'create',
+  listPath: `${workspaceBase}/properties`,
+  save: (input) => addOwnerProperty(input),
+  afterSave: () => clearFormDraft(`property-${route.fullPath}`),
+})
 </script>
 
 <template>
@@ -105,54 +63,22 @@ async function handleSave(property: OwnerFormPayload) {
         </div>
       </div>
 
-      <!-- SAVE CONFIRMATION -->
-      <div
-        v-if="confirmation"
-        class="confirmation"
-        :class="{ 'confirmation-warning': noticeType === 'warning' }"
-        role="status"
-        aria-live="polite"
-      >
-        <AlertTriangle
-          v-if="noticeType === 'warning'"
-          :size="22"
-        />
-
-        <CheckCircle2
-          v-else
-          :size="22"
-        />
-
-        <div>
-          <strong>
-            {{
-              noticeType === 'warning'
-                ? 'Save Failed'
-                : lastAction === 'Draft'
-                  ? 'Draft Saved'
-                  : 'Listing Submitted'
-            }}
-          </strong>
-
-          <p>{{ confirmation }}</p>
-
-          <div class="confirmation-actions">
-            <RouterLink
-              :to="`${workspaceBase}/properties`"
-              class="view-properties-link"
-            >
-              View My Properties
-            </RouterLink>
-
-            <span v-if="savedPropertyId !== null" class="record-reference">
-              Listing #{{ savedPropertyId }}
-            </span>
-          </div>
-        </div>
-      </div>
-
       <!-- REUSABLE PROPERTY FORM -->
-      <PropertyForm @save="handleSave" />
+      <PropertyForm :key="formKey" @save="submit" />
+
+      <SaveResultDialog
+        :open="dialog.open"
+        :variant="dialog.variant"
+        :title="dialog.title"
+        :message="dialog.message"
+        :note="dialog.note"
+        :primary-label="primaryLabel"
+        link-label="View my properties"
+        :link-to="`${workspaceBase}/properties`"
+        :busy="busy"
+        @primary="primary"
+        @close="close"
+      />
 
     </main>
   </AppSidebar>
@@ -242,83 +168,6 @@ async function handleSave(property: OwnerFormPayload) {
   line-height: 1.7;
 }
 
-/* SAVE CONFIRMATION */
-
-.confirmation {
-  display: flex;
-  align-items: flex-start;
-  gap: 13px;
-  padding: 18px 20px;
-  margin-bottom: 24px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 11px;
-  color: #15803d;
-}
-
-.confirmation > svg {
-  flex-shrink: 0;
-}
-
-.confirmation strong {
-  font-size: 13px;
-}
-
-.confirmation p {
-  margin: 6px 0 0;
-  font-size: 12px;
-  line-height: 1.7;
-}
-
-.confirmation-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 15px;
-}
-
-.view-properties-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 14px;
-  background: #ffffff;
-  border: 1px solid #bbf7d0;
-  border-radius: 8px;
-  color: #166534;
-  font-size: 12px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: background 0.2s;
-}
-
-.view-properties-link:hover {
-  background: #dcfce7;
-}
-
-.record-reference {
-  color: #5e6d82;
-  font-size: 11px;
-}
-
-/* STORAGE WARNING */
-
-.confirmation-warning {
-  background: #fffbeb;
-  border-color: #fde68a;
-  color: #92400e;
-}
-
-.confirmation-warning .view-properties-link {
-  border-color: #fde68a;
-  color: #92400e;
-}
-
-.confirmation-warning .view-properties-link:hover {
-  background: #fef3c7;
-}
-
 /* RESPONSIVE */
 
 @media (max-width: 650px) {
@@ -326,14 +175,8 @@ async function handleSave(property: OwnerFormPayload) {
     margin-bottom: 22px;
   }
 
-  .demo-notice,
-  .confirmation {
+  .demo-notice {
     padding: 15px;
-  }
-
-  .confirmation-actions {
-    align-items: flex-start;
-    flex-direction: column;
   }
 }
 </style>

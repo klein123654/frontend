@@ -85,7 +85,7 @@ test('owner can create a property listing draft', async ({ page }) => {
   const form = new ListingWorkspacePropertyFormPage(page)
   await fillDraftForm(page, 'Draft Riverside Unit')
   await form.saveDraftButton.click()
-  await expect(page.getByRole('status').filter({ hasText: /draft saved/i })).toContainText('Draft Saved')
+  await expect(page.getByRole('dialog', { name: 'Draft saved' })).toBeVisible()
 })
 
 test('owner can submit a property listing for review', async ({ page }) => {
@@ -97,7 +97,7 @@ test('owner can submit a property listing for review', async ({ page }) => {
   await form.imageInput.setInputFiles({ name: 'listing.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/rWQAAAAASUVORK5CYII=', 'base64') })
   await form.map.click({ position: { x: 120, y: 120 } })
   await form.submitReviewButton.click()
-  await expect(page.getByRole('status').filter({ hasText: /listing submitted/i })).toContainText('Listing Submitted')
+  await expect(page.getByRole('dialog', { name: 'Submitted for review' })).toBeVisible()
 })
 
 test('owner can view inquiries on their listings', async ({ page }) => {

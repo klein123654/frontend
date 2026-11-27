@@ -62,14 +62,51 @@ for (const { role, basePath } of workspaces) {
       const form = new ListingWorkspacePropertyFormPage(page, basePath)
       await fillPropertyForm(page, `Draft ${role} unit`)
       await form.saveDraftButton.click()
-      await expect(page.getByRole('status').filter({ hasText: /draft saved/i })).toContainText('Draft Saved')
-      await expect(page.getByRole('status').filter({ hasText: `Draft ${role} unit` })).toContainText(`Draft ${role} unit`)
+      const dialog = page.getByRole('dialog', { name: 'Draft saved' })
+      await expect(dialog).toContainText(`Draft ${role} unit`)
+      await expect(dialog.getByRole('link', { name: 'View my properties' })).toHaveAttribute('href', `${basePath}/properties`)
+
+      // OK clears the form for the next listing.
+      await dialog.getByRole('button', { name: 'OK, add another property' }).click()
+      await expect(dialog).toBeHidden()
+      await expect(page.locator('#property-title')).toHaveValue('')
+      await expect(page.locator('#property-barangay')).toHaveValue('')
+    })
+
+    test(`${role} keeps everything typed when the save fails, and can try again`, async ({ page }) => {
+      let attempts = 0
+      await openWorkspace(page, role, `${basePath}/properties/create`)
+      await page.route('**/api/my/properties', async (route) => {
+        attempts += 1
+        if (attempts <= 2) {
+          await route.fulfill({ status: 500, json: { message: 'Your photos could not be uploaded right now. Please try again in a few minutes.', type: 'storage_error' } })
+        } else {
+          await route.fulfill({ json: { data: { ...draftListing, id: 881, title: `Retry ${role} unit`, status: 'draft' } } })
+        }
+      })
+      const form = new ListingWorkspacePropertyFormPage(page, basePath)
+      await fillPropertyForm(page, `Retry ${role} unit`)
+      await form.saveDraftButton.click()
+
+      const failure = page.getByRole('alertdialog', { name: 'Couldn’t save your listing' })
+      await expect(failure).toContainText('could not be uploaded right now')
+      await expect(failure).toContainText('Nothing you typed was lost')
+      await failure.getByRole('button', { name: 'Close' }).click()
+      await expect(page.locator('#property-title')).toHaveValue(`Retry ${role} unit`)
+      await expect(page.locator('#property-barangay')).toHaveValue('Baan KM 3')
+
+      await form.saveDraftButton.click()
+      await page.getByRole('alertdialog').getByRole('button', { name: 'Try again' }).click()
+      await expect(page.getByRole('dialog', { name: 'Draft saved' })).toBeVisible()
+      expect(attempts).toBe(3)
     })
 
     test(`${role} listing form displays required-field validation`, async ({ page }) => {
       await openWorkspace(page, role, `${basePath}/properties/create`)
       await new ListingWorkspacePropertyFormPage(page, basePath).submitReviewButton.click()
-      await expect(page.getByText(/correct the highlighted fields/i)).toBeVisible()
+      await expect(page.getByText(/please fix the \d+ highlighted fields/i)).toBeVisible()
+      await expect(page.getByTestId('save-result-dialog')).toBeHidden()
+      await expect(page.locator('#property-title')).toBeFocused()
       await expect(page.getByText(/valid Butuan barangay/i)).toBeVisible()
       await expect(page.getByText(/choose the property location on the map/i)).toBeVisible()
     })
@@ -86,7 +123,7 @@ for (const { role, basePath } of workspaces) {
       await form.imageInput.setInputFiles({ name: 'listing.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/rWQAAAAASUVORK5CYII=', 'base64') })
       await form.map.click({ position: { x: 120, y: 120 } })
       await form.submitReviewButton.click()
-      await expect(page.getByRole('status').filter({ hasText: /listing submitted/i })).toContainText('Listing Submitted')
+      await expect(page.getByRole('dialog', { name: 'Submitted for review' })).toContainText(`Review ${role} unit`)
       expect(receivedMultipart).toBe(true)
     })
 
@@ -95,7 +132,10 @@ for (const { role, basePath } of workspaces) {
       await expect(page.locator('#property-title')).toHaveValue(draftListing.title)
       await page.locator('#property-title').fill(`Updated ${role} draft`)
       await page.getByRole('button', { name: /save changes/i }).click()
-      await expect(page.getByRole('status').filter({ hasText: /changes saved/i })).toContainText('Changes Saved')
+      const dialog = page.getByRole('dialog', { name: 'Changes saved' })
+      await expect(dialog).toBeVisible()
+      await dialog.getByRole('button', { name: 'OK', exact: true }).click()
+      await expect(page).toHaveURL(new RegExp(`${basePath}/properties/${draftListing.id}$`))
     })
 
     test(`${role} can edit an approved listing and it goes back to review`, async ({ page }) => {
@@ -106,7 +146,7 @@ for (const { role, basePath } of workspaces) {
       await page.locator('#property-title').fill(`Updated ${role} live listing`)
       await page.locator('#property-barangay').fill('Baan KM 3')
       await page.getByRole('button', { name: /save changes/i }).click()
-      await expect(page.getByRole('status').filter({ hasText: /sent to an administrator for review/i })).toBeVisible()
+      await expect(page.getByRole('dialog', { name: 'Changes saved' })).toContainText(/sent to an administrator for review/i)
     })
 
     test(`${role} can delete an approved listing after a warning`, async ({ page }) => {

@@ -2,11 +2,10 @@
 <script setup lang="ts">
 import { REVIEW_ON_EDIT_NOTICE, editRequiresReview } from '@/utils/listingRules'
 import { computed, onMounted, ref } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 
 import {
   ArrowLeft,
-  CheckCircle2,
   AlertTriangle,
   Info,
   PencilLine
@@ -14,6 +13,8 @@ import {
 
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import PropertyForm from '@/components/forms/PropertyForm.vue'
+import SaveResultDialog from '@/components/common/SaveResultDialog.vue'
+import { useListingSaveDialog } from '@/composables/useListingSaveDialog'
 import { clearFormDraft } from '@/composables/useFormDraft'
 
 import {
@@ -23,10 +24,9 @@ import {
   type NewOwnerPropertyInput
 } from '@/stores/ownerProperties'
 
-type OwnerFormPayload = Omit<NewOwnerPropertyInput, 'images'> & { images: File[] }
+type OwnerFormPayload = Omit<NewOwnerPropertyInput, 'images'> & { images: File[]; title: string; status: 'Draft' | 'Pending' }
 
 const route = useRoute()
-const router = useRouter()
 const workspaceBase = '/owner'
 
 const propertyId = computed(() => {
@@ -42,40 +42,20 @@ const property = computed(() =>
     ? undefined
     : getEditableOwnerProperty(propertyId.value)
 )
-const confirmation = ref('')
 const errorMessage = ref('')
 onMounted(() => loadOwnerProperties().catch((error) => {
   errorMessage.value = error instanceof Error ? error.message : 'Unable to load properties.'
 }))
 
-async function handleSave(values: OwnerFormPayload) {
-  confirmation.value = ''
-  errorMessage.value = ''
-
-  if (propertyId.value === null) {
-    errorMessage.value = 'Invalid property ID.'
-    return
-  }
-
-  try {
-    const updated = await updateOwnerProperty(propertyId.value, values)
-    clearFormDraft(`property-${route.fullPath}`)
-    if (values.status === 'Pending' && !editRequiresReview(property.value?.status ?? 'Draft')) {
-      void router.push(`${workspaceBase}/properties/${propertyId.value}`)
-      return
-    }
-    confirmation.value = updated.status === 'Pending'
-      ? `Changes to "${updated.title}" were saved and sent to an administrator for review.`
-      : `Changes to "${updated.title}" were saved.`
-  } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Unable to update this property.'
-  }
-
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  })
-}
+const { dialog, busy, primaryLabel, submit, primary, close } = useListingSaveDialog<OwnerFormPayload>({
+  mode: 'edit',
+  listPath: `${workspaceBase}/properties`,
+  save: (values) => {
+    if (propertyId.value === null) return Promise.reject(new Error('Invalid property ID.'))
+    return updateOwnerProperty(propertyId.value, values)
+  },
+  afterSave: () => clearFormDraft(`property-${route.fullPath}`),
+})
 </script>
 
 <template>
@@ -140,28 +120,6 @@ async function handleSave(values: OwnerFormPayload) {
           </div>
         </div>
 
-        <!-- SUCCESS MESSAGE -->
-        <div
-          v-if="confirmation"
-          class="feedback success-feedback"
-          role="status"
-          aria-live="polite"
-        >
-          <CheckCircle2 :size="21" />
-
-          <div>
-            <strong>Changes Saved</strong>
-            <p>{{ confirmation }}</p>
-
-            <RouterLink
-              :to="`${workspaceBase}/properties`"
-              class="feedback-link"
-            >
-              View My Properties
-            </RouterLink>
-          </div>
-        </div>
-
         <!-- ERROR -->
         <div
           v-if="errorMessage"
@@ -183,7 +141,21 @@ async function handleSave(values: OwnerFormPayload) {
         <PropertyForm
           mode="edit"
           :initial-values="property"
-          @save="handleSave"
+          @save="submit"
+        />
+
+        <SaveResultDialog
+          :open="dialog.open"
+          :variant="dialog.variant"
+          :title="dialog.title"
+          :message="dialog.message"
+          :note="dialog.note"
+          :primary-label="primaryLabel"
+          link-label="View my properties"
+          :link-to="`${workspaceBase}/properties`"
+          :busy="busy"
+          @primary="primary"
+          @close="close"
         />
 
       </template>
@@ -371,11 +343,6 @@ async function handleSave(values: OwnerFormPayload) {
   line-height: 1.7;
 }
 
-.success-feedback {
-  border: 1px solid #bbf7d0;
-  background: #f0fdf4;
-  color: #15803d;
-}
 
 .warning-feedback {
   border: 1px solid #fde68a;
@@ -383,24 +350,7 @@ async function handleSave(values: OwnerFormPayload) {
   color: #92400e;
 }
 
-.feedback-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 14px;
-  padding: 10px 14px;
-  border: 1px solid #bbf7d0;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #166534;
-  font-size: 12px;
-  font-weight: 700;
-  text-decoration: none;
-}
 
-.feedback-link:hover {
-  background: #dcfce7;
-}
 
 /* NOT FOUND */
 

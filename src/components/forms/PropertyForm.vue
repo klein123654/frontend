@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import InputText from 'primevue/inputtext'
@@ -103,6 +103,7 @@ const longitude = ref<number | null>(null)
 const price = ref<number | null>(null)
 const area = ref<number | null>(null)
 const description = ref('')
+const formElement = ref<HTMLFormElement | null>(null)
 /** Publisher's notes for the AI helper; not saved with the listing. */
 const aiFeatures = ref('')
 const route = useRoute()
@@ -212,8 +213,11 @@ function validateForSubmission(): boolean {
   ).some(Boolean)
 
   if (hasMissingFields) {
-    errorMessage.value =
-      'Please correct the highlighted fields before submitting.'
+    const count = Object.values(fieldErrors.value).filter(Boolean).length
+    errorMessage.value = count === 1
+      ? 'Please fix the highlighted field before submitting.'
+      : `Please fix the ${count} highlighted fields before submitting.`
+    void focusFirstProblem()
     return false
   }
 
@@ -265,6 +269,16 @@ const aiFacts = computed(() => ({
   listingType: listingType.value ?? '',
 }))
 
+/** Scroll to the first highlighted field and put the cursor in it, so nothing is hidden behind a pop-up. */
+async function focusFirstProblem() {
+  await nextTick()
+  const firstError = formElement.value?.querySelector('.field-error, .p-invalid, [aria-invalid="true"]')
+  const field = firstError?.closest('.field') ?? firstError
+  if (!(field instanceof HTMLElement)) return
+  field.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  field.querySelector<HTMLElement>('input, select, textarea')?.focus({ preventScroll: true })
+}
+
 // SAVE DRAFT OR SAVE CHANGES
 
 function saveDraft() {
@@ -275,6 +289,7 @@ function saveDraft() {
     .some(([field, invalid]) => field !== 'images' && field !== 'coordinates' && invalid)
   if (incomplete) {
     errorMessage.value = 'Complete the property details before saving your draft.'
+    void focusFirstProblem()
     return
   }
 
@@ -297,6 +312,7 @@ function submitForReview() {
 
 <template>
   <form
+    ref="formElement"
     class="property-form"
     novalidate
     @submit.prevent="submitForReview"
